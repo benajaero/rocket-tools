@@ -1,0 +1,70 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "rocket-tools"
+version = "0.1.0"
+description = "Aerospace engineering intelligence for AI agents"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Human Engine", email = "engineering@humanengine.dev"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-benchmark>=4.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+    "numba>=0.58",
+    "matplotlib>=3.7",
+]
+
+[project.urls]
+Homepage = "https://github.com/benajaero/rocket-tools"
+Repository = "https://github.com/benajaero/rocket-tools"
+Issues = "https://github.com/benajaero/rocket-tools/issues"
+
+[tool.maturin]
+python-source = "src"
+module-name = "rocket_tools._rust_kernels"
+manifest-path = "src/rust_kernels/Cargo.toml"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --disable-warnings"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/rust_kernels/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
