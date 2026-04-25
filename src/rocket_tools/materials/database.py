@@ -82,7 +82,7 @@ def material_lookup(name: str, property_filter: Optional[str] = None) -> dict:
     if name_normalized not in _MATERIALS:
         # Simple fuzzy match
         for key in _MATERIALS:
-            if name_normalized.replace("-", "") == key.replace("-", ""):
+            if name_normalized.replace("-", "") == key.upper().replace("-", ""):
                 name_normalized = key
                 break
         else:
