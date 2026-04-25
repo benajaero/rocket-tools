@@ -1,7 +1,8 @@
 """International Standard Atmosphere with pre-computed cache."""
 
-import numpy as np
 from functools import lru_cache
+
+import numpy as np
 
 G_STD = 9.80665
 R_AIR = 287.05

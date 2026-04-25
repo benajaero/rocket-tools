@@ -1,7 +1,8 @@
 """Tests for materials and ISA."""
 
 import pytest
-from rocket_tools.materials import material_lookup, isa_atmosphere
+
+from rocket_tools.materials import isa_atmosphere, material_lookup
 
 
 class TestMaterialLookup:

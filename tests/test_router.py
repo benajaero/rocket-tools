@@ -1,7 +1,6 @@
 """Tests for the natural language router."""
 
-import pytest
-from rocket_tools.router import route_query, ToolCall, ClarificationRequest
+from rocket_tools.router import ClarificationRequest, ToolCall, route_query
 
 
 class TestRouterBeam:

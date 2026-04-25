@@ -1,14 +1,14 @@
 """Intent pattern registry for aerospace queries."""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 from .extractors import (
-    extract_load,
-    extract_length,
-    extract_velocity,
     extract_altitude,
+    extract_length,
+    extract_load,
     extract_material,
+    extract_velocity,
 )
 
 

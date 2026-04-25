@@ -1,11 +1,10 @@
 """Benchmarks for aerodynamics calculations."""
 
-import pytest
 from rocket_tools.aerodynamics import (
-    reynolds_number,
-    mach_number,
-    dynamic_pressure,
     aero_analysis,
+    dynamic_pressure,
+    mach_number,
+    reynolds_number,
 )
 
 

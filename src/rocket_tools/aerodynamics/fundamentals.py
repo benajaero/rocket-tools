@@ -2,14 +2,13 @@
 
 import numpy as np
 from numba import njit
-from typing import Optional
 
 
 @njit(cache=True)
-def _reynolds_number(rho: float, v: float, l: float, mu: float) -> float:
-    if mu <= 0.0 or l <= 0.0 or rho < 0.0 or v < 0.0:
+def _reynolds_number(rho: float, v: float, char_length: float, mu: float) -> float:
+    if mu <= 0.0 or char_length <= 0.0 or rho < 0.0 or v < 0.0:
         raise ValueError("Invalid physical parameters for Re")
-    return rho * v * l / mu
+    return rho * v * char_length / mu
 
 
 @njit(cache=True)
@@ -23,7 +22,7 @@ def _mach_number(v: float, a: float) -> float:
 def _dynamic_pressure(rho: float, v: float) -> float:
     if rho < 0.0 or v < 0.0:
         raise ValueError("Density and velocity must be >= 0")
-    return 0.5 * rho * v ** 2
+    return 0.5 * rho * v**2
 
 
 @njit(cache=True)
@@ -55,17 +54,18 @@ def _skin_friction_coefficient(re: float, laminar: bool = True) -> float:
 
 # ---- Public API ----
 
+
 def reynolds_number(
     velocity: float,
     characteristic_length: float,
-    density: Optional[float] = None,
-    dynamic_viscosity: Optional[float] = None,
-    altitude_m: Optional[float] = None,
-    temperature_k: Optional[float] = None,
+    density: float | None = None,
+    dynamic_viscosity: float | None = None,
+    altitude_m: float | None = None,
+    temperature_k: float | None = None,
 ) -> dict:
     """
     Compute Reynolds number.
-    
+
     Either provide density and viscosity directly, or altitude_m for ISA lookup,
     or temperature_k for standard density with given temperature.
     """
@@ -74,6 +74,7 @@ def reynolds_number(
         mu = dynamic_viscosity
     elif altitude_m is not None:
         from rocket_tools.materials import isa_atmosphere
+
         isa = isa_atmosphere(altitude_m)
         rho = isa["density_kg_m3"]
         # Sutherland's law for dynamic viscosity of air
@@ -95,7 +96,7 @@ def reynolds_number(
     re = _reynolds_number(rho, velocity, characteristic_length, mu)
 
     flow_regime = "laminar" if re < 5e5 else "transitional" if re < 1e6 else "turbulent"
-    
+
     return {
         "reynolds_number": round(float(re), 2),
         "density_kg_m3": round(float(rho), 4),
@@ -108,15 +109,19 @@ def reynolds_number(
 
 def mach_number(velocity: float, altitude_m: float) -> dict:
     from rocket_tools.materials import isa_atmosphere
+
     isa = isa_atmosphere(altitude_m)
     a = isa["speed_of_sound_m_s"]
     m = _mach_number(velocity, a)
 
     regime = (
-        "subsonic" if m < 0.8 else
-        "transonic" if m < 1.2 else
-        "supersonic" if m < 5.0 else
-        "hypersonic"
+        "subsonic"
+        if m < 0.8
+        else "transonic"
+        if m < 1.2
+        else "supersonic"
+        if m < 5.0
+        else "hypersonic"
     )
 
     return {
@@ -130,6 +135,7 @@ def mach_number(velocity: float, altitude_m: float) -> dict:
 
 def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
     from rocket_tools.materials import isa_atmosphere
+
     isa = isa_atmosphere(altitude_m)
     rho = isa["density_kg_m3"]
     q = _dynamic_pressure(rho, velocity)
@@ -142,8 +148,11 @@ def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
     }
 
 
-def lift_coefficient(lift: float, velocity: float, altitude_m: float, reference_area: float) -> dict:
+def lift_coefficient(
+    lift: float, velocity: float, altitude_m: float, reference_area: float
+) -> dict:
     from rocket_tools.materials import isa_atmosphere
+
     isa = isa_atmosphere(altitude_m)
     rho = isa["density_kg_m3"]
     cl = _lift_coefficient(lift, rho, velocity, reference_area)
@@ -156,8 +165,11 @@ def lift_coefficient(lift: float, velocity: float, altitude_m: float, reference_
     }
 
 
-def drag_coefficient(drag: float, velocity: float, altitude_m: float, reference_area: float) -> dict:
+def drag_coefficient(
+    drag: float, velocity: float, altitude_m: float, reference_area: float
+) -> dict:
     from rocket_tools.materials import isa_atmosphere
+
     isa = isa_atmosphere(altitude_m)
     rho = isa["density_kg_m3"]
     cd = _drag_coefficient(drag, rho, velocity, reference_area)
@@ -192,7 +204,9 @@ def aero_analysis(
     """
     Comprehensive aerodynamic analysis in a single call.
     """
-    re_result = reynolds_number(velocity=velocity, characteristic_length=characteristic_length, altitude_m=altitude_m)
+    re_result = reynolds_number(
+        velocity=velocity, characteristic_length=characteristic_length, altitude_m=altitude_m
+    )
     mach_result = mach_number(velocity=velocity, altitude_m=altitude_m)
     q_result = dynamic_pressure(velocity=velocity, altitude_m=altitude_m)
 
