@@ -4,7 +4,7 @@
 
 [![Tests](https://img.shields.io/badge/tests-34%20passing-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
-[![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
 ## What is rocket-tools?
 
@@ -149,7 +149,7 @@ rocket_tools/
 
 ## License
 
-MIT — See [LICENSE](LICENSE)
+Apache-2.0 — See [LICENSE](LICENSE)
 
 ---
 
