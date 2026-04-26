@@ -1,0 +1,27 @@
+name: design_beam
+version: "0.1.0"
+description: "Material lookup → beam analysis"
+inputs:
+  material: {type: str, required: true}
+  load: {type: float, required: true}
+  length: {type: float, required: true}
+  cross_section: {type: dict, required: true}
+
+steps:
+  - id: lookup_material
+    tool: material_lookup
+    params:
+      name: "${inputs.material}"
+    save_as: mat
+
+  - id: analyze_beam
+    tool: beam_analysis
+    params:
+      load: "${inputs.load}"
+      length: "${inputs.length}"
+      youngs_modulus: "${mat.youngs_modulus_pa}"
+      cross_section: "${inputs.cross_section}"
+    save_as: beam
+
+outputs:
+  - "${beam}"

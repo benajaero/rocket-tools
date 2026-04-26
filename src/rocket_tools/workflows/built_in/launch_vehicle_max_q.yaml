@@ -1,0 +1,24 @@
+name: launch_vehicle_max_q
+version: "0.1.0"
+description: "ISA → dynamic pressure at max-q"
+inputs:
+  max_q_altitude_m: {type: float, required: true}
+  max_q_velocity_m_s: {type: float, required: true}
+
+steps:
+  - id: max_q_env
+    tool: isa_atmosphere
+    params:
+      altitude_m: "${inputs.max_q_altitude_m}"
+    save_as: env
+
+  - id: q_max
+    tool: dynamic_pressure
+    params:
+      velocity: "${inputs.max_q_velocity_m_s}"
+      altitude_m: "${inputs.max_q_altitude_m}"
+    save_as: q
+
+outputs:
+  - "${env}"
+  - "${q}"

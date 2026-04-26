@@ -1,0 +1,38 @@
+name: preliminary_aircraft_sizing
+version: "0.1.0"
+description: "ISA → Reynolds number → lift coefficient for cruise conditions"
+inputs:
+  cruise_altitude_m: {type: float, required: true}
+  cruise_velocity_m_s: {type: float, required: true}
+  mean_aerodynamic_chord_m: {type: float, required: true}
+  wing_area_m2: {type: float, required: true}
+  mass_kg: {type: float, required: true}
+
+steps:
+  - id: cruise_env
+    tool: isa_atmosphere
+    params:
+      altitude_m: "${inputs.cruise_altitude_m}"
+    save_as: env
+
+  - id: re_cruise
+    tool: reynolds_number
+    params:
+      velocity: "${inputs.cruise_velocity_m_s}"
+      characteristic_length: "${inputs.mean_aerodynamic_chord_m}"
+      altitude_m: "${inputs.cruise_altitude_m}"
+    save_as: re
+
+  - id: cl_cruise
+    tool: lift_coefficient
+    params:
+      lift: "${inputs.mass_kg * 9.80665}"
+      velocity: "${inputs.cruise_velocity_m_s}"
+      altitude_m: "${inputs.cruise_altitude_m}"
+      reference_area: "${inputs.wing_area_m2}"
+    save_as: cl
+
+outputs:
+  - "${env}"
+  - "${re}"
+  - "${cl}"
