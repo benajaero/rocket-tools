@@ -4,8 +4,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from .intents import INTENT_REGISTRY
 from rocket_tools.materials.database import material_lookup
+
+from .intents import INTENT_REGISTRY
 
 
 @dataclass
@@ -46,7 +47,9 @@ def route_query(query: str) -> ToolCall | ClarificationRequest:
     scores = classify_intent(query)
     if not scores or scores[0][1] == 0.0:
         return ClarificationRequest(
-            message="I couldn't understand your query. Try rephrasing with specific numbers and units.",
+            message=(
+                "I couldn't understand your query. Try rephrasing with specific numbers and units."
+            ),
             possible_tools=list(INTENT_REGISTRY.keys()),
             missing_params=[],
         )

@@ -1,7 +1,5 @@
 """Input validation with aerospace-specific constraints."""
 
-from typing import Any
-
 
 class ValidationError(ValueError):
     """Structured validation error for MCP responses."""

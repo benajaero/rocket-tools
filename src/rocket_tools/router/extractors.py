@@ -1,10 +1,11 @@
 """Regex-based parameter extraction from natural language."""
 
 import re
-from typing import Optional
 
 
-def extract_number_with_unit(text: str, unit_pattern: str, negative_lookahead: str = "") -> Optional[tuple[float, str]]:
+def extract_number_with_unit(
+    text: str, unit_pattern: str, negative_lookahead: str = ""
+) -> tuple[float, str] | None:
     if negative_lookahead:
         pattern = rf"(\d+\.?\d*)\s*({unit_pattern})(?!{negative_lookahead})"
     else:
@@ -15,7 +16,7 @@ def extract_number_with_unit(text: str, unit_pattern: str, negative_lookahead: s
     return None
 
 
-def extract_load(text: str) -> Optional[float]:
+def extract_load(text: str) -> float | None:
     result = extract_number_with_unit(text, r"N|n|Newtons?|newtons?|kN|kn")
     if result:
         val, unit = result
@@ -25,7 +26,7 @@ def extract_load(text: str) -> Optional[float]:
     return None
 
 
-def extract_length(text: str) -> Optional[float]:
+def extract_length(text: str) -> float | None:
     result = extract_number_with_unit(text, r"m|mm|cm|km|meters?|metres?")
     if result:
         val, unit = result
@@ -39,7 +40,7 @@ def extract_length(text: str) -> Optional[float]:
     return None
 
 
-def extract_velocity(text: str) -> Optional[float]:
+def extract_velocity(text: str) -> float | None:
     result = extract_number_with_unit(text, r"m/s|mps|km/h|kmh|mph")
     if result:
         val, unit = result
@@ -51,7 +52,7 @@ def extract_velocity(text: str) -> Optional[float]:
     return None
 
 
-def extract_altitude(text: str) -> Optional[float]:
+def extract_altitude(text: str) -> float | None:
     result = extract_number_with_unit(text, r"m|km|ft|feet|kft", negative_lookahead=r"\s*/")
     if result:
         val, unit = result
@@ -65,8 +66,9 @@ def extract_altitude(text: str) -> Optional[float]:
     return None
 
 
-def extract_material(text: str) -> Optional[str]:
+def extract_material(text: str) -> str | None:
     from rocket_tools.materials.database import _MATERIALS
+
     for key in _MATERIALS:
         if key.lower() in text.lower():
             return key

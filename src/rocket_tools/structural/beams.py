@@ -1,8 +1,9 @@
 """Beam mechanics with Numba JIT fallback."""
 
+from typing import Literal
+
 import numpy as np
 from numba import njit
-from typing import Literal
 
 
 @njit(cache=True)
@@ -13,22 +14,22 @@ def _bending_stress(m: float, s: float) -> float:
 
 
 @njit(cache=True)
-def _deflection_point_load(p: float, l: float, e: float, i_val: float) -> float:
+def _deflection_point_load(p: float, beam_length: float, e: float, i_val: float) -> float:
     if e <= 0.0 or i_val <= 0.0:
         raise ValueError("E and I must be > 0")
-    return (p * l ** 3) / (48.0 * e * i_val)
+    return (p * beam_length**3) / (48.0 * e * i_val)
 
 
 @njit(cache=True)
 def _section_modulus_rectangle(b: float, h: float) -> float:
     if b <= 0.0 or h <= 0.0:
         raise ValueError("Dimensions must be > 0")
-    return (b * h ** 2) / 6.0
+    return (b * h**2) / 6.0
 
 
 @njit(cache=True)
 def _area_moment_rectangle(b: float, h: float) -> float:
-    return (b * h ** 3) / 12.0
+    return (b * h**3) / 12.0
 
 
 @njit(cache=True)
@@ -39,10 +40,10 @@ def _shear_stress_average(v: float, a: float) -> float:
 
 
 @njit(cache=True)
-def _critical_buckling_load(e: float, i_val: float, l: float) -> float:
-    if e <= 0.0 or i_val <= 0.0 or l <= 0.0:
+def _critical_buckling_load(e: float, i_val: float, beam_length: float) -> float:
+    if e <= 0.0 or i_val <= 0.0 or beam_length <= 0.0:
         raise ValueError("E, I, and L must be > 0")
-    return (np.pi ** 2 * e * i_val) / (l ** 2)
+    return (np.pi**2 * e * i_val) / (beam_length**2)
 
 
 def beam_analysis(
@@ -55,7 +56,7 @@ def beam_analysis(
 ) -> dict:
     """
     Unified beam analysis entry point.
-    
+
     Parameters
     ----------
     load : float
@@ -65,12 +66,13 @@ def beam_analysis(
     youngs_modulus : float
         E in Pa
     cross_section : dict
-        {"type": "rectangle", "width": float, "height": float} or {"type": "circle", "diameter": float}
+        {"type": "rectangle", "width": float, "height": float}
+        or {"type": "circle", "diameter": float}
     load_type : str
         "point_midspan", "distributed", "axial"
     support_type : str
         "simply_supported", "cantilever", "fixed_ends"
-    
+
     Returns
     -------
     dict
@@ -96,9 +98,9 @@ def beam_analysis(
         if d <= 0:
             raise ValueError("Diameter must be > 0")
         r = d / 2.0
-        i_val = np.pi * r ** 4 / 4.0
-        s = np.pi * r ** 3 / 4.0
-        area = np.pi * r ** 2
+        i_val = np.pi * r**4 / 4.0
+        s = np.pi * r**3 / 4.0
+        area = np.pi * r**2
     else:
         raise ValueError(f"Unsupported cross-section type: {cs_type}")
 
@@ -109,19 +111,19 @@ def beam_analysis(
             max_deflection = _deflection_point_load(load, length, youngs_modulus, i_val)
         elif support_type == "cantilever":
             max_moment = load * length
-            max_deflection = (load * length ** 3) / (3.0 * youngs_modulus * i_val)
+            max_deflection = (load * length**3) / (3.0 * youngs_modulus * i_val)
         elif support_type == "fixed_ends":
             max_moment = load * length / 8.0
-            max_deflection = (load * length ** 3) / (192.0 * youngs_modulus * i_val)
+            max_deflection = (load * length**3) / (192.0 * youngs_modulus * i_val)
         else:
             raise ValueError(f"Unsupported support type: {support_type}")
     elif load_type == "distributed":
         if support_type == "simply_supported":
-            max_moment = load * length ** 2 / 8.0
-            max_deflection = (5 * load * length ** 4) / (384.0 * youngs_modulus * i_val)
+            max_moment = load * length**2 / 8.0
+            max_deflection = (5 * load * length**4) / (384.0 * youngs_modulus * i_val)
         elif support_type == "cantilever":
-            max_moment = load * length ** 2 / 2.0
-            max_deflection = (load * length ** 4) / (8.0 * youngs_modulus * i_val)
+            max_moment = load * length**2 / 2.0
+            max_deflection = (load * length**4) / (8.0 * youngs_modulus * i_val)
         else:
             raise ValueError(f"Unsupported support type for distributed load: {support_type}")
     elif load_type == "axial":
@@ -133,7 +135,7 @@ def beam_analysis(
 
     sigma = _bending_stress(max_moment, s)
     tau = _shear_stress_average(load, area)
-    
+
     # Critical buckling load (Euler)
     p_cr = _critical_buckling_load(youngs_modulus, i_val, length)
 
@@ -155,7 +157,9 @@ def beam_analysis(
         "area_moment_m4": round(float(i_val), 8),
         "cross_sectional_area_m2": round(float(area), 8),
         "critical_buckling_load_n": round(float(p_cr), 2),
-        "safety_factor_euler_buckling": round(float(sf_buckling), 2) if sf_buckling != float("inf") else None,
+        "safety_factor_euler_buckling": round(float(sf_buckling), 2)
+        if sf_buckling != float("inf")
+        else None,
         "section_efficiency_m2": round(float(efficiency), 8),
         "load_type": load_type,
         "support_type": support_type,

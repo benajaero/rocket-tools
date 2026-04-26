@@ -1,6 +1,5 @@
 """Benchmarks for utility functions."""
 
-import pytest
 from rocket_tools.utils import unit_convert
 
 

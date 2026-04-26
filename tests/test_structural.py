@@ -1,6 +1,7 @@
 """Tests for structural analysis."""
 
 import pytest
+
 from rocket_tools.structural import beam_analysis
 
 

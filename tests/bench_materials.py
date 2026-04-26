@@ -1,7 +1,6 @@
 """Benchmarks for material and ISA lookups."""
 
-import pytest
-from rocket_tools.materials import material_lookup, isa_atmosphere
+from rocket_tools.materials import isa_atmosphere, material_lookup
 
 
 class TestBenchMaterialLookup:

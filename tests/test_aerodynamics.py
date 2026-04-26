@@ -1,14 +1,15 @@
 """Tests for aerodynamics."""
 
 import pytest
+
 from rocket_tools.aerodynamics import (
-    reynolds_number,
-    mach_number,
+    aero_analysis,
+    drag_coefficient,
     dynamic_pressure,
     lift_coefficient,
-    drag_coefficient,
+    mach_number,
+    reynolds_number,
     skin_friction_coefficient,
-    aero_analysis,
 )
 
 
@@ -57,7 +58,7 @@ class TestMachNumber:
 class TestDynamicPressure:
     def test_sea_level(self):
         result = dynamic_pressure(100.0, 0.0)
-        expected = 0.5 * 1.225 * 100.0 ** 2
+        expected = 0.5 * 1.225 * 100.0**2
         assert pytest.approx(result["dynamic_pressure_pa"], 1.0) == expected
 
 

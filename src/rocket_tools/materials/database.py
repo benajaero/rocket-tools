@@ -1,7 +1,6 @@
 """Aerospace material database with O(1) hash map lookup."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,7 +76,7 @@ _MATERIALS: dict[str, Material] = {
 }
 
 
-def material_lookup(name: str, property_filter: Optional[str] = None) -> dict:
+def material_lookup(name: str, property_filter: str | None = None) -> dict:
     name_normalized = name.strip().upper()
     if name_normalized not in _MATERIALS:
         # Simple fuzzy match

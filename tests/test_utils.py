@@ -1,7 +1,8 @@
 """Tests for utility functions."""
 
 import pytest
-from rocket_tools.utils import unit_convert, validate_positive, ValidationError
+
+from rocket_tools.utils import ValidationError, unit_convert, validate_positive
 
 
 class TestUnitConvert:
