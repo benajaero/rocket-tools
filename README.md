@@ -2,8 +2,8 @@
 
 > Aerospace engineering intelligence for AI agents.
 
-[![Tests](https://img.shields.io/badge/tests-130%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-83%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-182%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-82%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
@@ -27,7 +27,7 @@ Built for speed, precision, and composability.
 | Domain | Tool | What it does |
 |--------|------|--------------|
 | **Structural** | `beam_analysis` | Bending, deflection, shear, Euler buckling |
-| **Materials** | `material_lookup` | 5 aerospace alloys with full thermal/mechanical properties |
+| **Materials** | `material_lookup` | 49+ aerospace materials (alloys, composites, refractory metals) with thermal/mechanical properties |
 | **Atmosphere** | `isa_atmosphere` | ISA 0–25,000 m with pre-computed cache |
 | **Aerodynamics** | `aero_analysis` | Comprehensive Re, Mach, q, CL, CD, Cf in one call |
 | | `reynolds_number` | Reynolds number at altitude |
@@ -66,7 +66,7 @@ pip install -e ".[dev]"
 ### Run Tests
 
 ```bash
-pytest -v                    # 130 tests
+pytest -v                    # 182 tests
 pytest --benchmark-only -v   # 18 benchmarks
 ```
 

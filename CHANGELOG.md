@@ -2,6 +2,26 @@
 
 All notable changes to rocket-tools.
 
+## [0.3.1] — 2026-06-10
+
+### Added
+- **Comprehensive materials library** — expanded from 5 to 49+ materials
+  - 12 aluminum alloys (2024, 6061, 7075, 2219-T87, 2195, etc.)
+  - 4 titanium alloys (Ti-6Al-4V, Ti-6Al-2Sn-4Zr-2Mo, etc.)
+  - 10 steels (4130, 4340, 17-4PH, 300M, M50, 52100, etc.)
+  - 8 nickel superalloys (Inconel-600/625/718/X750, Hastelloy-X, Waspaloy, Rene-41, Haynes-230)
+  - 6 composites (Carbon-Epoxy T300/T700, Glass-Epoxy, Kevlar-49, Carbon-Carbon, Silica-Phenolic)
+  - 5 refractory metals (Tungsten, Molybdenum, Rhenium, C18150, GlidCop-Al-25)
+  - Specialty alloys (Beryllium-Copper, Magnesium-AZ31B, Copper-C11000)
+- **Application-tagged materials** — filter by vehicle type: `rocket`, `drone`, `helicopter`, `aircraft`, `spacecraft`, `satellite`, `engine`
+- `compare_materials()` — side-by-side trade study sorted by specific strength
+- `search_materials()` — partial name search with application tags
+- `list_materials(category)` — filter by material family or application
+
+### Changed
+- `asgi.py` version strings now use `__version__` dynamically
+- README updated with current test count (182) and coverage (82%)
+
 ## [0.3.0] — 2026-06-10
 
 ### Added

@@ -2,7 +2,7 @@
 
 import pytest
 
-from rocket_tools.utils.safe_eval import SafeEvaluator, safe_eval
+from rocket_tools.utils.safe_eval import safe_eval
 from rocket_tools.utils.validation import ToolError
 
 

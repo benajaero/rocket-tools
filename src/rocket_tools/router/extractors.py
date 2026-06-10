@@ -72,16 +72,20 @@ def extract_number_with_unit(
 
 
 def extract_load(text: str) -> float | None:
-    result = extract_number_with_unit(text, r"N|n|Newtons?|newtons?|kN|kn")
+    result = extract_number_with_unit(text, r"N|n|Newtons?|newtons?|kN|kn|lbf|kip")
     if result:
         val, unit = result
         if unit in ("kn", "kN"):
             return val * 1000
+        if unit == "lbf":
+            return val * 4.4482216152605
+        if unit == "kip":
+            return val * 4448.2216152605
         return val
     return None
 
 
-_LENGTH_UNIT_RE = r"m|mm|cm|km|meters?|metres?"
+_LENGTH_UNIT_RE = r"m|mm|cm|km|meters?|metres?|inch|in|ft|feet|yd|yard"
 
 
 def extract_length(text: str) -> float | None:
@@ -94,18 +98,28 @@ def extract_length(text: str) -> float | None:
             return val / 100
         if unit in ("km",):
             return val * 1000
+        if unit in ("inch", "in"):
+            return val * 0.0254
+        if unit in ("ft", "feet"):
+            return val * 0.3048
+        if unit in ("yd", "yard"):
+            return val * 0.9144
         return val
     return None
 
 
 def extract_velocity(text: str) -> float | None:
-    result = extract_number_with_unit(text, r"m/s|mps|km/h|kmh|mph")
+    result = extract_number_with_unit(text, r"m/s|mps|km/h|kmh|mph|fps|knot|kt")
     if result:
         val, unit = result
         if unit in ("km/h", "kmh"):
             return val / 3.6
         if unit in ("mph",):
             return val * 0.44704
+        if unit in ("fps",):
+            return val * 0.3048
+        if unit in ("knot", "kt"):
+            return val * 0.514444
         return val
     return None
 
@@ -135,10 +149,10 @@ def extract_material(text: str) -> str | None:
     return None
 
 
-_LIFT_RE = re.compile(r"lift\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE)
-_DRAG_RE = re.compile(r"drag\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE)
+_LIFT_RE = re.compile(r"lift\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf|kip)", re.IGNORECASE)
+_DRAG_RE = re.compile(r"drag\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf|kip)", re.IGNORECASE)
 _AREA_RE = re.compile(
-    r"(?:area|reference\s*area|S)\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(m2|m\^2|sq\s*m|m²)",
+    r"(?:area|reference\s*area|S)\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(m2|m\^2|sq\s*m|m²|sqft|sq\s*ft|ft2|ft\^2|sqin|sq\s*in|in2|in\^2)",
     re.IGNORECASE,
 )
 _REYNOLDS_RE = re.compile(
@@ -153,6 +167,10 @@ def extract_lift(text: str) -> float | None:
         unit = m.group(2).lower()
         if unit == "kn":
             return val * 1000
+        if unit == "lbf":
+            return val * 4.4482216152605
+        if unit == "kip":
+            return val * 4448.2216152605
         return val
     return None
 
@@ -164,6 +182,10 @@ def extract_drag(text: str) -> float | None:
         unit = m.group(2).lower()
         if unit == "kn":
             return val * 1000
+        if unit == "lbf":
+            return val * 4.4482216152605
+        if unit == "kip":
+            return val * 4448.2216152605
         return val
     return None
 
@@ -171,7 +193,13 @@ def extract_drag(text: str) -> float | None:
 def extract_reference_area(text: str) -> float | None:
     m = _AREA_RE.search(text)
     if m:
-        return float(m.group(1))
+        val = float(m.group(1))
+        unit = m.group(2).lower()
+        if unit in ("sqft", "sq ft", "ft2", "ft^2"):
+            return val * 0.092903
+        if unit in ("sqin", "sq in", "in2", "in^2"):
+            return val * 0.00064516
+        return val
     return None
 
 

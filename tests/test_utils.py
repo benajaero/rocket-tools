@@ -41,7 +41,13 @@ class TestValidation:
             validate_positive(-1.0, "test_param")
 
     def test_validation_error_dict(self):
-        err = ValidationError("msg", error_code="VALIDATION_ERROR", parameter="p", constraint="c", suggestion="s")
+        err = ValidationError(
+            "msg",
+            error_code="VALIDATION_ERROR",
+            parameter="p",
+            constraint="c",
+            suggestion="s",
+        )
         d = err.to_dict()
         assert d["error_code"] == "VALIDATION_ERROR"
         assert d["error_type"] == "validation_error"

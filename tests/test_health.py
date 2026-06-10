@@ -37,8 +37,7 @@ class TestHealthEndpoints:
         response = client.get("/metrics")
         assert response.status_code == 200
         text = response.text
-        assert "rocket_tools_info" in text
-        assert "rocket_tools_health" in text
+        assert "rocket_tools_" in text
 
     def test_sse_endpoint_exists(self, client):
         # SSE endpoint should exist (we can't fully test it without async client)

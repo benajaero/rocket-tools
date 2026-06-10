@@ -3,8 +3,6 @@
 import asyncio
 import json
 
-import pytest
-
 from rocket_tools.server import mcp
 
 
@@ -14,7 +12,9 @@ async def _call_tool(name: str, params: dict):
 
 class TestServerUnitConvert:
     def test_m_to_mm(self):
-        result = asyncio.run(_call_tool("unit_convert", {"value": 1.0, "from_unit": "m", "to_unit": "mm"}))
+        result = asyncio.run(
+            _call_tool("unit_convert", {"value": 1.0, "from_unit": "m", "to_unit": "mm"})
+        )
         assert len(result) == 1
         data = json.loads(result[0].text)
         assert data["converted_value"] == 1000.0
