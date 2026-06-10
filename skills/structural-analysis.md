@@ -7,9 +7,14 @@ tools:
   - section_properties
   - column_buckling
   - plate_buckling_coefficient
+  - margin_of_safety
+  - von_mises_stress
+  - combined_margin_of_safety
+  - deflection_margin
+  - truss_analysis
   - material_lookup
   - unit_convert
-version: 0.3.2
+version: 0.3.3
 ---
 
 # Structural Analysis
@@ -22,6 +27,10 @@ Engineering skill for analyzing beams, columns, plates, and structural members.
 - Determining cross-section properties for custom shapes
 - Checking Euler-Johnson column buckling loads
 - Estimating plate buckling coefficients for skins and tanks
+- Computing margin of safety for yield, ultimate, buckling, and fatigue
+- Analyzing combined stress states with von Mises equivalent stress
+- Checking deflection limits (L/360, L/500, custom ratios)
+- Analyzing 2D/3D pin-jointed truss structures
 - Comparing material properties for structural applications
 - Converting between SI and imperial units
 
@@ -129,6 +138,51 @@ Approximate buckling coefficient $k$ for flat rectangular plates.
 - `boundary_condition` — `"simply_supported"`, `"clamped"`, `"free_edge"`
 - `load_type` — `"compression"`, `"shear"`, `"bending"`
 
+### `margin_of_safety`
+
+Compute aerospace margin of safety.
+
+$$ MS = \frac{Allowable}{FOS \times Actual} - 1 $$
+
+**Parameters:**
+- `allowable_stress_pa` + `actual_stress_pa` — for stress-based MS
+- `allowable_load_n` + `actual_load_n` — for load-based MS
+- `factor_of_safety` — default 1.5 (yield), 1.5 (ultimate), 2.0 (buckling)
+- `failure_mode` — `"yield"`, `"ultimate"`, `"buckling"`, `"fatigue"`, `"custom"`
+
+**Returns:** `margin_of_safety`, `utilization_ratio`, `status` (PASS/MARGINAL/FAIL)
+
+### `von_mises_stress`
+
+Compute von Mises equivalent stress for combined loading.
+
+$$ \sigma_{vm} = \sqrt{ \frac{(\sigma_x - \sigma_y)^2 + (\sigma_y - \sigma_z)^2 + (\sigma_z - \sigma_x)^2 + 6(\tau_{xy}^2 + \tau_{yz}^2 + \tau_{xz}^2)}{2} } $$
+
+**Returns:** `von_mises_stress_pa`, `sigma_1_pa`, `sigma_2_pa`, `sigma_3_pa`, `max_shear_stress_pa`
+
+### `combined_margin_of_safety`
+
+Compute MS for combined stress states using von Mises. Checks both yield and ultimate if strengths are provided.
+
+### `deflection_margin`
+
+Check margin of safety against deflection limits.
+
+Common limits: L/360 (general), L/500 (control surfaces), L/200 (frames).
+
+### `truss_analysis`
+
+Analyze 2D/3D pin-jointed trusses using the direct stiffness method.
+
+**Parameters:**
+- `nodes` — List of [x, y] or [x, y, z] coordinates
+- `elements` — List of [node_i, node_j] connectivity
+- `element_properties` — List of {`youngs_modulus_pa`, `area_m2`}
+- `constraints` — List of {`node`, `fixed_dof`}
+- `loads` — List of {`node`, `force`}
+
+**Returns:** `member_forces` (tension/compression), `node_displacements`, `reactions`
+
 ### `material_lookup`
 
 Look up material properties by name. See [materials database](../src/rocket_tools/materials/database.py) for full list.
@@ -217,6 +271,59 @@ print(f"Deflection: {deflection_in:.4f} in")
 print(f"Bending stress: {stress_psi:.1f} psi")
 ```
 
+## Worked Example: Margin of Safety
+
+**Problem:** A 6061-T6 beam has bending stress of 120 MPa. Check MS for yield and ultimate.
+
+**Solution:**
+```python
+from rocket_tools.structural import combined_margin_of_safety
+
+result = combined_margin_of_safety(
+    sigma_x=120e6,
+    yield_strength_pa=276e6,
+    ultimate_strength_pa=310e6,
+    factor_of_safety_yield=1.5,
+)
+print(f"von Mises = {result['von_mises_stress_mpa']:.1f} MPa")
+print(f"MS_yield = {result['margin_of_safety_yield']['margin_of_safety']:.3f}")
+print(f"Status: {result['margin_of_safety_yield']['status']}")
+```
+
+## Worked Example: Truss Analysis
+
+**Problem:** A 2D Warren truss with 3m span carries 10 kN at the center node.
+
+**Solution:**
+```python
+from rocket_tools.structural import truss_analysis
+
+result = truss_analysis(
+    nodes=[[0, 0], [3, 0], [1.5, 1.5]],
+    elements=[[0, 2], [1, 2]],
+    element_properties=[
+        {"youngs_modulus_pa": 200e9, "area_m2": 0.001},
+        {"youngs_modulus_pa": 200e9, "area_m2": 0.001},
+    ],
+    constraints=[
+        {"node": 0, "fixed_dof": [0, 1]},
+        {"node": 1, "fixed_dof": [1]},
+    ],
+    loads=[{"node": 2, "force": [0, -10000]}],
+)
+for mf in result["member_forces"]:
+    print(f"Member {mf['element']}: {mf['state']} {abs(mf['force_n']):.0f} N")
+```
+
+## References
+
+- Roark's Formulas for Stress and Strain, 8th Ed. (Young & Budynas)
+- Bruhn, "Analysis and Design of Flight Vehicle Structures"
+- Timoshenko & Gere, "Theory of Elastic Stability", 2nd Ed.
+- Megson, "Aircraft Structures for Engineering Students", 6th Ed.
+- MIL-HDBK-5J / MMPDS-15: Material allowables
+- FAA AC 25.571-1D: Margin of safety methodology
+
 ## Common Pitfalls
 
 1. **Unit consistency** — Tools expect SI inputs (m, Pa, N). Use `convert_to_si()` or helpers like `ft_to_m()`, `lbf_to_n()` for imperial inputs.
@@ -224,3 +331,5 @@ print(f"Bending stress: {stress_psi:.1f} psi")
 3. **Buckling mode** — Euler formula assumes the weakest axis; check $I_{min}$
 4. **Dynamic loads** — Static analysis only; apply safety factors for dynamic cases
 5. **Plate buckling** — The `k` coefficient is for ideal boundary conditions; real structures need knock-down factors
+6. **MS sign convention** — Positive MS = safe, MS = 0 = exactly at limit, negative MS = failure
+7. **Truss assumptions** — All joints are pinned, loads applied at nodes only. Continuous members or distributed loads violate this assumption.

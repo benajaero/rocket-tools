@@ -7,7 +7,9 @@ from rocket_tools.schemas import (
     BreguetEnduranceInput,
     BreguetRangeInput,
     ColumnBucklingInput,
+    CombinedMarginInput,
     CompositeCGInput,
+    DeflectionMarginInput,
     DragCoefficientInput,
     DragPolarInput,
     DynamicPressureInput,
@@ -16,6 +18,7 @@ from rocket_tools.schemas import (
     LiftCoefficientInput,
     LiftCurveSlopeInput,
     MachNumberInput,
+    MarginOfSafetyInput,
     MaterialLookupInput,
     MultiStageDeltaVInput,
     NormalShockInput,
@@ -32,7 +35,9 @@ from rocket_tools.schemas import (
     RocketDeltaVInput,
     SkinFrictionInput,
     ThrustToWeightInput,
+    TrussAnalysisInput,
     UnitConvertInput,
+    VonMisesInput,
     WingLoadingInput,
 )
 from rocket_tools.schemas.structural import BeamAnalysisInput
@@ -249,6 +254,189 @@ def plate_buckling_coefficient(
             "boundary_condition": validated.boundary_condition,
             "load_type": validated.load_type,
         }
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def margin_of_safety(
+    allowable_stress_pa: float | None = None,
+    actual_stress_pa: float | None = None,
+    allowable_load_n: float | None = None,
+    actual_load_n: float | None = None,
+    factor_of_safety: float = 1.5,
+    failure_mode: str = "yield",
+) -> dict:
+    """Compute margin of safety for aerospace structural analysis.
+
+    MS = (Allowable / (FOS * Actual)) - 1
+
+    Provide either stress pair (allowable_stress_pa + actual_stress_pa)
+    or load pair (allowable_load_n + actual_load_n), not both.
+
+    failure_mode: yield, ultimate, buckling, fatigue, custom
+    """
+    from rocket_tools.structural import margin_of_safety as _ms
+
+    try:
+        validated = MarginOfSafetyInput(
+            allowable_stress_pa=allowable_stress_pa,
+            actual_stress_pa=actual_stress_pa,
+            allowable_load_n=allowable_load_n,
+            actual_load_n=actual_load_n,
+            factor_of_safety=factor_of_safety,
+            failure_mode=failure_mode,  # type: ignore[arg-type]
+        )
+        return _ms(
+            allowable_stress_pa=validated.allowable_stress_pa,
+            actual_stress_pa=validated.actual_stress_pa,
+            allowable_load_n=validated.allowable_load_n,
+            actual_load_n=validated.actual_load_n,
+            factor_of_safety=validated.factor_of_safety,
+            failure_mode=validated.failure_mode,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def von_mises_stress(
+    sigma_x: float,
+    sigma_y: float = 0.0,
+    tau_xy: float = 0.0,
+    sigma_z: float = 0.0,
+    tau_yz: float = 0.0,
+    tau_xz: float = 0.0,
+) -> dict:
+    """Compute von Mises equivalent stress and principal stresses.
+
+    For plane stress, leave sigma_z, tau_yz, tau_xz as 0.
+    """
+    from rocket_tools.structural import von_mises_stress as _vm
+
+    try:
+        validated = VonMisesInput(
+            sigma_x=sigma_x,
+            sigma_y=sigma_y,
+            tau_xy=tau_xy,
+            sigma_z=sigma_z,
+            tau_yz=tau_yz,
+            tau_xz=tau_xz,
+        )
+        return _vm(
+            validated.sigma_x,
+            validated.sigma_y,
+            validated.tau_xy,
+            validated.sigma_z,
+            validated.tau_yz,
+            validated.tau_xz,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def combined_margin_of_safety(
+    sigma_x: float,
+    sigma_y: float = 0.0,
+    tau_xy: float = 0.0,
+    yield_strength_pa: float | None = None,
+    ultimate_strength_pa: float | None = None,
+    factor_of_safety_yield: float = 1.5,
+    factor_of_safety_ultimate: float = 1.5,
+) -> dict:
+    """Compute margin of safety for combined stress state using von Mises.
+
+    Checks both yield and ultimate margins if the corresponding strengths are provided.
+    """
+    from rocket_tools.structural import combined_margin_of_safety as _cms
+
+    try:
+        validated = CombinedMarginInput(
+            sigma_x=sigma_x,
+            sigma_y=sigma_y,
+            tau_xy=tau_xy,
+            yield_strength_pa=yield_strength_pa,
+            ultimate_strength_pa=ultimate_strength_pa,
+            factor_of_safety_yield=factor_of_safety_yield,
+            factor_of_safety_ultimate=factor_of_safety_ultimate,
+        )
+        return _cms(
+            sigma_x=validated.sigma_x,
+            sigma_y=validated.sigma_y,
+            tau_xy=validated.tau_xy,
+            yield_strength_pa=validated.yield_strength_pa,
+            ultimate_strength_pa=validated.ultimate_strength_pa,
+            factor_of_safety_yield=validated.factor_of_safety_yield,
+            factor_of_safety_ultimate=validated.factor_of_safety_ultimate,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def deflection_margin(
+    actual_deflection_m: float,
+    allowable_deflection_m: float | None = None,
+    span_length_m: float | None = None,
+    deflection_limit_ratio: float = 360.0,
+) -> dict:
+    """Compute margin of safety against deflection limits.
+
+    Common limits: L/360 (general), L/500 (control surfaces), L/200 (frames).
+    """
+    from rocket_tools.structural import deflection_margin as _dm
+
+    try:
+        validated = DeflectionMarginInput(
+            actual_deflection_m=actual_deflection_m,
+            allowable_deflection_m=allowable_deflection_m,
+            span_length_m=span_length_m,
+            deflection_limit_ratio=deflection_limit_ratio,
+        )
+        return _dm(
+            actual_deflection_m=validated.actual_deflection_m,
+            allowable_deflection_m=validated.allowable_deflection_m,
+            span_length_m=validated.span_length_m,
+            deflection_limit_ratio=validated.deflection_limit_ratio,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def truss_analysis(
+    nodes: list,
+    elements: list,
+    element_properties: list,
+    constraints: list,
+    loads: list,
+) -> dict:
+    """Analyze a pin-jointed truss using the direct stiffness method.
+
+    nodes: List of [x, y] or [x, y, z] coordinates.
+    elements: List of [node_i, node_j] pairs.
+    element_properties: List of {"youngs_modulus_pa": float, "area_m2": float}.
+    constraints: List of {"node": int, "fixed_dof": [0, 1]}.
+    loads: List of {"node": int, "force": [Fx, Fy]}.
+    """
+    from rocket_tools.structural import truss_analysis as _ta
+
+    try:
+        validated = TrussAnalysisInput(
+            nodes=nodes,
+            elements=elements,
+            element_properties=element_properties,
+            constraints=constraints,
+            loads=loads,
+        )
+        return _ta(
+            nodes=validated.nodes,
+            elements=validated.elements,
+            element_properties=[p.model_dump() for p in validated.element_properties],
+            constraints=[c.model_dump() for c in validated.constraints],
+            loads=[load_item.model_dump() for load_item in validated.loads],
+        )
     except Exception as e:
         return _format_error(e)
 

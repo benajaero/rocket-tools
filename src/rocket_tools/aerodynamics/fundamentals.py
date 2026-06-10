@@ -1,4 +1,12 @@
-"""Aerodynamics fundamentals with Numba JIT."""
+"""Aerodynamics fundamentals with Numba JIT.
+
+References:
+    - Anderson, "Fundamentals of Aerodynamics", 6th Ed.
+      Reynolds number (Eq. 1.36), Mach number (Eq. 1.37),
+      dynamic pressure (Eq. 1.39), lift/drag coefficients (Eq. 1.40-1.41).
+    - Blasius (1908), ZAMM: Skin friction correlations.
+      Laminar: cf = 1.328 / sqrt(Re); Turbulent: cf = 0.0592 / Re^0.2
+"""
 
 import numpy as np
 from numba import njit

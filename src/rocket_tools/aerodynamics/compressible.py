@@ -5,6 +5,15 @@ Covers:
 - Normal shock relations
 - Oblique shock relations
 - Prandtl-Meyer expansion
+
+References:
+    - Anderson, "Fundamentals of Aerodynamics", 6th Ed. (Ch. 4)
+      Isentropic flow relations (Eq. 4.43-4.50),
+      normal shock relations (Eq. 4.58-4.65),
+      oblique shock (Eq. 4.85-4.89),
+      Prandtl-Meyer function (Eq. 4.104).
+    - Hill & Peterson, "Mechanics and Thermodynamics of Propulsion", 2nd Ed.
+      Area-Mach relation, choked flow conditions.
 """
 
 import numpy as np

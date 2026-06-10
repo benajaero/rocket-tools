@@ -105,3 +105,85 @@ class PlateBucklingInput(BaseModel):
         default="simply_supported"
     )
     load_type: Literal["compression", "shear", "bending"] = Field(default="compression")
+
+
+# ---- Margin of Safety ----
+
+
+class MarginOfSafetyInput(BaseModel):
+    """Input for margin_of_safety tool."""
+
+    allowable_stress_pa: float | None = Field(None, gt=0)
+    actual_stress_pa: float | None = Field(None, gt=0)
+    allowable_load_n: float | None = Field(None, gt=0)
+    actual_load_n: float | None = Field(None, gt=0)
+    factor_of_safety: float = Field(default=1.5, gt=0)
+    failure_mode: Literal["yield", "ultimate", "buckling", "fatigue", "custom"] = Field(
+        default="yield"
+    )
+
+
+class VonMisesInput(BaseModel):
+    """Input for von_mises_stress tool."""
+
+    sigma_x: float
+    sigma_y: float = 0.0
+    tau_xy: float = 0.0
+    sigma_z: float = 0.0
+    tau_yz: float = 0.0
+    tau_xz: float = 0.0
+
+
+class CombinedMarginInput(BaseModel):
+    """Input for combined_margin_of_safety tool."""
+
+    sigma_x: float
+    sigma_y: float = 0.0
+    tau_xy: float = 0.0
+    yield_strength_pa: float | None = Field(None, gt=0)
+    ultimate_strength_pa: float | None = Field(None, gt=0)
+    factor_of_safety_yield: float = Field(default=1.5, gt=0)
+    factor_of_safety_ultimate: float = Field(default=1.5, gt=0)
+
+
+class DeflectionMarginInput(BaseModel):
+    """Input for deflection_margin tool."""
+
+    actual_deflection_m: float = Field(..., ge=0)
+    allowable_deflection_m: float | None = Field(None, gt=0)
+    span_length_m: float | None = Field(None, gt=0)
+    deflection_limit_ratio: float = Field(default=360.0, gt=0)
+
+
+# ---- Truss Analysis ----
+
+
+class TrussElementProperty(BaseModel):
+    """Material and geometric properties for a truss element."""
+
+    youngs_modulus_pa: float = Field(..., gt=0)
+    area_m2: float = Field(..., gt=0)
+
+
+class TrussConstraint(BaseModel):
+    """Constraint (support) definition for a truss node."""
+
+    node: int = Field(..., ge=0)
+    fixed_dof: list[int] = Field(..., description="List of fixed DOF indices (0=x, 1=y, 2=z)")
+
+
+class TrussLoad(BaseModel):
+    """Load applied at a truss node."""
+
+    node: int = Field(..., ge=0)
+    force: list[float] = Field(..., description="Force vector [Fx, Fy] or [Fx, Fy, Fz]")
+
+
+class TrussAnalysisInput(BaseModel):
+    """Input for truss_analysis tool."""
+
+    nodes: list[list[float]] = Field(..., min_length=2)
+    elements: list[list[int]] = Field(..., min_length=1)
+    element_properties: list[TrussElementProperty]
+    constraints: list[TrussConstraint]
+    loads: list[TrussLoad]

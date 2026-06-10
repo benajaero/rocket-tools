@@ -2,6 +2,13 @@
 
 Covers: convergent-divergent nozzle design, thrust coefficient,
 area ratio, and supersonic inlet performance.
+
+References:
+    - Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed. (Ch. 3)
+      Thrust equation, thrust coefficient, specific impulse,
+      characteristic velocity c*, optimal expansion ratio.
+    - Hill & Peterson, "Mechanics and Thermodynamics of Propulsion", 2nd Ed.
+      Isentropic nozzle flow, choked flow, area-Mach relation.
 """
 
 import numpy as np

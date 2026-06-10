@@ -2,6 +2,12 @@
 
 Supports composite bodies made of simple shapes — useful for
 preliminary aircraft, rocket, drone, and spacecraft mass estimation.
+
+References:
+    - Raymer, "Aircraft Design: A Conceptual Approach", 5th Ed. (Ch. 11)
+      CG estimation methods, component mass fractions.
+    - Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed. (Ch. 7)
+      Propellant tank sizing and mass estimation.
 """
 
 import numpy as np

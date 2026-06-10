@@ -2,6 +2,35 @@
 
 All notable changes to rocket-tools.
 
+## [0.3.3] — 2026-06-10
+
+### Added
+- **Margin of Safety** — `margin_of_safety()`, `von_mises_stress()`, `combined_margin_of_safety()`, `deflection_margin()`
+  - Stress-based and load-based MS calculations per FAA AC 25.571
+  - Von Mises equivalent stress for combined loading states
+  - Deflection limit checks (L/360, L/500, custom ratios)
+- **Truss Analysis** — `truss_analysis()` for 2D/3D pin-jointed structures
+  - Direct stiffness method with member forces, reactions, and displacements
+  - Supports aircraft frames, spacecraft trusses, launch vehicle adapters
+- **Validation Benchmarks** — `rocket_tools.validation` module with curated test cases
+  - ISA atmosphere (NASA Standard Atmosphere 1976)
+  - Beam deflections (Roark's Formulas)
+  - Skin friction (Blasius correlations)
+  - Rocket delta-v (Sutton & Biblarz)
+  - Isentropic flow & normal shock (Anderson tables)
+  - Orbital velocity (Vallado)
+- **Material Source Citations** — All 49 materials now include primary source references
+  - MIL-HDBK-5J / MMPDS-15 for metallic alloys
+  - MIL-HDBK-17 for composites
+  - Manufacturer datasheets for specialty materials
+- **Module-level References** — Docstrings in all modules cite primary textbooks and standards
+- **REFERENCES.md** — Central bibliography with 20+ cited sources
+
+### Changed
+- Tool count: 30 → 35 MCP tools
+- README updated with new structural tools and agent manifest
+- CONTRIBUTING.md updated with 265 tests
+
 ## [0.3.2] — 2026-06-10
 
 ### Added

@@ -1,4 +1,9 @@
-"""International Standard Atmosphere with pre-computed cache."""
+"""International Standard Atmosphere with pre-computed cache.
+
+References:
+    - ISO 2533:1975: Standard Atmosphere.
+    - NASA-TM-X-74335: U.S. Standard Atmosphere, 1976.
+"""
 
 from functools import lru_cache
 

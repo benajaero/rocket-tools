@@ -54,9 +54,14 @@ from .structural import (
     BeamAnalysisOutput,
     CircleSection,
     ColumnBucklingInput,
+    CombinedMarginInput,
+    DeflectionMarginInput,
+    MarginOfSafetyInput,
     PlateBucklingInput,
     RectangleSection,
     SectionPropertiesInput,
+    TrussAnalysisInput,
+    VonMisesInput,
 )
 from .utils import UnitConvertInput, UnitConvertOutput
 
@@ -69,6 +74,11 @@ __all__ = [
     "SectionPropertiesInput",
     "ColumnBucklingInput",
     "PlateBucklingInput",
+    "MarginOfSafetyInput",
+    "VonMisesInput",
+    "CombinedMarginInput",
+    "DeflectionMarginInput",
+    "TrussAnalysisInput",
     # Materials
     "MaterialLookupInput",
     "MaterialLookupOutput",

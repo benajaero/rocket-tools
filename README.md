@@ -46,9 +46,9 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 
 | Capability | What You Get |
 |------------|--------------|
-| **30 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
+| **35 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
 | **49+ Materials** | Aluminum, titanium, steel, nickel superalloys, composites, refractory metals — with thermal & mechanical properties, filterable by application (rocket, drone, aircraft, spacecraft, engine) |
-| **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types (I-beam, C-channel, T-section, hollow), Euler-Johnson column buckling, plate buckling coefficients |
+| **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types, Euler-Johnson column buckling, plate buckling coefficients, margin of safety (stress/load/deflection), von Mises combined stress, 2D/3D truss analysis |
 | **Compressible Flow** | Isentropic relations, normal & oblique shocks, Prandtl-Meyer expansions — all Numba JIT-compiled |
 | **Aircraft Performance** | Lift curve slope, drag polar with compressibility, Breguet range & endurance, wing loading & stall speed |
 | **Rocket Nozzle Design** | Thrust, Isp, thrust coefficient, expansion ratio optimization with under/over-expansion detection |
@@ -364,7 +364,7 @@ Apache-2.0 — See [LICENSE](LICENSE)
 
 ### MCP Tool Manifest
 
-This repository exposes 30 tools via FastMCP:
+This repository exposes 35 tools via FastMCP:
 
 #### Structural Analysis
 | Tool | Schema | Description |
@@ -373,6 +373,11 @@ This repository exposes 30 tools via FastMCP:
 | `section_properties` | `SectionPropertiesInput` | Cross-section properties for 7 shapes (I-beam, C-channel, T-section, etc.) |
 | `column_buckling` | `ColumnBucklingInput` | Euler-Johnson column buckling with effective length factors |
 | `plate_buckling_coefficient` | `PlateBucklingInput` | Buckling coefficient k for plates under compression, shear, or bending |
+| `margin_of_safety` | `MarginOfSafetyInput` | Aerospace margin of safety: MS = (Allowable / (FOS × Actual)) − 1 |
+| `von_mises_stress` | `VonMisesInput` | Von Mises equivalent stress and principal stresses for combined loading |
+| `combined_margin_of_safety` | `CombinedMarginInput` | Margin of safety for combined stress states using von Mises |
+| `deflection_margin` | `DeflectionMarginInput` | Margin of safety against deflection limits (L/360, L/500, etc.) |
+| `truss_analysis` | `TrussAnalysisInput` | 2D/3D pin-jointed truss analysis via direct stiffness method |
 
 #### Aerodynamics
 | Tool | Schema | Description |
@@ -435,8 +440,8 @@ uvicorn rocket_tools.asgi:app --host 0.0.0.0 --port 8000
 
 Endpoints:
 - `GET /sse` — MCP SSE transport
-- `GET /health` — `{"status": "ok", "version": "0.3.2"}`
-- `GET /ready` — `{"status": "ready", "tools": 30}`
+- `GET /health` — `{"status": "ok", "version": "0.3.3"}`
+- `GET /ready` — `{"status": "ready", "tools": 35}`
 - `GET /metrics` — Prometheus metrics
 
 ### Natural Language Routing

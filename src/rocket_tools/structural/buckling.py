@@ -2,6 +2,13 @@
 
 Supports aircraft struts, rocket interstage cylinders, drone booms,
 helicopter rotor masts, and spacecraft truss members.
+
+References:
+    - Timoshenko & Gere, "Theory of Elastic Stability", 2nd Ed.
+      Euler buckling load and Johnson parabola for inelastic buckling.
+    - Bruhn, "Analysis and Design of Flight Vehicle Structures"
+      Plate buckling coefficients (Fig. C5.2, C5.3) and effective
+      length factors (Table C2.1).
 """
 
 from typing import Literal

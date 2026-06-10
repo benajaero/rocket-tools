@@ -2,6 +2,16 @@
 
 Covers subsonic and supersonic fixed-wing aircraft, as well as
 applicable relations for high-speed drones and missiles.
+
+References:
+    - Anderson, "Aircraft Performance and Design" (Ch. 3, 6)
+      Lift curve slope (lifting line theory), drag polar,
+      Breguet range and endurance equations.
+    - Anderson, "Fundamentals of Aerodynamics", 6th Ed. (Ch. 5)
+      Subsonic: Prandtl-Glauert compressibility correction.
+      Supersonic: linear thin airfoil theory.
+    - Raymer, "Aircraft Design: A Conceptual Approach", 5th Ed.
+      Wing loading and stall speed estimation.
 """
 
 import numpy as np

@@ -1,4 +1,10 @@
-"""Beam mechanics with Numba JIT fallback."""
+"""Beam mechanics with Numba JIT fallback.
+
+References:
+    - Roark's Formulas for Stress and Strain, 8th Ed. (Young & Budynas)
+      Table 8.1: Beam deflections and stresses for common load cases.
+    - Euler-Bernoulli beam theory for small deflections.
+"""
 
 from typing import Literal
 

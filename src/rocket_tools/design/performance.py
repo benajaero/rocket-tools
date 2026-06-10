@@ -5,6 +5,15 @@ Covers:
 - Multi-stage rocket performance
 - Aircraft range and endurance (Breguet)
 - Fuel/payload fraction estimation
+
+References:
+    - Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed. (Ch. 2, 4)
+      Tsiolkovsky rocket equation, multi-stage performance,
+      payload fraction analysis.
+    - Vallado, "Fundamentals of Astrodynamics and Applications", 4th Ed. (Ch. 1)
+      Circular orbital velocity, escape velocity, orbital period.
+    - Anderson, "Aircraft Performance and Design" (Ch. 6)
+      Breguet range and endurance equations.
 """
 
 import numpy as np
