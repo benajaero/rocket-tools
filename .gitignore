@@ -36,6 +36,11 @@ htmlcov/
 target/
 Cargo.lock
 
+# Virtual environments
+.venvs/
+venv/
+.env/
+
 # IDE
 .vscode/
 .idea/
