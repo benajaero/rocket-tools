@@ -19,6 +19,7 @@ class TestLoadWorkflow:
         assert "design_beam" in wfs
         assert "preliminary_aircraft_sizing" in wfs
         assert "launch_vehicle_max_q" in wfs
+        assert "design_beam_with_conversion" in wfs
 
 
 class TestRunWorkflow:
@@ -47,6 +48,20 @@ class TestRunWorkflow:
         })
         assert "re" in result.outputs
         assert "cl" in result.outputs
+
+    def test_design_beam_with_conversion(self):
+        wfs = load_all_workflows(BUILT_IN_DIR)
+        wf = wfs["design_beam_with_conversion"]
+        result = run_workflow(wf, {
+            "material": "6061-T6",
+            "load": 500.0,
+            "length": 2.0,
+            "cross_section": {"type": "rectangle", "width": 0.05, "height": 0.01},
+        })
+        assert "beam" in result.outputs
+        assert "deflection_mm" in result.outputs
+        assert result.outputs["deflection_mm"]["converted_value"] > 0
+        assert len(result.trace) == 3
 
     def test_interpolation_error(self):
         from rocket_tools.workflows.engine import resolve_interpolation

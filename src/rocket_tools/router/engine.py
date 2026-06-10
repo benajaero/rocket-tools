@@ -78,12 +78,12 @@ def route_query(query: str) -> ToolCall | ClarificationRequest:
         )
 
     confidence = best_score
-    if len(params) < len(config.param_extractors):
-        confidence *= 0.8
+    if config.param_extractors:
+        confidence *= len(params) / len(config.param_extractors)
 
     if confidence < 0.4:
         return ClarificationRequest(
-            message=f"I think you want '{best_tool}' but I'm missing: {missing}",
+            message=f"I think you want '{best_tool}' but I'm not confident enough (confidence={confidence:.2f}). Could you provide more details?",
             possible_tools=[best_tool],
             missing_params=missing,
         )

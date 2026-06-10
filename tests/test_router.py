@@ -1,5 +1,7 @@
 """Tests for the natural language router."""
 
+import pytest
+
 from rocket_tools.router import ClarificationRequest, ToolCall, route_query
 
 
@@ -46,3 +48,20 @@ class TestRouterUnknown:
     def test_no_match(self):
         result = route_query("Hello world")
         assert isinstance(result, ClarificationRequest)
+
+
+class TestRouterConfidence:
+    def test_beam_partial_params(self):
+        result = route_query("Can a beam handle 500N over 2m?")
+        assert isinstance(result, ToolCall)
+        assert result.confidence == pytest.approx(2 / 3, abs=0.01)
+
+    def test_beam_full_params(self):
+        result = route_query("Design a 6061-T6 beam for 1000N, 1.5m")
+        assert isinstance(result, ToolCall)
+        assert result.confidence == pytest.approx(1.0, abs=0.01)
+
+    def test_material_full_params(self):
+        result = route_query("What are the properties of Ti-6Al-4V?")
+        assert isinstance(result, ToolCall)
+        assert result.confidence == pytest.approx(1.0, abs=0.01)
