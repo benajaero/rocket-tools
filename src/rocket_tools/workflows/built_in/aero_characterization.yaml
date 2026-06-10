@@ -1,0 +1,67 @@
+name: aero_characterization
+version: "0.1.0"
+description: "Full aerodynamic characterization: Re, Mach, q, CL, CD, Cf"
+inputs:
+  velocity: {type: float, required: true}
+  altitude_m: {type: float, required: true}
+  characteristic_length: {type: float, required: true}
+  reference_area: {type: float, required: true}
+  lift: {type: float, required: true}
+  drag: {type: float, required: true}
+  flow_regime: {type: str, required: false}
+
+steps:
+  - id: re
+    tool: reynolds_number
+    params:
+      velocity: "${inputs.velocity}"
+      altitude_m: "${inputs.altitude_m}"
+      characteristic_length: "${inputs.characteristic_length}"
+    save_as: re
+
+  - id: mach
+    tool: mach_number
+    params:
+      velocity: "${inputs.velocity}"
+      altitude_m: "${inputs.altitude_m}"
+    save_as: mach
+
+  - id: q
+    tool: dynamic_pressure
+    params:
+      velocity: "${inputs.velocity}"
+      altitude_m: "${inputs.altitude_m}"
+    save_as: q
+
+  - id: cl
+    tool: lift_coefficient
+    params:
+      lift: "${inputs.lift}"
+      velocity: "${inputs.velocity}"
+      altitude_m: "${inputs.altitude_m}"
+      reference_area: "${inputs.reference_area}"
+    save_as: cl
+
+  - id: cd
+    tool: drag_coefficient
+    params:
+      drag: "${inputs.drag}"
+      velocity: "${inputs.velocity}"
+      altitude_m: "${inputs.altitude_m}"
+      reference_area: "${inputs.reference_area}"
+    save_as: cd
+
+  - id: cf
+    tool: skin_friction_coefficient
+    params:
+      reynolds_number: "${re.reynolds_number}"
+      flow_regime: "${inputs.flow_regime}"
+    save_as: cf
+
+outputs:
+  - "${re}"
+  - "${mach}"
+  - "${q}"
+  - "${cl}"
+  - "${cd}"
+  - "${cf}"

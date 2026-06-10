@@ -29,7 +29,7 @@ class TestRouterBeam:
 
 class TestRouterAero:
     def test_aero_analysis(self):
-        result = route_query("What is the Reynolds number at 100 m/s and 5000m?")
+        result = route_query("What is the aerodynamic analysis at 100 m/s and 5000m?")
         assert isinstance(result, ToolCall)
         assert result.tool_name == "aero_analysis"
         assert result.params["velocity"] == 100.0
@@ -112,3 +112,59 @@ class TestRouterSessionMemory:
         assert isinstance(result, ToolCall)
         assert result.params["load"] == 1000.0
         assert result.params["length"] == 2.0
+
+
+class TestRouterAeroTools:
+    def test_reynolds_number(self):
+        result = route_query("Reynolds number at 100 m/s and 5000m with 2m chord")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "reynolds_number"
+        assert result.params["velocity"] == 100.0
+        assert result.params["characteristic_length"] > 0
+        assert result.params["altitude_m"] > 0
+
+    def test_mach_number(self):
+        result = route_query("Mach number at 250 m/s and 10000m")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "mach_number"
+        assert result.params["velocity"] == 250.0
+        assert result.params["altitude_m"] == 10000.0
+
+    def test_dynamic_pressure(self):
+        result = route_query("Dynamic pressure at 150 m/s at sea level")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "dynamic_pressure"
+        assert result.params["velocity"] == 150.0
+        assert result.params["altitude_m"] == 0.0
+
+    def test_lift_coefficient(self):
+        result = route_query("Lift coefficient for lift of 50000N at 100 m/s, 5000m, area 10m2")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "lift_coefficient"
+        assert result.params["lift"] == 50000.0
+        assert result.params["velocity"] == 100.0
+        assert result.params["altitude_m"] == 5000.0
+        assert result.params["reference_area"] == 10.0
+
+    def test_drag_coefficient(self):
+        result = route_query("Drag coefficient for drag of 5000N at 100 m/s, 5000m, area 10m2")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "drag_coefficient"
+        assert result.params["drag"] == 5000.0
+        assert result.params["velocity"] == 100.0
+        assert result.params["altitude_m"] == 5000.0
+        assert result.params["reference_area"] == 10.0
+
+    def test_skin_friction_laminar(self):
+        result = route_query("Skin friction coefficient at Re 1e6")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "skin_friction_coefficient"
+        assert result.params["reynolds_number"] == 1e6
+        assert result.params["flow_regime"] == "laminar"
+
+    def test_skin_friction_turbulent(self):
+        result = route_query("Skin friction coefficient at Re 5e6 turbulent")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "skin_friction_coefficient"
+        assert result.params["reynolds_number"] == 5e6
+        assert result.params["flow_regime"] == "turbulent"

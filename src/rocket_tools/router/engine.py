@@ -29,7 +29,10 @@ def classify_intent(query: str) -> list[tuple[str, float]]:
     query_lower = query.lower()
     for tool_name, config in INTENT_REGISTRY.items():
         matched = any(re.search(pattern, query_lower, re.IGNORECASE) for pattern in config.patterns)
-        scores.append((tool_name, 1.0 if matched else 0.0))
+        score = 1.0 if matched else 0.0
+        if tool_name.replace("_", " ") in query_lower:
+            score += 0.15
+        scores.append((tool_name, score))
     scores.sort(key=lambda x: x[1], reverse=True)
     return scores
 
@@ -87,6 +90,8 @@ def route_query(query: str, session=None) -> ToolCall | ClarificationRequest:
 
     if session is not None:
         confidence = max(confidence, 0.5)
+
+    confidence = min(confidence, 1.0)
 
     if confidence < 0.4:
         msg = (

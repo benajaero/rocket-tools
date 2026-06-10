@@ -82,7 +82,7 @@ def extract_load(text: str) -> float | None:
 
 
 def extract_length(text: str) -> float | None:
-    result = extract_number_with_unit(text, r"m|mm|cm|km|meters?|metres?")
+    result = extract_number_with_unit(text, r"m|mm|cm|km|meters?|metres?", negative_lookahead=r"\s*/")
     if result:
         val, unit = result
         if unit in ("mm",):
@@ -108,6 +108,8 @@ def extract_velocity(text: str) -> float | None:
 
 
 def extract_altitude(text: str) -> float | None:
+    if re.search(r"sea\s*level", text, re.IGNORECASE):
+        return 0.0
     result = extract_number_with_unit(text, r"m|km|ft|feet|kft", negative_lookahead=r"\s*/")
     if result:
         val, unit = result
@@ -127,4 +129,63 @@ def extract_material(text: str) -> str | None:
     for key in _MATERIALS:
         if key.lower() in text.lower():
             return key
+    return None
+
+
+_LIFT_RE = re.compile(
+    r"lift\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE
+)
+_DRAG_RE = re.compile(
+    r"drag\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE
+)
+_AREA_RE = re.compile(
+    r"(?:area|reference\s*area|S)\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(m2|m\^2|sq\s*m|m²)",
+    re.IGNORECASE,
+)
+_REYNOLDS_RE = re.compile(
+    r"(?:Reynolds\s*number|Re\s*=?)\s*(\d+\.?\d*(?:[eE][+-]?\d+)?)", re.IGNORECASE
+)
+
+
+def extract_lift(text: str) -> float | None:
+    m = _LIFT_RE.search(text)
+    if m:
+        val = float(m.group(1))
+        unit = m.group(2).lower()
+        if unit == "kn":
+            return val * 1000
+        return val
+    return None
+
+
+def extract_drag(text: str) -> float | None:
+    m = _DRAG_RE.search(text)
+    if m:
+        val = float(m.group(1))
+        unit = m.group(2).lower()
+        if unit == "kn":
+            return val * 1000
+        return val
+    return None
+
+
+def extract_reference_area(text: str) -> float | None:
+    m = _AREA_RE.search(text)
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def extract_reynolds_number(text: str) -> float | None:
+    m = _REYNOLDS_RE.search(text)
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def extract_flow_regime(text: str) -> str | None:
+    if re.search(r"\blaminar\b", text, re.IGNORECASE):
+        return "laminar"
+    if re.search(r"\bturbulent\b", text, re.IGNORECASE):
+        return "turbulent"
     return None

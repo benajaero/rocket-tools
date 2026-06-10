@@ -6,10 +6,15 @@ from dataclasses import dataclass, field
 from .extractors import (
     extract_altitude,
     extract_conversion_value,
+    extract_drag,
+    extract_flow_regime,
     extract_from_unit,
     extract_length,
+    extract_lift,
     extract_load,
     extract_material,
+    extract_reference_area,
+    extract_reynolds_number,
     extract_to_unit,
     extract_velocity,
 )
@@ -60,6 +65,88 @@ INTENT_REGISTRY = {
             "drag": 0.0,
         },
         required_params=["velocity", "altitude_m"],
+    ),
+    "reynolds_number": IntentConfig(
+        patterns=[
+            r"Reynolds\s*number",
+            r"\bRe\s*\d",
+            r"Re\s*=",
+        ],
+        param_extractors={
+            "velocity": extract_velocity,
+            "characteristic_length": extract_length,
+            "altitude_m": extract_altitude,
+        },
+        defaults={},
+        required_params=["velocity", "characteristic_length"],
+    ),
+    "mach_number": IntentConfig(
+        patterns=[
+            r"Mach\s*number",
+            r"Mach\s*\d",
+        ],
+        param_extractors={
+            "velocity": extract_velocity,
+            "altitude_m": extract_altitude,
+        },
+        defaults={},
+        required_params=["velocity", "altitude_m"],
+    ),
+    "dynamic_pressure": IntentConfig(
+        patterns=[
+            r"dynamic\s*pressure",
+            r"q\s*=",
+        ],
+        param_extractors={
+            "velocity": extract_velocity,
+            "altitude_m": extract_altitude,
+        },
+        defaults={},
+        required_params=["velocity", "altitude_m"],
+    ),
+    "lift_coefficient": IntentConfig(
+        patterns=[
+            r"lift\s*coefficient",
+            r"CL\s*=",
+            r"CL\s*\d",
+        ],
+        param_extractors={
+            "lift": extract_lift,
+            "velocity": extract_velocity,
+            "altitude_m": extract_altitude,
+            "reference_area": extract_reference_area,
+        },
+        defaults={},
+        required_params=["lift", "velocity", "altitude_m", "reference_area"],
+    ),
+    "drag_coefficient": IntentConfig(
+        patterns=[
+            r"drag\s*coefficient",
+            r"CD\s*=",
+            r"CD\s*\d",
+        ],
+        param_extractors={
+            "drag": extract_drag,
+            "velocity": extract_velocity,
+            "altitude_m": extract_altitude,
+            "reference_area": extract_reference_area,
+        },
+        defaults={},
+        required_params=["drag", "velocity", "altitude_m", "reference_area"],
+    ),
+    "skin_friction_coefficient": IntentConfig(
+        patterns=[
+            r"skin\s*friction",
+            r"friction\s*coefficient",
+            r"Cf\s*=",
+            r"Cf\s*\d",
+        ],
+        param_extractors={
+            "reynolds_number": extract_reynolds_number,
+            "flow_regime": extract_flow_regime,
+        },
+        defaults={"flow_regime": "laminar"},
+        required_params=["reynolds_number"],
     ),
     "material_lookup": IntentConfig(
         patterns=[

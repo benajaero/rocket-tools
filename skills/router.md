@@ -85,6 +85,12 @@ result = route_query("Hello world")
 | `aero_analysis` | `velocity`, `altitude_m` | "What is the Reynolds number at 100 m/s and 5000m?" |
 | `material_lookup` | `name` | "What are the properties of Ti-6Al-4V?" |
 | `isa_atmosphere` | `altitude_m` | "ISA at 10,000 ft" |
+| `reynolds_number` | `velocity`, `characteristic_length` | "Reynolds number at 100 m/s with 2m chord at 5000m" |
+| `mach_number` | `velocity`, `altitude_m` | "Mach number at 250 m/s and 10000m" |
+| `dynamic_pressure` | `velocity`, `altitude_m` | "Dynamic pressure at 150 m/s at sea level" |
+| `lift_coefficient` | `lift`, `velocity`, `altitude_m`, `reference_area` | "Lift coefficient for 50000N at 100 m/s, 5000m, 10m2" |
+| `drag_coefficient` | `drag`, `velocity`, `altitude_m`, `reference_area` | "Drag coefficient for 5000N at 100 m/s, 5000m, 10m2" |
+| `skin_friction_coefficient` | `reynolds_number` | "Skin friction at Re 1e6" |
 | `unit_convert` | `value`, `from_unit`, `to_unit` | "Convert 100 mm to m" |
 
 ## Adding a New Intent

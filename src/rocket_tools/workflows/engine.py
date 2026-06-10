@@ -123,6 +123,8 @@ def _call_tool(tool_name: str, params: dict) -> dict:
         return aerodynamics.lift_coefficient(**params)
     elif tool_name == "drag_coefficient":
         return aerodynamics.drag_coefficient(**params)
+    elif tool_name == "skin_friction_coefficient":
+        return aerodynamics.skin_friction_coefficient(**params)
     elif tool_name == "unit_convert":
         from rocket_tools.utils import unit_convert
 

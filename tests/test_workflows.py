@@ -22,6 +22,7 @@ class TestLoadWorkflow:
         assert "launch_vehicle_max_q" in wfs
         assert "design_beam_with_conversion" in wfs
         assert "multi_load_beam" in wfs
+        assert "aero_characterization" in wfs
 
 
 class TestRunWorkflow:
@@ -73,6 +74,29 @@ class TestRunWorkflow:
         assert "deflection_mm" in result.outputs
         assert result.outputs["deflection_mm"]["converted_value"] > 0
         assert len(result.trace) == 3
+
+    def test_aero_characterization(self):
+        wfs = load_all_workflows(BUILT_IN_DIR)
+        wf = wfs["aero_characterization"]
+        result = run_workflow(
+            wf,
+            {
+                "velocity": 100.0,
+                "altitude_m": 5000.0,
+                "characteristic_length": 2.0,
+                "reference_area": 10.0,
+                "lift": 50000.0,
+                "drag": 5000.0,
+                "flow_regime": "laminar",
+            },
+        )
+        assert "re" in result.outputs
+        assert "mach" in result.outputs
+        assert "q" in result.outputs
+        assert "cl" in result.outputs
+        assert "cd" in result.outputs
+        assert "cf" in result.outputs
+        assert len(result.trace) == 6
 
     def test_interpolation_error(self):
         from rocket_tools.workflows.engine import resolve_interpolation
