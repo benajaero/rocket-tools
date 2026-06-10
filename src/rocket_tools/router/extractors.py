@@ -81,8 +81,11 @@ def extract_load(text: str) -> float | None:
     return None
 
 
+_LENGTH_UNIT_RE = r"m|mm|cm|km|meters?|metres?"
+
+
 def extract_length(text: str) -> float | None:
-    result = extract_number_with_unit(text, r"m|mm|cm|km|meters?|metres?", negative_lookahead=r"\s*/")
+    result = extract_number_with_unit(text, _LENGTH_UNIT_RE, negative_lookahead=r"\s*/")
     if result:
         val, unit = result
         if unit in ("mm",):
@@ -132,12 +135,8 @@ def extract_material(text: str) -> str | None:
     return None
 
 
-_LIFT_RE = re.compile(
-    r"lift\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE
-)
-_DRAG_RE = re.compile(
-    r"drag\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE
-)
+_LIFT_RE = re.compile(r"lift\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE)
+_DRAG_RE = re.compile(r"drag\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(N|kN|lbf)", re.IGNORECASE)
 _AREA_RE = re.compile(
     r"(?:area|reference\s*area|S)\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*(m2|m\^2|sq\s*m|m²)",
     re.IGNORECASE,

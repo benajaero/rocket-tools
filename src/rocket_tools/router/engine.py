@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from rocket_tools.config import settings
 from rocket_tools.materials.database import material_lookup
 
 from .intents import INTENT_REGISTRY
@@ -89,11 +90,11 @@ def route_query(query: str, session=None) -> ToolCall | ClarificationRequest:
         confidence *= len(params) / len(config.param_extractors)
 
     if session is not None:
-        confidence = max(confidence, 0.5)
+        confidence = max(confidence, settings.router_session_confidence_floor)
 
     confidence = min(confidence, 1.0)
 
-    if confidence < 0.4:
+    if confidence < settings.router_confidence_threshold:
         msg = (
             f"I think you want '{best_tool}' but I'm not confident enough "
             f"(confidence={confidence:.2f}). Could you provide more details?"

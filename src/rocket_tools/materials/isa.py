@@ -4,13 +4,16 @@ from functools import lru_cache
 
 import numpy as np
 
-G_STD = 9.80665
-R_AIR = 287.05
-T0 = 288.15
-P0 = 101325.0
+from rocket_tools.config import settings
 
-# Pre-compute ISA at 1-meter intervals (0 to 25,000m for MVP)
-_ISA_ALTITUDES = np.arange(0, 25001, 1, dtype=np.float64)
+G_STD = settings.isa_g_std
+R_AIR = settings.isa_r_air
+T0 = settings.isa_t0
+P0 = settings.isa_p0
+_ISA_MAX = int(settings.isa_max_altitude_m)
+_ISA_STEP = int(settings.isa_altitude_step_m)
+
+_ISA_ALTITUDES = np.arange(0, _ISA_MAX + 1, _ISA_STEP, dtype=np.float64)
 _ISA_TEMPERATURES = np.empty_like(_ISA_ALTITUDES)
 _ISA_PRESSURES = np.empty_like(_ISA_ALTITUDES)
 
@@ -33,10 +36,10 @@ for i, h in enumerate(_ISA_ALTITUDES):
     _ISA_PRESSURES[i] = p
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=settings.isa_cache_size)
 def isa_atmosphere(altitude_m: float) -> dict:
-    if altitude_m < 0 or altitude_m > 25000:
-        raise ValueError("Altitude must be 0-25000 m for MVP")
+    if altitude_m < 0 or altitude_m > _ISA_MAX:
+        raise ValueError(f"Altitude must be 0-{_ISA_MAX} m")
 
     # Linear interpolation between nearest pre-computed points
     idx = int(altitude_m)

@@ -1,9 +1,10 @@
-"""Workflow execution engine with interpolation."""
+"""Workflow execution engine with safe interpolation."""
 
 from dataclasses import dataclass
 from typing import Any
 
-from rocket_tools.utils.validation import ValidationError
+from rocket_tools.utils.safe_eval import safe_eval
+from rocket_tools.utils.validation import ToolError
 
 
 @dataclass
@@ -31,7 +32,7 @@ class WorkflowResult:
 
 
 class _DotDict:
-    """Wrapper to allow attribute-style access on dicts for eval."""
+    """Wrapper to allow attribute-style access on dicts for safe_eval."""
 
     def __init__(self, data):
         self._data = data
@@ -50,24 +51,30 @@ def resolve_interpolation(value: Any, context: dict) -> Any:
     if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
         path = value[2:-1]
         # Support simple arithmetic expressions like inputs.mass_kg * 9.80665
-        if any(op in path for op in ("*", "+", "-", "/", "(", ")")):
+        if any(op in path for op in ("*", "+", "-", "/", "(", ")", "==", "!=", "<", ">")):
+            eval_ctx = {k: _DotDict(v) if isinstance(v, dict) else v for k, v in context.items()}
             try:
-                eval_ctx = {
-                    k: _DotDict(v) if isinstance(v, dict) else v for k, v in context.items()
-                }
-                return eval(path, {"__builtins__": {}}, eval_ctx)
+                return safe_eval(path, eval_ctx)
+            except ToolError:
+                raise
             except Exception as e:
-                raise ValidationError(
-                    f"Cannot evaluate '{path}': {e}", "interpolation", "valid expression"
-                )
+                raise ToolError(
+                    f"Cannot evaluate '{path}': {e}",
+                    error_code="INVALID_EXPRESSION",
+                    parameter="interpolation",
+                    constraint="valid arithmetic expression",
+                ) from e
         parts = path.split(".")
         current = context
         for part in parts:
             if isinstance(current, dict) and part in current:
                 current = current[part]
             else:
-                raise ValidationError(
-                    f"Cannot resolve '{path}'", "interpolation", "valid reference"
+                raise ToolError(
+                    f"Cannot resolve '{path}'",
+                    error_code="MISSING_REFERENCE",
+                    parameter="interpolation",
+                    constraint="valid reference",
                 )
         return current
     if isinstance(value, dict):
@@ -130,4 +137,14 @@ def _call_tool(tool_name: str, params: dict) -> dict:
 
         return unit_convert(**params)
     else:
-        raise ValueError(f"Unknown tool: {tool_name}")
+        raise ToolError(
+            f"Unknown tool: {tool_name}",
+            error_code="UNKNOWN_TOOL",
+            parameter="tool_name",
+            constraint=(
+                "one of: beam_analysis, aero_analysis, material_lookup, "
+                "isa_atmosphere, reynolds_number, mach_number, dynamic_pressure, "
+                "lift_coefficient, drag_coefficient, skin_friction_coefficient, "
+                "unit_convert"
+            ),
+        )

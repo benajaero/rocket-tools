@@ -2,7 +2,8 @@
 
 > Aerospace engineering intelligence for AI agents.
 
-[![Tests](https://img.shields.io/badge/tests-94%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-130%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-83%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
@@ -12,7 +13,7 @@
 
 A **dual-interface** engineering computation engine:
 
-- **MCP Server** — 11 aerospace tools callable by AI agents via the [Model Context Protocol](https://modelcontextprotocol.io/)
+- **MCP Server** — 11 aerospace tools with Pydantic input validation, structured errors, and Prometheus metrics
 - **Natural Language Router** — Turn plain-english questions into precise tool calls
 - **Workflow Engine** — Chain tools into multi-step design reviews with YAML
 - **Skills Library** — Human-readable `.md` references with formulas, worked examples, and pitfalls
@@ -65,7 +66,7 @@ pip install -e ".[dev]"
 ### Run Tests
 
 ```bash
-pytest -v                    # 94 tests
+pytest -v                    # 130 tests
 pytest --benchmark-only -v   # 18 benchmarks
 ```
 
@@ -134,7 +135,13 @@ docker build -t rocket-tools .
 docker run -p 8000:8000 rocket-tools
 ```
 
-The container exposes the MCP server as an SSE endpoint on port `8000`.
+The container exposes:
+- MCP server via SSE on `/sse`
+- Health check on `/health`
+- Readiness probe on `/ready`
+- Prometheus metrics on `/metrics`
+
+All on port `8000`.
 
 ---
 
@@ -201,16 +208,18 @@ Each skill includes:
 
 ```
 rocket_tools/
-├── utils/          # Units, validation, caching
+├── schemas/        # Pydantic models for all tool inputs/outputs
+├── utils/          # Units, validation, caching, safe_eval
 ├── materials/      # Material database + ISA atmosphere
 ├── structural/     # Beam mechanics (Numba JIT)
 ├── aerodynamics/   # Re, Mach, q, CL, CD, Cf (Numba JIT)
 ├── router/         # Natural language intent + parameter extraction
 ├── memory/         # Session store for contextual conversations
-├── workflows/      # YAML workflow engine + interpolation
-├── server.py       # FastMCP tool definitions
-├── asgi.py         # Production SSE entry point
-└── rust_kernels/   # Rust PyO3 extension (scaffolded)
+├── workflows/      # YAML workflow engine + safe interpolation
+├── config.py       # pydantic-settings configuration
+├── server.py       # FastMCP tool definitions with schema validation
+├── asgi.py         # Production SSE + health/metrics endpoints
+└── rust_kernels/   # Rust PyO3 extension (deferred)
 ```
 
 **Numba JIT** accelerates all hot paths.

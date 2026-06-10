@@ -35,9 +35,11 @@ class SessionMemory:
 
 
 class SessionStore:
-    def __init__(self, ttl_seconds: float = 86400):
+    def __init__(self, ttl_seconds: float | None = None):
+        from rocket_tools.config import settings
+
+        self._ttl = ttl_seconds if ttl_seconds is not None else settings.session_ttl_seconds
         self._sessions: dict[str, SessionMemory] = {}
-        self._ttl = ttl_seconds
 
     def create(self, mission_type: str = "general") -> str:
         sid = str(uuid.uuid4())[:8]

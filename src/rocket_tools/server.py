@@ -1,8 +1,42 @@
-"""FastMCP server exposing aerospace engineering tools."""
+"""FastMCP server exposing aerospace engineering tools with Pydantic validation."""
 
 from mcp.server.fastmcp import FastMCP
 
+from rocket_tools.schemas import (
+    AeroAnalysisInput,
+    DragCoefficientInput,
+    DynamicPressureInput,
+    ISAAtmosphereInput,
+    LiftCoefficientInput,
+    MachNumberInput,
+    MaterialLookupInput,
+    ReynoldsNumberInput,
+    SkinFrictionInput,
+    UnitConvertInput,
+)
+from rocket_tools.schemas.structural import BeamAnalysisInput
+from rocket_tools.utils.validation import ToolError
+
 mcp = FastMCP("rocket-tools")
+
+
+# ---- Structured Error Formatter ----
+
+
+def _format_error(e: Exception) -> dict:
+    """Format any exception into a structured MCP-compatible error response."""
+    if isinstance(e, ToolError):
+        return e.to_dict()
+    return {
+        "error": True,
+        "error_code": "INTERNAL_ERROR",
+        "message": str(e),
+        "parameter": "",
+        "constraint": "",
+        "suggestion": (
+            "Please check your inputs and try again. If the problem persists, report an issue."
+        ),
+    }
 
 
 # ---- Utility Tools ----
@@ -16,7 +50,11 @@ def unit_convert(value: float, from_unit: str, to_unit: str) -> dict:
     """
     from rocket_tools.utils import unit_convert as _uc
 
-    return _uc(value, from_unit, to_unit)
+    try:
+        validated = UnitConvertInput(value=value, from_unit=from_unit, to_unit=to_unit)
+        return _uc(validated.value, validated.from_unit, validated.to_unit)
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -27,7 +65,11 @@ def material_lookup(name: str, property_filter: str = "all") -> dict:
     """
     from rocket_tools.materials import material_lookup as _ml
 
-    return _ml(name, property_filter)
+    try:
+        validated = MaterialLookupInput(name=name, property_filter=property_filter)
+        return _ml(validated.name, validated.property_filter)
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -35,7 +77,11 @@ def isa_atmosphere(altitude_m: float) -> dict:
     """Get ISA atmosphere properties at a given altitude (0-25000 m)."""
     from rocket_tools.materials import isa_atmosphere as _isa
 
-    return _isa(altitude_m)
+    try:
+        validated = ISAAtmosphereInput(altitude_m=altitude_m)
+        return _isa(validated.altitude_m)
+    except Exception as e:
+        return _format_error(e)
 
 
 # ---- Structural Tools ----
@@ -60,7 +106,25 @@ def beam_analysis(
     """
     from rocket_tools.structural import beam_analysis as _ba
 
-    return _ba(load, length, youngs_modulus, cross_section, load_type, support_type)  # type: ignore[arg-type]
+    try:
+        validated = BeamAnalysisInput(
+            load=load,
+            length=length,
+            youngs_modulus=youngs_modulus,
+            cross_section=cross_section,  # type: ignore[arg-type]
+            load_type=load_type,  # type: ignore[arg-type]
+            support_type=support_type,  # type: ignore[arg-type]
+        )
+        return _ba(
+            validated.load,
+            validated.length,
+            validated.youngs_modulus,
+            validated.cross_section.model_dump(),
+            validated.load_type,
+            validated.support_type,
+        )
+    except Exception as e:
+        return _format_error(e)
 
 
 # ---- Aerodynamics Tools ----
@@ -78,19 +142,30 @@ def reynolds_number(
     """Compute Reynolds number. Provide (density + viscosity) or altitude_m or temperature_k."""
     from rocket_tools.aerodynamics import reynolds_number as _re
 
-    kwargs = {
-        "velocity": velocity,
-        "characteristic_length": characteristic_length,
-    }
-    if density is not None:
-        kwargs["density"] = density
-    if dynamic_viscosity is not None:
-        kwargs["dynamic_viscosity"] = dynamic_viscosity
-    if altitude_m is not None:
-        kwargs["altitude_m"] = altitude_m
-    if temperature_k is not None:
-        kwargs["temperature_k"] = temperature_k
-    return _re(**kwargs)
+    try:
+        validated = ReynoldsNumberInput(
+            velocity=velocity,
+            characteristic_length=characteristic_length,
+            density=density,
+            dynamic_viscosity=dynamic_viscosity,
+            altitude_m=altitude_m,
+            temperature_k=temperature_k,
+        )
+        kwargs = {
+            "velocity": validated.velocity,
+            "characteristic_length": validated.characteristic_length,
+        }
+        if validated.density is not None:
+            kwargs["density"] = validated.density
+        if validated.dynamic_viscosity is not None:
+            kwargs["dynamic_viscosity"] = validated.dynamic_viscosity
+        if validated.altitude_m is not None:
+            kwargs["altitude_m"] = validated.altitude_m
+        if validated.temperature_k is not None:
+            kwargs["temperature_k"] = validated.temperature_k
+        return _re(**kwargs)
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -98,7 +173,11 @@ def mach_number(velocity: float, altitude_m: float) -> dict:
     """Compute Mach number at given altitude."""
     from rocket_tools.aerodynamics import mach_number as _ma
 
-    return _ma(velocity, altitude_m)
+    try:
+        validated = MachNumberInput(velocity=velocity, altitude_m=altitude_m)
+        return _ma(validated.velocity, validated.altitude_m)
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -106,7 +185,11 @@ def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
     """Compute dynamic pressure q = 0.5 * rho * V^2 at given altitude."""
     from rocket_tools.aerodynamics import dynamic_pressure as _q
 
-    return _q(velocity, altitude_m)
+    try:
+        validated = DynamicPressureInput(velocity=velocity, altitude_m=altitude_m)
+        return _q(validated.velocity, validated.altitude_m)
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -116,7 +199,18 @@ def lift_coefficient(
     """Compute lift coefficient CL = L / (q * S)."""
     from rocket_tools.aerodynamics import lift_coefficient as _cl
 
-    return _cl(lift, velocity, altitude_m, reference_area)
+    try:
+        validated = LiftCoefficientInput(
+            lift=lift, velocity=velocity, altitude_m=altitude_m, reference_area=reference_area
+        )
+        return _cl(
+            validated.lift,
+            validated.velocity,
+            validated.altitude_m,
+            validated.reference_area,
+        )
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -126,7 +220,18 @@ def drag_coefficient(
     """Compute drag coefficient CD = D / (q * S)."""
     from rocket_tools.aerodynamics import drag_coefficient as _cd
 
-    return _cd(drag, velocity, altitude_m, reference_area)
+    try:
+        validated = DragCoefficientInput(
+            drag=drag, velocity=velocity, altitude_m=altitude_m, reference_area=reference_area
+        )
+        return _cd(
+            validated.drag,
+            validated.velocity,
+            validated.altitude_m,
+            validated.reference_area,
+        )
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -134,7 +239,14 @@ def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "lamina
     """Compute skin friction coefficient using Blasius correlation."""
     from rocket_tools.aerodynamics import skin_friction_coefficient as _cf
 
-    return _cf(reynolds_number, flow_regime)
+    try:
+        validated = SkinFrictionInput(
+            reynolds_number=reynolds_number,
+            flow_regime=flow_regime,  # type: ignore[arg-type]
+        )
+        return _cf(validated.reynolds_number, validated.flow_regime)
+    except Exception as e:
+        return _format_error(e)
 
 
 @mcp.tool()
@@ -149,7 +261,25 @@ def aero_analysis(
     """Comprehensive aerodynamic analysis (Re, Mach, q, CL, CD, Cf) in one call."""
     from rocket_tools.aerodynamics import aero_analysis as _aa
 
-    return _aa(velocity, altitude_m, characteristic_length, reference_area, lift, drag)
+    try:
+        validated = AeroAnalysisInput(
+            velocity=velocity,
+            altitude_m=altitude_m,
+            characteristic_length=characteristic_length,
+            reference_area=reference_area,
+            lift=lift,
+            drag=drag,
+        )
+        return _aa(
+            validated.velocity,
+            validated.altitude_m,
+            validated.characteristic_length,
+            validated.reference_area,
+            validated.lift,
+            validated.drag,
+        )
+    except Exception as e:
+        return _format_error(e)
 
 
 # ---- Server Entry Point ----
