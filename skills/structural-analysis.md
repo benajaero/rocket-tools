@@ -4,19 +4,24 @@ skill_type: engineering
 layer: structural
 tools:
   - beam_analysis
+  - section_properties
+  - column_buckling
+  - plate_buckling_coefficient
   - material_lookup
   - unit_convert
-version: 0.3.0
+version: 0.3.2
 ---
 
 # Structural Analysis
 
-Engineering skill for analyzing beams, columns, and structural members.
+Engineering skill for analyzing beams, columns, plates, and structural members.
 
 ## When to Use
 
-- Computing bending stress and deflection
-- Checking Euler buckling loads
+- Computing bending stress and deflection in beams
+- Determining cross-section properties for custom shapes
+- Checking Euler-Johnson column buckling loads
+- Estimating plate buckling coefficients for skins and tanks
 - Comparing material properties for structural applications
 - Converting between SI and imperial units
 
@@ -36,9 +41,29 @@ Where $M$ = bending moment (N·m) and $S$ = section modulus (m³).
 
 ### Euler Buckling Load
 
-$$ P_{cr} = \frac{\pi^2 E I}{L^2} $$
+$$ P_{cr} = \frac{\pi^2 E I}{L_e^2} $$
 
-For simply supported columns. Use $L_e = K \cdot L$ for other end conditions.
+Where $L_e = K \cdot L$ is the effective length. End condition factors:
+| Condition | K |
+|-----------|---|
+| Pinned-pinned | 1.0 |
+| Fixed-free | 2.0 |
+| Fixed-pinned | 0.699 |
+| Fixed-fixed | 0.5 |
+
+### Johnson Parabola (Inelastic Buckling)
+
+For short columns where slenderness $L_e/r < C_c$:
+
+$$ \sigma_{cr} = \sigma_y - \frac{\sigma_y^2}{4\pi^2 E} \left(\frac{L_e}{r}\right)^2 $$
+
+### Section Properties
+
+Key properties for any cross-section:
+- **Area** $A$ — m²
+- **Area moment of inertia** $I_{xx}$ — m⁴ (resistance to bending)
+- **Section modulus** $S_{xx}$ — m³ ($\sigma_{max} = M/S$)
+- **Radius of gyration** $r$ — m ($r = \sqrt{I/A}$, used in buckling)
 
 ## MCP Tool Reference
 
@@ -64,11 +89,51 @@ Analyze a beam under various load and support conditions.
 - `safety_factor_euler_buckling`
 - `section_efficiency_m2`
 
+### `section_properties`
+
+Compute properties for 7 structural shapes.
+
+**Shapes and required parameters:**
+| Shape | Parameters |
+|-------|------------|
+| `rectangle` | `width`, `height` |
+| `hollow_rectangle` | `width`, `height`, `wall_thickness` |
+| `circle` | `diameter` |
+| `hollow_circle` | `outer_diameter`, `inner_diameter` |
+| `ibeam` | `flange_width`, `height`, `flange_thickness`, `web_thickness` |
+| `cchannel` | `flange_width`, `height`, `flange_thickness`, `web_thickness` |
+| `tsection` | `flange_width`, `height`, `flange_thickness`, `web_thickness` |
+
+**Returns:** `area_m2`, `i_xx_m4`, `s_xx_m3`, `r_xx_m`
+
+### `column_buckling`
+
+Compute critical buckling load using Euler-Johnson transition.
+
+**Parameters:**
+- `youngs_modulus` (Pa)
+- `area_moment` (m⁴)
+- `area` (m²)
+- `length` (m)
+- `yield_strength` (Pa)
+- `end_condition` — `"pinned_pinned"`, `"fixed_free"`, `"fixed_pinned"`, `"fixed_fixed"`
+
+**Returns:** `critical_load_n`, `critical_stress_pa`, `slenderness_ratio`, `regime` (`"elastic"` or `"inelastic"`)
+
+### `plate_buckling_coefficient`
+
+Approximate buckling coefficient $k$ for flat rectangular plates.
+
+**Parameters:**
+- `aspect_ratio` — plate length / width
+- `boundary_condition` — `"simply_supported"`, `"clamped"`, `"free_edge"`
+- `load_type` — `"compression"`, `"shear"`, `"bending"`
+
 ### `material_lookup`
 
-Look up material properties by name.
+Look up material properties by name. See [materials database](../src/rocket_tools/materials/database.py) for full list.
 
-**Available materials:**
+**Quick reference:**
 - `6061-T6` — General purpose aluminum
 - `7075-T6` — High-strength aluminum
 - `Ti-6Al-4V` — Aerospace titanium
@@ -87,7 +152,7 @@ unit_convert(1000, "lbf", "n")   # -> 4448.22 N
 unit_convert(14.7, "psi", "kpa") # -> 101.35 kPa
 ```
 
-## Worked Example
+## Worked Example: Beam Design
 
 **Problem:** A 6061-T6 aluminum beam, 1.0 m long, 50mm wide × 10mm deep, carries a 100N point load at midspan. Simply supported. Find the maximum deflection and bending stress.
 
@@ -103,6 +168,31 @@ result = beam_analysis(
 )
 print(f"Deflection: {result['max_deflection_m']*1000:.3f} mm")
 print(f"Bending stress: {result['bending_stress_pa']/1e6:.2f} MPa")
+```
+
+## Worked Example: Column Buckling
+
+**Problem:** A 6061-T6 aluminum tube (OD = 50mm, ID = 40mm), 1.5m long, pinned-pinned ends. Check buckling.
+
+**Solution:**
+```python
+from rocket_tools.structural import section_properties, column_buckling
+from rocket_tools.materials import material_lookup
+
+mat = material_lookup("6061-T6")
+section = section_properties("hollow_circle", outer_diameter=0.05, inner_diameter=0.04)
+
+buckling = column_buckling(
+    youngs_modulus=mat["youngs_modulus_pa"],
+    area_moment=section["i_xx_m4"],
+    area=section["area_m2"],
+    length=1.5,
+    yield_strength=mat["yield_strength_mpa"] * 1e6,
+    end_condition="pinned_pinned",
+)
+print(f"Critical load: {buckling['critical_load_n']:.0f} N")
+print(f"Regime: {buckling['regime']}")
+print(f"Slenderness: {buckling['slenderness_ratio']:.1f}")
 ```
 
 ## Worked Example: Imperial Units
@@ -133,3 +223,4 @@ print(f"Bending stress: {stress_psi:.1f} psi")
 2. **Small deflection assumption** — Euler-Bernoulli theory breaks down for large deflections (> L/10)
 3. **Buckling mode** — Euler formula assumes the weakest axis; check $I_{min}$
 4. **Dynamic loads** — Static analysis only; apply safety factors for dynamic cases
+5. **Plate buckling** — The `k` coefficient is for ideal boundary conditions; real structures need knock-down factors

@@ -4,7 +4,7 @@ skill_type: engineering
 layer: infrastructure
 tools:
   - all
-version: 0.3.0
+version: 0.3.2
 ---
 
 # Schemas & Validation
@@ -25,9 +25,10 @@ All schemas live in `rocket_tools/schemas/`:
 ```
 schemas/
 ├── __init__.py        # Export all schemas
-├── structural.py      # BeamAnalysisInput, RectangleSection, CircleSection
-├── aerodynamics.py    # ReynoldsNumberInput, MachNumberInput, AeroAnalysisInput, ...
+├── structural.py      # BeamAnalysisInput, SectionPropertiesInput, ColumnBucklingInput, PlateBucklingInput
+├── aerodynamics.py    # ReynoldsNumberInput, MachNumberInput, AeroAnalysisInput, IsentropicFlowInput, NormalShockInput, ObliqueShockInput, PrandtlMeyerInput, LiftCurveSlopeInput, DragPolarInput, BreguetRangeInput, WingLoadingInput, NozzlePerformanceInput, OptimalAreaRatioInput
 ├── materials.py       # MaterialLookupInput, ISAAtmosphereInput
+├── design.py          # RocketDeltaVInput, MultiStageDeltaVInput, OrbitalVelocityInput, PayloadFractionInput, ThrustToWeightInput, CompositeCGInput, PropellantTankSizingInput
 └── utils.py           # UnitConvertInput
 ```
 

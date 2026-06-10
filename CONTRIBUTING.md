@@ -66,7 +66,7 @@ rocket_tools/
 
 tests/                 # Test files — mirror the src/ structure where possible
 skills/                # Human-readable .md engineering references
-docs/                  # Design docs, council deliberations, plans
+docs/                  # Design docs (kept minimal; skills/ is primary reference)
 ```
 
 **Rule of thumb:** If you add code in `src/rocket_tools/X/`, add tests in `tests/test_X.py`.
@@ -81,7 +81,7 @@ docs/                  # Design docs, council deliberations, plans
 pytest -v
 ```
 
-Runs 182 tests across all modules.
+Runs 240 tests across all modules.
 
 ### With Coverage
 

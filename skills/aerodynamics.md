@@ -12,7 +12,7 @@ tools:
   - aero_analysis
   - isa_atmosphere
   - unit_convert
-version: 0.3.0
+version: 0.3.2
 ---
 
 # Aerodynamics
@@ -26,6 +26,7 @@ Engineering skill for aerodynamic analysis using the International Standard Atmo
 - Calculating dynamic pressure for structural loads
 - Estimating lift and drag coefficients
 - Computing skin friction for boundary layer analysis
+- Looking up standard atmosphere properties
 
 ## Key Concepts
 

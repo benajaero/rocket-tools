@@ -26,7 +26,7 @@ print(f"Dynamic pressure: {q['dynamic_pressure_pa']/1e3:.0f} kPa")
 print(f"Inconel-718 yield strength: {mat['yield_strength_mpa']:.0f} MPa")
 ```
 
-**[→ Full Documentation](docs/)** · **[→ Quick Start for AI Agents](#for-ai-agents)** · **[→ Contributing](CONTRIBUTING.md)**
+**[→ Skills Library](skills/)** · **[→ Quick Start for AI Agents](#for-ai-agents)** · **[→ Contributing](CONTRIBUTING.md)**
 
 ---
 
