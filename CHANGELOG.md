@@ -2,19 +2,43 @@
 
 All notable changes to rocket-tools.
 
-## [Unreleased]
+## [0.3.0] — 2026-06-10
 
 ### Added
-- `PROJECT_LIFECYCLE.md` — weekly activity rhythm for automated development
+- **Pydantic schemas** for all 11 tool inputs/outputs (`schemas/` module)
+  - Discriminated unions for cross-section types (`RectangleSection | CircleSection`)
+  - Field validators for physical constraints (altitude ≤25km, positive loads, etc.)
+  - Auto-generated JSON schemas for LLM tool calling
+- **Imperial unit support** with comprehensive aerospace conversions
+  - Length: ft, in, yd, mi, nm
+  - Pressure: psi, psf, ksi, atm, bar, torr
+  - Force: lbf, kip, tonf
+  - Speed: mph, fps, knots
+  - Temperature: F, C, K, Rankine
+  - `convert_to_si()` helper for automatic normalization
+- **Safe expression evaluation** — replaced `eval()` in workflow engine with `ast`-based `safe_eval`
+- **Structured errors** with `error_code`, `parameter`, `constraint`, `suggestion`
+- **Health endpoints** — `/health`, `/ready`, `/metrics` (Prometheus) on ASGI app
+- **Config management** — `pydantic-settings` with `ROCKET_*` env var prefix
+- **Skills docs** — new `units.md` and `schemas.md` skills
 
 ### Changed
-- Code style: applied `ruff` formatting across `src/` and `tests/`
-- Fixed ambiguous variable names (`l` → `char_length`, `beam_length`) in `aerodynamics/fundamentals.py` and `structural/beams.py`
-- Wrapped long docstrings and comments to stay within 100-character line limit
-- Cleaned up unused imports in `utils/validation.py` and benchmark files
+- Server validates all tool inputs via Pydantic before execution
+- All hardcoded constants centralized in `config.py`
+- Router uses configurable thresholds from settings
+- `ValidationError` renamed to `ToolError` with structured `to_dict()` output
+
+### Removed
+- Broken Rust kernel build step from CI (kernels remain scaffolded, deferred)
 
 ### Fixed
-- Import sorting in `__init__.py` files (I001 ruff rule)
+- Security vulnerability: `eval()` in workflow interpolation
+- `mypy` clean across all 34 source files
+
+## [0.2.1] — 2026-06-10
+
+### Added
+- Human Engine labs attribution
 
 ## [0.2.0] — 2026-04-25
 
@@ -37,4 +61,3 @@ All notable changes to rocket-tools.
 - Rust kernel scaffold (PyO3)
 - ISA atmosphere model (0–25,000 m)
 - Material database (5 aerospace alloys)
-

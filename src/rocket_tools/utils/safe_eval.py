@@ -81,15 +81,15 @@ class SafeEvaluator(ast.NodeVisitor):
                 raise ValidationError(
                     "Only single comparisons supported", "interpolation", "a == b"
                 )
-            op_type: Any = type(node.ops[0])
-            if op_type not in _COMP_OPS:
+            comp_op_type: Any = type(node.ops[0])
+            if comp_op_type not in _COMP_OPS:
                 raise ValidationError(
                     f"Unsupported comparison: {op_type.__name__}",
                     "interpolation",
                     "==, !=, <, <=, >, >=",
                 )
             right = self.visit(node.comparators[0])
-            return _COMP_OPS[op_type](left, right)
+            return _COMP_OPS[comp_op_type](left, right)
         if isinstance(node, ast.Call):
             raise ValidationError(
                 "Function calls are not allowed in expressions",
