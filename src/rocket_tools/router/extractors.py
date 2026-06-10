@@ -2,6 +2,61 @@
 
 import re
 
+_UNIT_RE = r"m|mm|cm|km|inch|inches|ft|feet|pa|kpa|mpa|psi|n|kn|lbf|c|k|f"
+_CONVERSION_RE = re.compile(
+    rf"(\d+\.?\d*)\s*({_UNIT_RE})\s+(?:to|into|in)\s+({_UNIT_RE})",
+    re.IGNORECASE,
+)
+
+
+def _normalize_unit(unit: str) -> str:
+    mapping = {
+        "inches": "inch",
+        "feet": "ft",
+        "meter": "m",
+        "meters": "m",
+        "metre": "m",
+        "metres": "m",
+        "pascal": "pa",
+        "pascals": "pa",
+        "kilopascal": "kpa",
+        "kilopascals": "kpa",
+        "megapascal": "mpa",
+        "megapascals": "mpa",
+        "newton": "n",
+        "newtons": "n",
+        "kilonewton": "kn",
+        "kilonewtons": "kn",
+        "pound": "lbf",
+        "pounds": "lbf",
+        "celsius": "c",
+        "kelvin": "k",
+        "fahrenheit": "f",
+    }
+    u = unit.lower()
+    return mapping.get(u, u)
+
+
+def extract_conversion_value(text: str) -> float | None:
+    m = _CONVERSION_RE.search(text)
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def extract_from_unit(text: str) -> str | None:
+    m = _CONVERSION_RE.search(text)
+    if m:
+        return _normalize_unit(m.group(2))
+    return None
+
+
+def extract_to_unit(text: str) -> str | None:
+    m = _CONVERSION_RE.search(text)
+    if m:
+        return _normalize_unit(m.group(3))
+    return None
+
 
 def extract_number_with_unit(
     text: str, unit_pattern: str, negative_lookahead: str = ""

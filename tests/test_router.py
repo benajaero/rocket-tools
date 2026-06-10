@@ -65,3 +65,25 @@ class TestRouterConfidence:
         result = route_query("What are the properties of Ti-6Al-4V?")
         assert isinstance(result, ToolCall)
         assert result.confidence == pytest.approx(1.0, abs=0.01)
+
+
+class TestRouterUnitConvert:
+    def test_convert_length(self):
+        result = route_query("Convert 100 mm to m")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "unit_convert"
+        assert result.params["value"] == 100.0
+        assert result.params["from_unit"] == "mm"
+        assert result.params["to_unit"] == "m"
+
+    def test_convert_pressure(self):
+        result = route_query("Convert 14.7 psi to kPa")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "unit_convert"
+        assert result.params["value"] == 14.7
+        assert result.params["from_unit"] == "psi"
+        assert result.params["to_unit"] == "kpa"
+
+    def test_convert_missing_value(self):
+        result = route_query("Convert psi to kPa")
+        assert isinstance(result, ClarificationRequest)

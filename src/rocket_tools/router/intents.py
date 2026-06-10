@@ -5,9 +5,12 @@ from dataclasses import dataclass, field
 
 from .extractors import (
     extract_altitude,
+    extract_conversion_value,
+    extract_from_unit,
     extract_length,
     extract_load,
     extract_material,
+    extract_to_unit,
     extract_velocity,
 )
 
@@ -82,5 +85,18 @@ INTENT_REGISTRY = {
         },
         defaults={},
         required_params=["altitude_m"],
+    ),
+    "unit_convert": IntentConfig(
+        patterns=[
+            r"convert",
+            r"(\d+\.?\d*)\s*\w+\s+(to|into|in)\s+\w+",
+        ],
+        param_extractors={
+            "value": extract_conversion_value,
+            "from_unit": extract_from_unit,
+            "to_unit": extract_to_unit,
+        },
+        defaults={},
+        required_params=["value", "from_unit", "to_unit"],
     ),
 }

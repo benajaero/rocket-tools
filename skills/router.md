@@ -58,6 +58,16 @@ result = route_query("Hello world")
 # )
 ```
 
+## Supported Intents
+
+| Intent | Required Params | Example Query |
+|--------|-----------------|---------------|
+| `beam_analysis` | `load`, `length` | "Design a 6061-T6 beam for 1000N, 1.5m" |
+| `aero_analysis` | `velocity`, `altitude_m` | "What is the Reynolds number at 100 m/s and 5000m?" |
+| `material_lookup` | `name` | "What are the properties of Ti-6Al-4V?" |
+| `isa_atmosphere` | `altitude_m` | "ISA at 10,000 ft" |
+| `unit_convert` | `value`, `from_unit`, `to_unit` | "Convert 100 mm to m" |
+
 ## Adding a New Intent
 
 1. Register the intent in `src/rocket_tools/router/intents.py`.
