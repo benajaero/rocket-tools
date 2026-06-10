@@ -243,4 +243,4 @@ Apache-2.0 — See [LICENSE](LICENSE)
 
 ---
 
-*Built by Human Engine for the agentic era.*
+*Built by [Human Engine labs](https://www.humanengine.co/) for the agentic era.*

@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.11"
 authors = [
-    {name = "Human Engine", email = "engineering@humanengine.dev"}
+    {name = "Human Engine labs", email = "engineering@humanengine.dev"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -44,7 +44,7 @@ dev = [
 rocket-tools = "rocket_tools.server:main"
 
 [project.urls]
-Homepage = "https://github.com/benajaero/rocket-tools"
+Homepage = "https://www.humanengine.co/"
 Repository = "https://github.com/benajaero/rocket-tools"
 Issues = "https://github.com/benajaero/rocket-tools/issues"
 
