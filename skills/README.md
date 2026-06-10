@@ -8,7 +8,9 @@ Human-readable engineering skills with MCP cross-references.
 |-------|-------|-------------|
 | [Structural Analysis](./structural-analysis.md) | `beam_analysis`, `material_lookup`, `unit_convert` | Beams, columns, material selection |
 | [Aerodynamics](./aerodynamics.md) | `reynolds_number`, `mach_number`, `dynamic_pressure`, `aero_analysis`, `isa_atmosphere` | Flow characterization, ISA lookups |
-| [Router](./router.md) | `route_query` | Natural-language intent classification, parameter extraction, and confidence scoring |
+| [Unit Conversion & Imperial Support](./units.md) | `unit_convert`, `convert_to_si` | SI ↔ Imperial, aerospace units, auto-conversion |
+| [Router](./router.md) | `route_query` | Natural-language intent classification, parameter extraction, confidence scoring |
+| [Schemas & Validation](./schemas.md) | All tools | Pydantic input/output models, structured errors, field validators |
 
 ## Using Skills
 

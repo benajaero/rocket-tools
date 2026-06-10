@@ -6,7 +6,7 @@ tools:
   - beam_analysis
   - material_lookup
   - unit_convert
-version: 0.1.0
+version: 0.3.0
 ---
 
 # Structural Analysis
@@ -46,15 +46,15 @@ For simply supported columns. Use $L_e = K \cdot L$ for other end conditions.
 
 Analyze a beam under various load and support conditions.
 
-**Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `load` | float | Applied load (N for point, N/m for distributed) |
-| `length` | float | Span length (m) |
-| `youngs_modulus` | float | E in Pa |
-| `cross_section` | dict | `{type: "rectangle", width: m, height: m}` or `{type: "circle", diameter: m}` |
-| `load_type` | str | `"point_midspan"`, `"distributed"`, `"axial"` |
-| `support_type` | str | `"simply_supported"`, `"cantilever"`, `"fixed_ends"` |
+**Parameters (Pydantic schema: `BeamAnalysisInput`):**
+| Parameter | Type | Constraints | Description |
+|-----------|------|-------------|-------------|
+| `load` | float | `> 0` | Applied load (N for point, N/m for distributed) |
+| `length` | float | `> 0` | Span length (m) |
+| `youngs_modulus` | float | `> 0` | E in Pa |
+| `cross_section` | dict | required | `RectangleSection` or `CircleSection` |
+| `load_type` | str | enum | `"point_midspan"`, `"distributed"`, `"axial"` |
+| `support_type` | str | enum | `"simply_supported"`, `"cantilever"`, `"fixed_ends"` |
 
 **Returns:**
 - `max_bending_moment_n_m`
@@ -77,13 +77,15 @@ Look up material properties by name.
 
 ### `unit_convert`
 
-Convert between engineering units.
+Convert between engineering units. See [Unit Conversion skill](./units.md) for full reference.
 
-**Supported units:**
-- Length: m, mm, inch, ft
-- Pressure: Pa, kPa, MPa, psi
-- Force: N, kN, lbf
-- Temperature: C, K, F
+**Quick reference:**
+```python
+from rocket_tools.utils import unit_convert
+unit_convert(10, "ft", "m")      # -> 3.048 m
+unit_convert(1000, "lbf", "n")   # -> 4448.22 N
+unit_convert(14.7, "psi", "kpa") # -> 101.35 kPa
+```
 
 ## Worked Example
 
@@ -103,9 +105,31 @@ print(f"Deflection: {result['max_deflection_m']*1000:.3f} mm")
 print(f"Bending stress: {result['bending_stress_pa']/1e6:.2f} MPa")
 ```
 
+## Worked Example: Imperial Units
+
+**Problem:** A steel beam (E = 30 Msi), 10 ft long, 2 in × 4 in rectangular section, carries 500 lbf at midspan. Simply supported. Find deflection in inches and bending stress in psi.
+
+**Solution:**
+```python
+from rocket_tools.utils.units import ft_to_m, lbf_to_n, psi_to_pa, in_to_m
+from rocket_tools.structural import beam_analysis
+
+result = beam_analysis(
+    load=lbf_to_n(500),
+    length=ft_to_m(10),
+    youngs_modulus=psi_to_pa(30e6),
+    cross_section={"type": "rectangle", "width": in_to_m(2), "height": in_to_m(4)},
+)
+
+deflection_in = result["max_deflection_m"] / 0.0254
+stress_psi = result["bending_stress_pa"] / 6894.757
+print(f"Deflection: {deflection_in:.4f} in")
+print(f"Bending stress: {stress_psi:.1f} psi")
+```
+
 ## Common Pitfalls
 
-1. **Unit consistency** — Always use SI units (m, Pa, N) in the tools
+1. **Unit consistency** — Tools expect SI inputs (m, Pa, N). Use `convert_to_si()` or helpers like `ft_to_m()`, `lbf_to_n()` for imperial inputs.
 2. **Small deflection assumption** — Euler-Bernoulli theory breaks down for large deflections (> L/10)
 3. **Buckling mode** — Euler formula assumes the weakest axis; check $I_{min}$
 4. **Dynamic loads** — Static analysis only; apply safety factors for dynamic cases

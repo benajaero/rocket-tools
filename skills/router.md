@@ -93,6 +93,16 @@ result = route_query("Hello world")
 | `skin_friction_coefficient` | `reynolds_number` | "Skin friction at Re 1e6" |
 | `unit_convert` | `value`, `from_unit`, `to_unit` | "Convert 100 mm to m" |
 
+## Configuration
+
+Router behavior is configurable via environment variables (prefix `ROCKET_`):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ROCKET_ROUTER_CONFIDENCE_THRESHOLD` | `0.4` | Minimum confidence before asking for clarification |
+| `ROCKET_ROUTER_SESSION_CONFIDENCE_FLOOR` | `0.5` | Confidence boost when session memory is present |
+| `ROCKET_ROUTER_TOOL_NAME_BOOST` | `0.15` | Score boost when tool name appears in query |
+
 ## Adding a New Intent
 
 1. Register the intent in `src/rocket_tools/router/intents.py`.
@@ -103,3 +113,4 @@ result = route_query("Hello world")
 
 - **Greedy extractors** – A velocity like `100 m/s` can be mis‑read as a length because the extractor sees `100 m`. Use explicit units (e.g. `km/h`, `ft`) when possible.
 - **Low confidence on short queries** – One‑word queries (e.g. `"beam"`) hit the intent but score low on parameters; the router will ask for clarification rather than silently defaulting.
+- **Imperial units in router** – The router extractors handle ft, kft, mph, and lbf where applicable, but always normalize to SI before tool dispatch.

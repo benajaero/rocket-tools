@@ -12,7 +12,7 @@ tools:
   - aero_analysis
   - isa_atmosphere
   - unit_convert
-version: 0.1.0
+version: 0.3.0
 ---
 
 # Aerodynamics
@@ -70,20 +70,20 @@ Blasius correlations:
 
 Compute Reynolds number using direct properties or ISA lookup.
 
-**Parameters:**
-- `velocity` (m/s)
-- `characteristic_length` (m)
+**Parameters (schema: `ReynoldsNumberInput`):**
+- `velocity` (m/s) — `> 0`
+- `characteristic_length` (m) — `> 0`
 - `density` + `dynamic_viscosity` (Pa·s) — OR —
-- `altitude_m` (ISA lookup) — OR —
+- `altitude_m` (ISA lookup, 0–25,000) — OR —
 - `temperature_k` (standard density)
 
 ### `mach_number`
 
 Compute Mach number at altitude.
 
-**Parameters:**
-- `velocity` (m/s)
-- `altitude_m`
+**Parameters (schema: `MachNumberInput`):**
+- `velocity` (m/s) — `> 0`
+- `altitude_m` — `0 ≤ altitude_m ≤ 25000`
 
 ### `dynamic_pressure`
 
@@ -93,7 +93,7 @@ Compute $q$ at altitude.
 
 Comprehensive analysis: Re, Mach, q, CL, CD, Cf in one call.
 
-**Parameters:**
+**Parameters (schema: `AeroAnalysisInput`):**
 - `velocity`, `altitude_m`, `characteristic_length`, `reference_area`
 - Optional: `lift`, `drag`
 
@@ -124,9 +124,31 @@ print(f"Mach = {result['mach_number']:.3f} ({result['mach_regime']})")
 print(f"L/D = {result['lift_to_drag_ratio']:.1f}")
 ```
 
+## Worked Example: Imperial Inputs
+
+**Problem:** An aircraft at 15,000 ft, 500 mph, wing chord 8 ft, wing area 350 sq ft, lift 11,000 lbf, drag 1,200 lbf.
+
+**Solution:**
+```python
+from rocket_tools.utils.units import ft_to_m, mph_to_mps, lbf_to_n, sqft_to_sqm
+from rocket_tools.aerodynamics import aero_analysis
+
+result = aero_analysis(
+    velocity=mph_to_mps(500),
+    altitude_m=ft_to_m(15000),
+    characteristic_length=ft_to_m(8),
+    reference_area=sqft_to_sqm(350),
+    lift=lbf_to_n(11000),
+    drag=lbf_to_n(1200),
+)
+print(f"Re = {result['reynolds_number']:.1e}")
+print(f"Mach = {result['mach_number']:.3f}")
+```
+
 ## Common Pitfalls
 
 1. **Characteristic length** — Use chord for wings, diameter for bodies, not span
 2. **Reference area** — Must be consistent between CL and CD calculations
 3. **Compressibility** — CL and CD formulas assume incompressible; corrections needed for M > 0.3
 4. **Temperature effects** — ISA assumes standard day; adjust for non-standard conditions
+5. **Altitude units** — `isa_atmosphere` expects meters. Convert from feet: `altitude_m = ft * 0.3048`
