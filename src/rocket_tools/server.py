@@ -4,15 +4,36 @@ from mcp.server.fastmcp import FastMCP
 
 from rocket_tools.schemas import (
     AeroAnalysisInput,
+    BreguetEnduranceInput,
+    BreguetRangeInput,
+    ColumnBucklingInput,
+    CompositeCGInput,
     DragCoefficientInput,
+    DragPolarInput,
     DynamicPressureInput,
     ISAAtmosphereInput,
+    IsentropicFlowInput,
     LiftCoefficientInput,
+    LiftCurveSlopeInput,
     MachNumberInput,
     MaterialLookupInput,
+    MultiStageDeltaVInput,
+    NormalShockInput,
+    NozzlePerformanceInput,
+    ObliqueShockInput,
+    OptimalAreaRatioInput,
+    OrbitalVelocityInput,
+    PayloadFractionInput,
+    PlateBucklingInput,
+    PrandtlMeyerFromAngleInput,
+    PrandtlMeyerInput,
+    PropellantTankSizingInput,
     ReynoldsNumberInput,
+    RocketDeltaVInput,
     SkinFrictionInput,
+    ThrustToWeightInput,
     UnitConvertInput,
+    WingLoadingInput,
 )
 from rocket_tools.schemas.structural import BeamAnalysisInput
 from rocket_tools.utils.validation import ToolError
@@ -123,6 +144,111 @@ def beam_analysis(
             validated.load_type,
             validated.support_type,
         )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def section_properties(
+    shape: str,
+    width: float | None = None,
+    height: float | None = None,
+    diameter: float | None = None,
+    wall_thickness: float | None = None,
+    outer_diameter: float | None = None,
+    inner_diameter: float | None = None,
+    flange_width: float | None = None,
+    flange_thickness: float | None = None,
+    web_thickness: float | None = None,
+) -> dict:
+    """Compute cross-sectional properties for structural shapes.
+
+    Shapes: rectangle, hollow_rectangle, circle, hollow_circle, ibeam, cchannel, tsection
+    """
+    from rocket_tools.structural import section_properties as _sp
+
+    try:
+        kwargs: dict[str, float | str] = {"shape": shape}
+        for key, val in [
+            ("width", width),
+            ("height", height),
+            ("diameter", diameter),
+            ("wall_thickness", wall_thickness),
+            ("outer_diameter", outer_diameter),
+            ("inner_diameter", inner_diameter),
+            ("flange_width", flange_width),
+            ("flange_thickness", flange_thickness),
+            ("web_thickness", web_thickness),
+        ]:
+            if val is not None:
+                kwargs[key] = val
+        return _sp(**kwargs)  # type: ignore[arg-type]
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def column_buckling(
+    youngs_modulus: float,
+    area_moment: float,
+    area: float,
+    length: float,
+    yield_strength: float,
+    end_condition: str = "pinned_pinned",
+) -> dict:
+    """Compute column buckling load using Euler-Johnson transition.
+
+    end_condition: pinned_pinned, fixed_free, fixed_pinned, fixed_fixed
+    """
+    from rocket_tools.structural import column_buckling as _cb
+
+    try:
+        validated = ColumnBucklingInput(
+            youngs_modulus=youngs_modulus,
+            area_moment=area_moment,
+            area=area,
+            length=length,
+            yield_strength=yield_strength,
+            end_condition=end_condition,  # type: ignore[arg-type]
+        )
+        return _cb(
+            validated.youngs_modulus,
+            validated.area_moment,
+            validated.area,
+            validated.length,
+            validated.yield_strength,
+            validated.end_condition,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def plate_buckling_coefficient(
+    aspect_ratio: float,
+    boundary_condition: str = "simply_supported",
+    load_type: str = "compression",
+) -> dict:
+    """Compute buckling coefficient k for flat rectangular plates.
+
+    boundary_condition: simply_supported, clamped, free_edge
+    load_type: compression, shear, bending
+    """
+    from rocket_tools.structural import plate_buckling_coefficient as _pb
+
+    try:
+        validated = PlateBucklingInput(
+            aspect_ratio=aspect_ratio,
+            boundary_condition=boundary_condition,  # type: ignore[arg-type]
+            load_type=load_type,  # type: ignore[arg-type]
+        )
+        k = _pb(validated.aspect_ratio, validated.boundary_condition, validated.load_type)
+        return {
+            "buckling_coefficient_k": k,
+            "aspect_ratio": validated.aspect_ratio,
+            "boundary_condition": validated.boundary_condition,
+            "load_type": validated.load_type,
+        }
     except Exception as e:
         return _format_error(e)
 
@@ -277,6 +403,415 @@ def aero_analysis(
             validated.reference_area,
             validated.lift,
             validated.drag,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Compressible Flow Tools ----
+
+
+@mcp.tool()
+def isentropic_flow(mach: float, gamma: float = 1.4) -> dict:
+    """Compute isentropic flow ratios (T/T0, P/P0, rho/rho0, A/A*) for given Mach number."""
+    from rocket_tools.aerodynamics import isentropic_flow as _if
+
+    try:
+        validated = IsentropicFlowInput(mach=mach, gamma=gamma)
+        return _if(validated.mach, validated.gamma)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def normal_shock(mach1: float, gamma: float = 1.4) -> dict:
+    """Compute normal shock relations for upstream Mach number > 1."""
+    from rocket_tools.aerodynamics import normal_shock as _ns
+
+    try:
+        validated = NormalShockInput(mach1=mach1, gamma=gamma)
+        return _ns(validated.mach1, validated.gamma)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def oblique_shock(mach1: float, deflection_deg: float, gamma: float = 1.4) -> dict:
+    """Compute oblique shock relations for upstream Mach and deflection angle."""
+    from rocket_tools.aerodynamics import oblique_shock as _os
+
+    try:
+        validated = ObliqueShockInput(mach1=mach1, deflection_deg=deflection_deg, gamma=gamma)
+        return _os(validated.mach1, validated.deflection_deg, validated.gamma)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def prandtl_meyer(mach: float, gamma: float = 1.4) -> dict:
+    """Compute Prandtl-Meyer expansion angle for Mach >= 1."""
+    from rocket_tools.aerodynamics import prandtl_meyer as _pm
+
+    try:
+        validated = PrandtlMeyerInput(mach=mach, gamma=gamma)
+        return _pm(validated.mach, validated.gamma)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def prandtl_meyer_from_angle(angle_deg: float, gamma: float = 1.4) -> dict:
+    """Compute Mach number from Prandtl-Meyer expansion angle."""
+    from rocket_tools.aerodynamics import prandtl_meyer_from_angle as _pmfa
+
+    try:
+        validated = PrandtlMeyerFromAngleInput(angle_deg=angle_deg, gamma=gamma)
+        return _pmfa(validated.angle_deg, validated.gamma)
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Aircraft Aerodynamics Tools ----
+
+
+@mcp.tool()
+def lift_curve_slope(
+    mach: float,
+    aspect_ratio: float,
+    taper_ratio: float = 1.0,
+    sweep_deg: float = 0.0,
+    oswald_efficiency: float = 0.85,
+) -> dict:
+    """Compute 3D wing lift curve slope CL_alpha."""
+    from rocket_tools.aerodynamics import lift_curve_slope as _lcs
+
+    try:
+        validated = LiftCurveSlopeInput(
+            mach=mach,
+            aspect_ratio=aspect_ratio,
+            taper_ratio=taper_ratio,
+            sweep_deg=sweep_deg,
+            oswald_efficiency=oswald_efficiency,
+        )
+        return _lcs(
+            validated.mach,
+            validated.aspect_ratio,
+            validated.taper_ratio,
+            validated.sweep_deg,
+            validated.oswald_efficiency,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def drag_polar(
+    cl: float,
+    cd0: float,
+    aspect_ratio: float,
+    oswald_efficiency: float = 0.85,
+    mach: float = 0.0,
+) -> dict:
+    """Compute drag coefficient from drag polar equation CD = CD0 + K*CL^2."""
+    from rocket_tools.aerodynamics import drag_polar as _dp
+
+    try:
+        validated = DragPolarInput(
+            cl=cl,
+            cd0=cd0,
+            aspect_ratio=aspect_ratio,
+            oswald_efficiency=oswald_efficiency,
+            mach=mach,
+        )
+        return _dp(
+            validated.cl,
+            validated.cd0,
+            validated.aspect_ratio,
+            validated.oswald_efficiency,
+            validated.mach,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def breguet_range(
+    lift_to_drag_ratio: float,
+    specific_fuel_consumption: float,
+    velocity: float,
+    initial_mass_kg: float,
+    final_mass_kg: float,
+) -> dict:
+    """Compute aircraft range using Breguet range equation."""
+    from rocket_tools.aerodynamics import breguet_range as _br
+
+    try:
+        validated = BreguetRangeInput(
+            lift_to_drag_ratio=lift_to_drag_ratio,
+            specific_fuel_consumption=specific_fuel_consumption,
+            velocity=velocity,
+            initial_mass_kg=initial_mass_kg,
+            final_mass_kg=final_mass_kg,
+        )
+        return _br(
+            validated.lift_to_drag_ratio,
+            validated.specific_fuel_consumption,
+            validated.velocity,
+            validated.initial_mass_kg,
+            validated.final_mass_kg,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def breguet_endurance(
+    lift_to_drag_ratio: float,
+    specific_fuel_consumption: float,
+    initial_mass_kg: float,
+    final_mass_kg: float,
+) -> dict:
+    """Compute aircraft endurance using Breguet endurance equation."""
+    from rocket_tools.aerodynamics import breguet_endurance as _be
+
+    try:
+        validated = BreguetEnduranceInput(
+            lift_to_drag_ratio=lift_to_drag_ratio,
+            specific_fuel_consumption=specific_fuel_consumption,
+            initial_mass_kg=initial_mass_kg,
+            final_mass_kg=final_mass_kg,
+        )
+        return _be(
+            validated.lift_to_drag_ratio,
+            validated.specific_fuel_consumption,
+            validated.initial_mass_kg,
+            validated.final_mass_kg,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def wing_loading(weight_n: float, wing_area_m2: float) -> dict:
+    """Compute wing loading and stall speed estimates."""
+    from rocket_tools.aerodynamics import wing_loading as _wl
+
+    try:
+        validated = WingLoadingInput(weight_n=weight_n, wing_area_m2=wing_area_m2)
+        return _wl(validated.weight_n, validated.wing_area_m2)
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Nozzle / Inlet Tools ----
+
+
+@mcp.tool()
+def nozzle_performance(
+    chamber_pressure_pa: float,
+    chamber_temperature_k: float,
+    ambient_pressure_pa: float,
+    throat_area_m2: float,
+    exit_area_m2: float,
+    gamma: float = 1.4,
+    molecular_weight: float = 28.97,
+) -> dict:
+    """Analyze rocket nozzle performance (thrust, Isp, Cf, exit conditions)."""
+    from rocket_tools.aerodynamics import nozzle_performance as _np
+
+    try:
+        validated = NozzlePerformanceInput(
+            chamber_pressure_pa=chamber_pressure_pa,
+            chamber_temperature_k=chamber_temperature_k,
+            ambient_pressure_pa=ambient_pressure_pa,
+            throat_area_m2=throat_area_m2,
+            exit_area_m2=exit_area_m2,
+            gamma=gamma,
+            molecular_weight=molecular_weight,
+        )
+        return _np(
+            validated.chamber_pressure_pa,
+            validated.chamber_temperature_k,
+            validated.ambient_pressure_pa,
+            validated.throat_area_m2,
+            validated.exit_area_m2,
+            validated.gamma,
+            validated.molecular_weight,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def optimal_area_ratio(
+    chamber_pressure_pa: float, ambient_pressure_pa: float, gamma: float = 1.4
+) -> dict:
+    """Compute optimal nozzle area ratio for given pressure ratio."""
+    from rocket_tools.aerodynamics import optimal_area_ratio as _oar
+
+    try:
+        validated = OptimalAreaRatioInput(
+            chamber_pressure_pa=chamber_pressure_pa,
+            ambient_pressure_pa=ambient_pressure_pa,
+            gamma=gamma,
+        )
+        return _oar(
+            validated.chamber_pressure_pa,
+            validated.ambient_pressure_pa,
+            validated.gamma,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Design Tools ----
+
+
+@mcp.tool()
+def rocket_delta_v(
+    specific_impulse_s: float,
+    initial_mass_kg: float,
+    final_mass_kg: float,
+    gravity: float = 9.80665,
+) -> dict:
+    """Compute rocket delta-v using Tsiolkovsky equation."""
+    from rocket_tools.design import rocket_delta_v as _rdv
+
+    try:
+        validated = RocketDeltaVInput(
+            specific_impulse_s=specific_impulse_s,
+            initial_mass_kg=initial_mass_kg,
+            final_mass_kg=final_mass_kg,
+            gravity=gravity,
+        )
+        return _rdv(
+            validated.specific_impulse_s,
+            validated.initial_mass_kg,
+            validated.final_mass_kg,
+            validated.gravity,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def multi_stage_delta_v(stages: list[dict], gravity: float = 9.80665) -> dict:
+    """Compute total delta-v for multi-stage rocket."""
+    from rocket_tools.design import multi_stage_delta_v as _msdv
+
+    try:
+        validated = MultiStageDeltaVInput(stages=stages, gravity=gravity)
+        return _msdv(validated.stages, validated.gravity)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def orbital_velocity(
+    altitude_m: float,
+    body_radius_m: float = 6_371_000.0,
+    body_mass_kg: float = 5.972e24,
+    gravity_constant: float = 6.67430e-11,
+) -> dict:
+    """Compute circular orbital velocity at given altitude."""
+    from rocket_tools.design import orbital_velocity as _ov
+
+    try:
+        validated = OrbitalVelocityInput(
+            altitude_m=altitude_m,
+            body_radius_m=body_radius_m,
+            body_mass_kg=body_mass_kg,
+            gravity_constant=gravity_constant,
+        )
+        return _ov(
+            validated.altitude_m,
+            validated.body_radius_m,
+            validated.body_mass_kg,
+            validated.gravity_constant,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def payload_fraction(
+    delta_v_required_ms: float,
+    specific_impulse_s: float,
+    inert_mass_fraction: float,
+    gravity: float = 9.80665,
+) -> dict:
+    """Estimate payload mass fraction for given mission requirements."""
+    from rocket_tools.design import payload_fraction as _pf
+
+    try:
+        validated = PayloadFractionInput(
+            delta_v_required_ms=delta_v_required_ms,
+            specific_impulse_s=specific_impulse_s,
+            inert_mass_fraction=inert_mass_fraction,
+            gravity=gravity,
+        )
+        return _pf(
+            validated.delta_v_required_ms,
+            validated.specific_impulse_s,
+            validated.inert_mass_fraction,
+            validated.gravity,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def thrust_to_weight(thrust_n: float, mass_kg: float, gravity: float = 9.80665) -> dict:
+    """Compute thrust-to-weight ratio."""
+    from rocket_tools.design import thrust_to_weight as _ttw
+
+    try:
+        validated = ThrustToWeightInput(thrust_n=thrust_n, mass_kg=mass_kg, gravity=gravity)
+        return _ttw(validated.thrust_n, validated.mass_kg, validated.gravity)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def composite_cg(masses: list[float], positions: list[list[float]]) -> dict:
+    """Compute center of gravity and mass moments for composite body."""
+    from rocket_tools.design import composite_cg as _ccg
+
+    try:
+        validated = CompositeCGInput(masses=masses, positions=positions)
+        return _ccg(validated.masses, validated.positions)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def propellant_tank_sizing(
+    propellant_volume_m3: float,
+    ullage_fraction: float = 0.1,
+    tank_shape: str = "cylinder",
+    aspect_ratio: float = 2.0,
+    wall_thickness_m: float = 0.003,
+    material_density_kg_m3: float = 2700.0,
+) -> dict:
+    """Size propellant tank and estimate mass."""
+    from rocket_tools.design import propellant_tank_sizing as _pts
+
+    try:
+        validated = PropellantTankSizingInput(
+            propellant_volume_m3=propellant_volume_m3,
+            ullage_fraction=ullage_fraction,
+            tank_shape=tank_shape,
+            aspect_ratio=aspect_ratio,
+            wall_thickness_m=wall_thickness_m,
+            material_density_kg_m3=material_density_kg_m3,
+        )
+        return _pts(
+            validated.propellant_volume_m3,
+            validated.ullage_fraction,
+            validated.tank_shape,
+            validated.aspect_ratio,
+            validated.wall_thickness_m,
+            validated.material_density_kg_m3,
         )
     except Exception as e:
         return _format_error(e)

@@ -1,3 +1,17 @@
+from .aircraft import (
+    breguet_endurance,
+    breguet_range,
+    drag_polar,
+    lift_curve_slope,
+    wing_loading,
+)
+from .compressible import (
+    isentropic_flow,
+    normal_shock,
+    oblique_shock,
+    prandtl_meyer,
+    prandtl_meyer_from_angle,
+)
 from .fundamentals import (
     aero_analysis,
     drag_coefficient,
@@ -7,8 +21,10 @@ from .fundamentals import (
     reynolds_number,
     skin_friction_coefficient,
 )
+from .nozzle import nozzle_performance, optimal_area_ratio
 
 __all__ = [
+    # Fundamentals
     "reynolds_number",
     "mach_number",
     "dynamic_pressure",
@@ -16,4 +32,19 @@ __all__ = [
     "drag_coefficient",
     "skin_friction_coefficient",
     "aero_analysis",
+    # Compressible
+    "isentropic_flow",
+    "normal_shock",
+    "oblique_shock",
+    "prandtl_meyer",
+    "prandtl_meyer_from_angle",
+    # Aircraft
+    "lift_curve_slope",
+    "drag_polar",
+    "breguet_range",
+    "breguet_endurance",
+    "wing_loading",
+    # Nozzle
+    "nozzle_performance",
+    "optimal_area_ratio",
 ]

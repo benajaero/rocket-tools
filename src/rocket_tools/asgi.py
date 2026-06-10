@@ -59,7 +59,7 @@ async def ready(request):
             "status": "ready",
             "service": "rocket-tools",
             "version": rocket_tools.__version__,
-            "tools": 11,
+            "tools": 30,
         }
     )
 
@@ -85,7 +85,7 @@ async def root(request):
                 "ready": "/ready",
                 "metrics": "/metrics",
             },
-            "tools": 11,
+            "tools": 30,
         }
     )
 

@@ -9,18 +9,39 @@ These models provide:
 from .aerodynamics import (
     AeroAnalysisInput,
     AeroAnalysisOutput,
+    BreguetEnduranceInput,
+    BreguetRangeInput,
     DragCoefficientInput,
     DragCoefficientOutput,
+    DragPolarInput,
     DynamicPressureInput,
     DynamicPressureOutput,
+    IsentropicFlowInput,
     LiftCoefficientInput,
     LiftCoefficientOutput,
+    LiftCurveSlopeInput,
     MachNumberInput,
     MachNumberOutput,
+    NormalShockInput,
+    NozzlePerformanceInput,
+    ObliqueShockInput,
+    OptimalAreaRatioInput,
+    PrandtlMeyerFromAngleInput,
+    PrandtlMeyerInput,
     ReynoldsNumberInput,
     ReynoldsNumberOutput,
     SkinFrictionInput,
     SkinFrictionOutput,
+    WingLoadingInput,
+)
+from .design import (
+    CompositeCGInput,
+    MultiStageDeltaVInput,
+    OrbitalVelocityInput,
+    PayloadFractionInput,
+    PropellantTankSizingInput,
+    RocketDeltaVInput,
+    ThrustToWeightInput,
 )
 from .materials import (
     ISAAtmosphereInput,
@@ -32,7 +53,10 @@ from .structural import (
     BeamAnalysisInput,
     BeamAnalysisOutput,
     CircleSection,
+    ColumnBucklingInput,
+    PlateBucklingInput,
     RectangleSection,
+    SectionPropertiesInput,
 )
 from .utils import UnitConvertInput, UnitConvertOutput
 
@@ -42,12 +66,15 @@ __all__ = [
     "BeamAnalysisOutput",
     "RectangleSection",
     "CircleSection",
+    "SectionPropertiesInput",
+    "ColumnBucklingInput",
+    "PlateBucklingInput",
     # Materials
     "MaterialLookupInput",
     "MaterialLookupOutput",
     "ISAAtmosphereInput",
     "ISAAtmosphereOutput",
-    # Aerodynamics
+    # Aerodynamics - Fundamentals
     "ReynoldsNumberInput",
     "ReynoldsNumberOutput",
     "MachNumberInput",
@@ -62,6 +89,29 @@ __all__ = [
     "SkinFrictionOutput",
     "AeroAnalysisInput",
     "AeroAnalysisOutput",
+    # Aerodynamics - Compressible
+    "IsentropicFlowInput",
+    "NormalShockInput",
+    "ObliqueShockInput",
+    "PrandtlMeyerInput",
+    "PrandtlMeyerFromAngleInput",
+    # Aerodynamics - Aircraft
+    "LiftCurveSlopeInput",
+    "DragPolarInput",
+    "BreguetRangeInput",
+    "BreguetEnduranceInput",
+    "WingLoadingInput",
+    # Aerodynamics - Nozzle
+    "NozzlePerformanceInput",
+    "OptimalAreaRatioInput",
+    # Design
+    "RocketDeltaVInput",
+    "MultiStageDeltaVInput",
+    "OrbitalVelocityInput",
+    "PayloadFractionInput",
+    "ThrustToWeightInput",
+    "CompositeCGInput",
+    "PropellantTankSizingInput",
     # Utils
     "UnitConvertInput",
     "UnitConvertOutput",

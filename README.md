@@ -308,7 +308,7 @@ Apache-2.0 — See [LICENSE](LICENSE)
 
 ### MCP Tool Manifest
 
-This repository exposes 11 tools via FastMCP:
+This repository exposes 30 tools via FastMCP:
 
 | Tool | Schema | Description |
 |------|--------|-------------|
@@ -333,7 +333,7 @@ uvicorn rocket_tools.asgi:app --host 0.0.0.0 --port 8000
 Endpoints:
 - `GET /sse` — MCP SSE transport
 - `GET /health` — `{"status": "ok", "version": "0.3.1"}`
-- `GET /ready` — `{"status": "ready", "tools": 11}`
+- `GET /ready` — `{"status": "ready", "tools": 30}`
 - `GET /metrics` — Prometheus metrics
 
 ### Natural Language Routing

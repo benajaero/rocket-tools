@@ -1,0 +1,68 @@
+"""Pydantic schemas for design and performance tools."""
+
+from pydantic import BaseModel, Field
+
+# ---- Rocket Performance ----
+
+
+class RocketDeltaVInput(BaseModel):
+    """Input for rocket_delta_v tool."""
+
+    specific_impulse_s: float = Field(..., gt=0, description="Specific impulse in seconds")
+    initial_mass_kg: float = Field(..., gt=0, description="Initial mass in kg")
+    final_mass_kg: float = Field(..., gt=0, description="Final mass in kg")
+    gravity: float = Field(default=9.80665, gt=0, description="Gravity in m/s^2")
+
+
+class MultiStageDeltaVInput(BaseModel):
+    """Input for multi_stage_delta_v tool."""
+
+    stages: list[dict] = Field(..., description="List of stage dicts")
+    gravity: float = Field(default=9.80665, gt=0)
+
+
+class OrbitalVelocityInput(BaseModel):
+    """Input for orbital_velocity tool."""
+
+    altitude_m: float = Field(..., ge=0, description="Altitude in meters")
+    body_radius_m: float = Field(default=6_371_000.0, gt=0)
+    body_mass_kg: float = Field(default=5.972e24, gt=0)
+    gravity_constant: float = Field(default=6.67430e-11, gt=0)
+
+
+class PayloadFractionInput(BaseModel):
+    """Input for payload_fraction tool."""
+
+    delta_v_required_ms: float = Field(..., gt=0)
+    specific_impulse_s: float = Field(..., gt=0)
+    inert_mass_fraction: float = Field(..., ge=0, lt=1.0)
+    gravity: float = Field(default=9.80665, gt=0)
+
+
+class ThrustToWeightInput(BaseModel):
+    """Input for thrust_to_weight tool."""
+
+    thrust_n: float = Field(..., gt=0, description="Thrust in Newtons")
+    mass_kg: float = Field(..., gt=0, description="Mass in kg")
+    gravity: float = Field(default=9.80665, gt=0)
+
+
+# ---- Mass Properties ----
+
+
+class CompositeCGInput(BaseModel):
+    """Input for composite_cg tool."""
+
+    masses: list[float] = Field(..., description="Component masses in kg")
+    positions: list[list[float]] = Field(..., description="Component positions [x, y, z] in m")
+
+
+class PropellantTankSizingInput(BaseModel):
+    """Input for propellant_tank_sizing tool."""
+
+    propellant_volume_m3: float = Field(..., gt=0)
+    ullage_fraction: float = Field(default=0.1, ge=0)
+    tank_shape: str = Field(default="cylinder")
+    aspect_ratio: float = Field(default=2.0, gt=0)
+    wall_thickness_m: float = Field(default=0.003, gt=0)
+    material_density_kg_m3: float = Field(default=2700.0, gt=0)

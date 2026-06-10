@@ -2,6 +2,32 @@
 
 All notable changes to rocket-tools.
 
+## [0.3.2] — 2026-06-10
+
+### Added
+- **Structural section properties** — 7 shapes: rectangle, hollow_rectangle, circle, hollow_circle, I-beam, C-channel, T-section
+- **Column buckling** — Euler-Johnson transition with effective length factors for pinned, fixed, and free ends
+- **Plate buckling coefficient** — compression, shear, and bending for simply-supported, clamped, and free-edge boundaries
+- **Isentropic flow relations** — T/T0, P/P0, rho/rho0, A/A*, Mach angle
+- **Normal shock relations** — downstream Mach, pressure/density/temperature ratios, stagnation pressure loss
+- **Oblique shock relations** — weak shock solution for given deflection angle
+- **Prandtl-Meyer expansion** — expansion angle from Mach, and Mach from angle
+- **Aircraft aerodynamics** — lift curve slope (2D/3D, subsonic/supersonic), drag polar with compressibility drag, Breguet range/endurance, wing loading with stall speeds
+- **Rocket nozzle performance** — thrust, Isp, Cf, exit conditions, expansion state (optimal/underexpanded/overexpanded)
+- **Optimal area ratio** — nozzle A/A* for given chamber/ambient pressure ratio
+- **Rocket delta-v** — Tsiolkovsky equation, multi-stage delta-v with per-stage breakdown
+- **Orbital velocity** — circular and escape velocity, orbital period
+- **Payload fraction** — mission feasibility check with required mass ratio
+- **Thrust-to-weight ratio** — hover/climb capability assessment
+- **Composite CG** — center of gravity and mass moments of inertia for multi-component bodies
+- **Propellant tank sizing** — cylinder, sphere, ellipsoid with mass estimation
+- Expanded tool count from 11 to 30 MCP tools
+- All tools work for rockets, aircraft, drones, helicopters, and spacecraft
+
+### Changed
+- Pydantic schemas expanded for all new tools
+- README updated with 30 tools and new capability categories
+
 ## [0.3.1] — 2026-06-10
 
 ### Added
