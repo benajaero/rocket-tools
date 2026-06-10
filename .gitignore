@@ -49,3 +49,11 @@ venv/
 
 # OS
 .DS_Store
+
+# Classified / prompt artifacts — never commit council deliberations or prompts
+docs/council-*
+docs/deliberation-*
+docs/prompt-*
+*.prompt.md
+*deliberation*.md
+*council*.md
