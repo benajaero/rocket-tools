@@ -1,6 +1,5 @@
 """Tests for session memory."""
 
-import pytest
 from rocket_tools.memory import get_store
 
 

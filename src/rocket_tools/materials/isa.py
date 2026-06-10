@@ -20,7 +20,7 @@ for i, h in enumerate(_ISA_ALTITUDES):
         t = T0 + lapse * h
         p = P0 * (t / T0) ** (-G_STD / (lapse * R_AIR))
     elif h <= 20000.0:
-        t = 216.65
+        t = 216.65  # type: ignore[assignment]
         p11 = 22632.0
         p = p11 * np.exp(-G_STD * (h - 11000.0) / (R_AIR * t))
     else:

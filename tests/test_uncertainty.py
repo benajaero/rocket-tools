@@ -1,8 +1,9 @@
 """Tests for uncertainty propagation."""
 
-import pytest
 import numpy as np
-from rocket_tools.uncertainty import Uniform, Normal, run_with_uncertainty
+import pytest
+
+from rocket_tools.uncertainty import Normal, Uniform, run_with_uncertainty
 
 
 class TestDistributions:

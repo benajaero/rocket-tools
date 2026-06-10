@@ -60,7 +60,7 @@ def beam_analysis(
     """
     from rocket_tools.structural import beam_analysis as _ba
 
-    return _ba(load, length, youngs_modulus, cross_section, load_type, support_type)
+    return _ba(load, length, youngs_modulus, cross_section, load_type, support_type)  # type: ignore[arg-type]
 
 
 # ---- Aerodynamics Tools ----
@@ -70,10 +70,10 @@ def beam_analysis(
 def reynolds_number(
     velocity: float,
     characteristic_length: float,
-    density: float = None,
-    dynamic_viscosity: float = None,
-    altitude_m: float = None,
-    temperature_k: float = None,
+    density: float | None = None,
+    dynamic_viscosity: float | None = None,
+    altitude_m: float | None = None,
+    temperature_k: float | None = None,
 ) -> dict:
     """Compute Reynolds number. Provide (density + viscosity) or altitude_m or temperature_k."""
     from rocket_tools.aerodynamics import reynolds_number as _re

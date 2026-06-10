@@ -1,29 +1,31 @@
 """Monte Carlo uncertainty propagation engine."""
 
-import numpy as np
 from typing import Any
 
-from .distributions import Distribution
+import numpy as np
+
 from rocket_tools.workflows.engine import _call_tool
+
+from .distributions import Distribution
 
 
 def _is_distribution(value: Any) -> bool:
     return isinstance(value, dict) and "distribution" in value
 
 
-def _resolve_param_distributions(params: dict, n: int, seed: int) -> dict[str, np.ndarray]:
+def _resolve_param_distributions(params: dict, n: int, seed: int) -> dict[str, Any]:
     rng = np.random.default_rng(seed)
-    param_samples = {}
+    param_samples: dict[str, Any] = {}
     for key, value in params.items():
         if _is_distribution(value):
             dist = Distribution.from_dict(value)
-            param_samples[key] = dist.sample(n, rng.integers(0, 2**31))
+            param_samples[key] = dist.sample(n, int(rng.integers(0, 2**31)))
         elif isinstance(value, dict):
             resolved = {}
             for k, v in value.items():
                 if _is_distribution(v):
                     dist = Distribution.from_dict(v)
-                    resolved[k] = dist.sample(n, rng.integers(0, 2**31))
+                    resolved[k] = dist.sample(n, int(rng.integers(0, 2**31)))
                 else:
                     resolved[k] = np.full(n, v)
             param_samples[key] = resolved
@@ -61,7 +63,9 @@ def _aggregate_results(results: list[dict], samples: int) -> dict:
     keys = [k for k in results[0].keys() if isinstance(results[0][k], (int, float))]
 
     for key in keys:
-        values = np.array([r[key] for r in results if key in r and isinstance(r[key], (int, float))])
+        values = np.array(
+            [r[key] for r in results if key in r and isinstance(r[key], (int, float))]
+        )
         if len(values) == 0:
             continue
         aggregated[key] = {

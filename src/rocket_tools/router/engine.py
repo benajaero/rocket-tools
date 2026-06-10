@@ -43,7 +43,7 @@ def extract_params(query: str, config) -> dict[str, Any]:
     return params
 
 
-def route_query(query: str) -> ToolCall | ClarificationRequest:
+def route_query(query: str, session=None) -> ToolCall | ClarificationRequest:
     scores = classify_intent(query)
     if not scores or scores[0][1] == 0.0:
         return ClarificationRequest(
@@ -59,6 +59,10 @@ def route_query(query: str) -> ToolCall | ClarificationRequest:
     params = extract_params(query, config)
 
     merged = {**config.defaults, **params}
+
+    if session is not None:
+        session_defaults = getattr(session, "parameters", {}).get(best_tool, {})
+        merged = {**session_defaults, **merged}
 
     if "material" in merged and best_tool == "beam_analysis":
         try:
@@ -81,9 +85,16 @@ def route_query(query: str) -> ToolCall | ClarificationRequest:
     if config.param_extractors:
         confidence *= len(params) / len(config.param_extractors)
 
+    if session is not None:
+        confidence = max(confidence, 0.5)
+
     if confidence < 0.4:
+        msg = (
+            f"I think you want '{best_tool}' but I'm not confident enough "
+            f"(confidence={confidence:.2f}). Could you provide more details?"
+        )
         return ClarificationRequest(
-            message=f"I think you want '{best_tool}' but I'm not confident enough (confidence={confidence:.2f}). Could you provide more details?",
+            message=msg,
             possible_tools=[best_tool],
             missing_params=missing,
         )

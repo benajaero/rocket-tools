@@ -52,7 +52,9 @@ class SessionStore:
 
     def _cleanup(self):
         now = time.time()
-        expired = [sid for sid, mem in self._sessions.items() if now - mem.last_accessed > self._ttl]
+        expired = [
+            sid for sid, mem in self._sessions.items() if now - mem.last_accessed > self._ttl
+        ]
         for sid in expired:
             del self._sessions[sid]
 

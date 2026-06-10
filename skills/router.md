@@ -21,6 +21,7 @@ The router turns plain‑english aerospace questions into precise tool calls.
 | `confidence < 0.4` | Router returns a **ClarificationRequest** rather than guessing. |
 | Missing *required* parameters | Router immediately asks for the missing values. |
 | Partial optional parameters | Confidence is reduced proportionally. |
+| Session memory present | Confidence floor is raised to `0.5` so contextual follow-ups don't get blocked. |
 
 ## Worked Example
 
@@ -47,6 +48,24 @@ result = route_query("Can a beam handle 500N over 2m?")
 #   confidence≈0.67   # material was not specified
 # )
 ```
+
+### Contextual follow‑up with session memory
+
+```python
+from rocket_tools.memory import SessionMemory
+
+session = SessionMemory(session_id="design-1")
+session.parameters["beam_analysis"] = {"load": 1000.0, "length": 1.5}
+
+result = route_query("What is the deflection?", session=session)
+# ToolCall(
+#   tool_name="beam_analysis",
+#   params={"load": 1000.0, "length": 1.5, ...},
+#   confidence=0.50   # boosted by session context
+# )
+```
+
+Session memory is merged **after** defaults but **before** the current query, so explicit values in the new query always override stored context.
 
 ### No‑match query
 

@@ -52,7 +52,9 @@ def resolve_interpolation(value: Any, context: dict) -> Any:
         # Support simple arithmetic expressions like inputs.mass_kg * 9.80665
         if any(op in path for op in ("*", "+", "-", "/", "(", ")")):
             try:
-                eval_ctx = {k: _DotDict(v) if isinstance(v, dict) else v for k, v in context.items()}
+                eval_ctx = {
+                    k: _DotDict(v) if isinstance(v, dict) else v for k, v in context.items()
+                }
                 return eval(path, {"__builtins__": {}}, eval_ctx)
             except Exception as e:
                 raise ValidationError(
@@ -83,12 +85,14 @@ def run_workflow(workflow: Workflow, inputs: dict) -> WorkflowResult:
         resolved_params = resolve_interpolation(step.params, context)
         result = _call_tool(step.tool, resolved_params)
         context[step.save_as] = result
-        trace.append({
-            "step_id": step.id,
-            "tool": step.tool,
-            "params": resolved_params,
-            "result": result,
-        })
+        trace.append(
+            {
+                "step_id": step.id,
+                "tool": step.tool,
+                "params": resolved_params,
+                "result": result,
+            }
+        )
 
     outputs = {}
     for out_expr in workflow.outputs:
@@ -99,7 +103,7 @@ def run_workflow(workflow: Workflow, inputs: dict) -> WorkflowResult:
 
 
 def _call_tool(tool_name: str, params: dict) -> dict:
-    from rocket_tools import structural, aerodynamics, materials
+    from rocket_tools import aerodynamics, materials, structural
 
     if tool_name == "beam_analysis":
         return structural.beam_analysis(**params)
@@ -121,6 +125,7 @@ def _call_tool(tool_name: str, params: dict) -> dict:
         return aerodynamics.drag_coefficient(**params)
     elif tool_name == "unit_convert":
         from rocket_tools.utils import unit_convert
+
         return unit_convert(**params)
     else:
         raise ValueError(f"Unknown tool: {tool_name}")

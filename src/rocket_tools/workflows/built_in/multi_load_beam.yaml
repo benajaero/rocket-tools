@@ -1,0 +1,38 @@
+name: multi_load_beam
+version: "0.1.0"
+description: "Run beam analysis at two load levels to compare safety margins"
+inputs:
+  material: {type: str, required: true}
+  length: {type: float, required: true}
+  cross_section: {type: dict, required: true}
+  load_low: {type: float, required: true}
+  load_high: {type: float, required: true}
+
+steps:
+  - id: lookup_material
+    tool: material_lookup
+    params:
+      name: "${inputs.material}"
+    save_as: mat
+
+  - id: analyze_low_load
+    tool: beam_analysis
+    params:
+      load: "${inputs.load_low}"
+      length: "${inputs.length}"
+      youngs_modulus: "${mat.youngs_modulus_pa}"
+      cross_section: "${inputs.cross_section}"
+    save_as: beam_low
+
+  - id: analyze_high_load
+    tool: beam_analysis
+    params:
+      load: "${inputs.load_high}"
+      length: "${inputs.length}"
+      youngs_modulus: "${mat.youngs_modulus_pa}"
+      cross_section: "${inputs.cross_section}"
+    save_as: beam_high
+
+outputs:
+  - "${beam_low}"
+  - "${beam_high}"

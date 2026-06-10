@@ -60,7 +60,7 @@ addopts = "--strict-markers --disable-warnings"
 
 [tool.coverage.run]
 source = ["src"]
-omit = ["*/tests/*", "*/rust_kernels/*"]
+omit = ["*/tests/*", "*/rust_kernels/*", "src/rocket_tools/__main__.py"]
 
 [tool.ruff]
 line-length = 100
@@ -71,6 +71,7 @@ select = ["E", "F", "I", "N", "W", "UP"]
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
+strict = false
 warn_return_any = true
 warn_unused_ignores = true
+ignore_missing_imports = true

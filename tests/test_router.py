@@ -87,3 +87,28 @@ class TestRouterUnitConvert:
     def test_convert_missing_value(self):
         result = route_query("Convert psi to kPa")
         assert isinstance(result, ClarificationRequest)
+
+
+class TestRouterSessionMemory:
+    def test_session_fills_missing_params(self):
+        from rocket_tools.memory import SessionMemory
+
+        session = SessionMemory(session_id="test-1")
+        session.parameters["beam_analysis"] = {"load": 500.0, "length": 2.0}
+
+        result = route_query("Beam analysis", session=session)
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "beam_analysis"
+        assert result.params["load"] == 500.0
+        assert result.params["length"] == 2.0
+
+    def test_session_overridden_by_query(self):
+        from rocket_tools.memory import SessionMemory
+
+        session = SessionMemory(session_id="test-2")
+        session.parameters["beam_analysis"] = {"load": 500.0, "length": 2.0}
+
+        result = route_query("Beam analysis for 1000N", session=session)
+        assert isinstance(result, ToolCall)
+        assert result.params["load"] == 1000.0
+        assert result.params["length"] == 2.0

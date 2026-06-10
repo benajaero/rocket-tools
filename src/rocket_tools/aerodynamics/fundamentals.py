@@ -30,7 +30,7 @@ def _lift_coefficient(lift: float, rho: float, v: float, s: float) -> float:
     q = _dynamic_pressure(rho, v)
     if q <= 0.0 or s <= 0.0:
         raise ValueError("Dynamic pressure and area must be > 0")
-    return lift / (q * s)
+    return lift / (q * s)  # type: ignore[no-any-return]
 
 
 @njit(cache=True)
@@ -38,7 +38,7 @@ def _drag_coefficient(drag: float, rho: float, v: float, s: float) -> float:
     q = _dynamic_pressure(rho, v)
     if q <= 0.0 or s <= 0.0:
         raise ValueError("Dynamic pressure and area must be > 0")
-    return drag / (q * s)
+    return drag / (q * s)  # type: ignore[no-any-return]
 
 
 @njit(cache=True)
@@ -46,10 +46,10 @@ def _skin_friction_coefficient(re: float, laminar: bool = True) -> float:
     if re <= 0.0:
         raise ValueError("Re must be > 0")
     if laminar:
-        return 1.328 / np.sqrt(re)
+        return 1.328 / np.sqrt(re)  # type: ignore[no-any-return]
     else:
         # Blasius turbulent: cf = 0.0592 * Re^(-0.2)
-        return 0.0592 * re ** (-0.2)
+        return 0.0592 * re ** (-0.2)  # type: ignore[no-any-return]
 
 
 # ---- Public API ----

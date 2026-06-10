@@ -1,7 +1,8 @@
 """Probability distributions for uncertainty propagation."""
 
-import numpy as np
 from abc import ABC, abstractmethod
+
+import numpy as np
 
 
 class Distribution(ABC):
@@ -81,4 +82,10 @@ class TruncatedNormal(Distribution):
         return samples[:n]
 
     def to_dict(self) -> dict:
-        return {"distribution": "truncated_normal", "mean": self.mean, "std": self.std, "low": self.low, "high": self.high}
+        return {
+            "distribution": "truncated_normal",
+            "mean": self.mean,
+            "std": self.std,
+            "low": self.low,
+            "high": self.high,
+        }

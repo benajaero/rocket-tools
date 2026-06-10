@@ -1,7 +1,8 @@
 """Load workflows from YAML files."""
 
-import yaml
 from pathlib import Path
+
+import yaml
 
 from .engine import Workflow, WorkflowStep
 
@@ -12,12 +13,14 @@ def load_workflow(path: Path) -> Workflow:
 
     steps = []
     for step_data in data["steps"]:
-        steps.append(WorkflowStep(
-            id=step_data["id"],
-            tool=step_data["tool"],
-            params=step_data.get("params", {}),
-            save_as=step_data["save_as"],
-        ))
+        steps.append(
+            WorkflowStep(
+                id=step_data["id"],
+                tool=step_data["tool"],
+                params=step_data.get("params", {}),
+                save_as=step_data["save_as"],
+            )
+        )
 
     return Workflow(
         name=data["name"],
