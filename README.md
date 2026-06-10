@@ -2,28 +2,42 @@
 
 > Aerospace engineering intelligence for AI agents.
 
-[![Tests](https://img.shields.io/badge/tests-34%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-94%20passing-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
+---
+
 ## What is rocket-tools?
 
-A dual-interface engineering computation engine:
+A **dual-interface** engineering computation engine:
 
-- **MCP Server** — 11+ aerospace engineering tools callable by AI agents via the [Model Context Protocol](https://modelcontextprotocol.io/)
+- **MCP Server** — 11 aerospace tools callable by AI agents via the [Model Context Protocol](https://modelcontextprotocol.io/)
+- **Natural Language Router** — Turn plain-english questions into precise tool calls
+- **Workflow Engine** — Chain tools into multi-step design reviews with YAML
 - **Skills Library** — Human-readable `.md` references with formulas, worked examples, and pitfalls
 
 Built for speed, precision, and composability.
 
-## Features
+---
 
-| Domain | Tools | Description |
-|--------|-------|-------------|
-| **Structural** | `beam_analysis` | Bending, deflection, shear, Euler buckling — rectangle & circle sections |
+## Tools at a Glance
+
+| Domain | Tool | What it does |
+|--------|------|--------------|
+| **Structural** | `beam_analysis` | Bending, deflection, shear, Euler buckling |
 | **Materials** | `material_lookup` | 5 aerospace alloys with full thermal/mechanical properties |
-| **Atmosphere** | `isa_atmosphere` | ISA 0–25,000 m with pre-computed cache + linear interpolation |
-| **Aerodynamics** | `reynolds_number`, `mach_number`, `dynamic_pressure`, `lift_coefficient`, `drag_coefficient`, `skin_friction_coefficient`, `aero_analysis` | Flow regime, compressibility, forces |
-| **Utilities** | `unit_convert` | NIST-traceable conversions (SI ↔ imperial, temperature) |
+| **Atmosphere** | `isa_atmosphere` | ISA 0–25,000 m with pre-computed cache |
+| **Aerodynamics** | `aero_analysis` | Comprehensive Re, Mach, q, CL, CD, Cf in one call |
+| | `reynolds_number` | Reynolds number at altitude |
+| | `mach_number` | Mach number at altitude |
+| | `dynamic_pressure` | Dynamic pressure q = ½ρV² |
+| | `lift_coefficient` | CL from lift, velocity, altitude, area |
+| | `drag_coefficient` | CD from drag, velocity, altitude, area |
+| | `skin_friction_coefficient` | Blasius skin friction (laminar / turbulent) |
+| **Utilities** | `unit_convert` | NIST-traceable SI ↔ imperial conversions |
+
+---
 
 ## Performance
 
@@ -38,6 +52,8 @@ Built for speed, precision, and composability.
 
 *All under the 1 ms per-tool target.*
 
+---
+
 ## Quick Start
 
 ### Install
@@ -49,7 +65,7 @@ pip install -e ".[dev]"
 ### Run Tests
 
 ```bash
-pytest -v                    # 34 tests
+pytest -v                    # 94 tests
 pytest --benchmark-only -v   # 18 benchmarks
 ```
 
@@ -83,25 +99,87 @@ print(f"Deflection: {beam['max_deflection_m']*1000:.3f} mm")
 print(f"Bending stress: {beam['bending_stress_pa']/1e6:.2f} MPa")
 ```
 
-### Use as MCP Server
+### Natural Language Router
 
-```bash
-rocket-tools  # Starts FastMCP server
+```python
+from rocket_tools.router import route_query
+
+result = route_query("Mach number at 250 m/s and 10,000 m")
+# ToolCall(tool_name='mach_number', params={...}, confidence=1.0)
+
+# Contextual follow-up with session memory
+from rocket_tools.memory import SessionMemory
+session = SessionMemory(session_id="design-1")
+session.parameters["beam_analysis"] = {"load": 1000.0, "length": 1.5}
+
+result = route_query("What is the deflection?", session=session)
+# ToolCall(tool_name='beam_analysis', params={...}, confidence=0.50)
 ```
 
-Then connect your MCP client (Claude, Cursor, etc.) to the running server. Available tools:
+### Run the MCP Server
 
-- `unit_convert` — Convert engineering units
-- `material_lookup` — Look up material properties
-- `isa_atmosphere` — ISA atmosphere at altitude
-- `beam_analysis` — Structural beam analysis
-- `reynolds_number` — Reynolds number calculation
-- `mach_number` — Mach number at altitude
-- `dynamic_pressure` — Dynamic pressure
-- `lift_coefficient` — Lift coefficient
-- `drag_coefficient` — Drag coefficient
-- `skin_friction_coefficient` — Skin friction (Blasius)
-- `aero_analysis` — Comprehensive aerodynamic analysis
+```bash
+rocket-tools              # Starts FastMCP stdio server
+uvicorn rocket_tools.asgi:app --host 0.0.0.0 --port 8000   # SSE server
+```
+
+---
+
+## Production
+
+A production-ready Dockerfile is included:
+
+```bash
+docker build -t rocket-tools .
+docker run -p 8000:8000 rocket-tools
+```
+
+The container exposes the MCP server as an SSE endpoint on port `8000`.
+
+---
+
+## Workflow Engine
+
+Chain tools into reusable design reviews with YAML workflows:
+
+```yaml
+# workflows/built_in/aero_characterization.yaml
+name: aero_characterization
+steps:
+  - id: re
+    tool: reynolds_number
+    params:
+      velocity: "${inputs.velocity}"
+      altitude_m: "${inputs.altitude_m}"
+      characteristic_length: "${inputs.characteristic_length}"
+    save_as: re
+
+  - id: mach
+    tool: mach_number
+    params:
+      velocity: "${inputs.velocity}"
+      altitude_m: "${inputs.altitude_m}"
+    save_as: mach
+```
+
+Run a workflow:
+
+```python
+from rocket_tools.workflows import load_workflow, run_workflow
+
+wf = load_workflow("aero_characterization.yaml")
+result = run_workflow(wf, {
+    "velocity": 100.0,
+    "altitude_m": 5000.0,
+    "characteristic_length": 2.0,
+    "reference_area": 10.0,
+    "lift": 50000.0,
+    "drag": 5000.0,
+    "flow_regime": "laminar",
+})
+```
+
+---
 
 ## Skills Library
 
@@ -109,12 +187,15 @@ Human-readable engineering references in `skills/`:
 
 - [`skills/structural-analysis.md`](skills/structural-analysis.md) — Beam theory, Euler buckling, section properties
 - [`skills/aerodynamics.md`](skills/aerodynamics.md) — Reynolds, Mach, dynamic pressure, lift/drag
+- [`skills/router.md`](skills/router.md) — Intent classification, confidence scoring, session memory
 
 Each skill includes:
 - LaTeX formulas
 - MCP tool cross-references
 - Worked Python examples
 - Common pitfalls
+
+---
 
 ## Architecture
 
@@ -124,20 +205,29 @@ rocket_tools/
 ├── materials/      # Material database + ISA atmosphere
 ├── structural/     # Beam mechanics (Numba JIT)
 ├── aerodynamics/   # Re, Mach, q, CL, CD, Cf (Numba JIT)
+├── router/         # Natural language intent + parameter extraction
+├── memory/         # Session store for contextual conversations
+├── workflows/      # YAML workflow engine + interpolation
 ├── server.py       # FastMCP tool definitions
+├── asgi.py         # Production SSE entry point
 └── rust_kernels/   # Rust PyO3 extension (scaffolded)
 ```
 
-**Numba JIT** accelerates all hot paths. **Rust kernels** are scaffolded for future PyO3 integration when network/toolchain issues resolve.
+**Numba JIT** accelerates all hot paths.
+**Rust kernels** are scaffolded for future PyO3 integration.
 
-## Project Roadmap
+---
+
+## Roadmap
 
 | Phase | Status | Features |
 |-------|--------|----------|
-| **Phase 1** | ✅ Complete | Core tools (structural, materials, aerodynamics), tests, benchmarks, skills |
-| **Phase 2** | 🔄 Next | Natural language router, composable workflows, uncertainty propagation, contextual memory |
+| **Phase 1** | ✅ Complete | Core tools, tests, benchmarks, skills |
+| **Phase 2** | ✅ Mostly Complete | Router (11 intents), workflows, session memory, uncertainty propagation |
 | **Phase 3** | 📋 Planned | Visual intelligence (plots/diagrams), design optimization, standards compliance |
 | **Phase 4** | 📋 Planned | Knowledge graph, FMEA, multi-agent sessions, plugin architecture |
+
+---
 
 ## Contributing
 
