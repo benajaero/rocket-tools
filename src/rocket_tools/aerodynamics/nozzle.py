@@ -18,24 +18,24 @@ GAMMA = 1.4
 
 
 @njit(cache=True)
-def _isentropic_p_ratio(m: float, gamma: float = GAMMA) :
+def _isentropic_p_ratio(m: float, gamma: float = GAMMA):
     return (1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)) ** (gamma / (gamma - 1.0))
 
 
 @njit(cache=True)
-def _isentropic_t_ratio(m: float, gamma: float = GAMMA) :
+def _isentropic_t_ratio(m: float, gamma: float = GAMMA):
     return 1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)
 
 
 @njit(cache=True)
-def _area_ratio(m: float, gamma: float = GAMMA) :
+def _area_ratio(m: float, gamma: float = GAMMA):
     g1 = (gamma + 1.0) / 2.0
     g2 = (gamma - 1.0) / 2.0
     return (1.0 / m) * ((1.0 + g2 * m**2) / g1) ** (g1 / (gamma - 1.0))
 
 
 @njit(cache=True)
-def _mach_from_area_ratio(a_a_star: float, gamma: float = GAMMA) :
+def _mach_from_area_ratio(a_a_star: float, gamma: float = GAMMA):
     if a_a_star < 1.0:
         raise ValueError("A/A* must be >= 1.0")
     m = 2.0 if a_a_star < 2.0 else a_a_star
@@ -130,9 +130,7 @@ def nozzle_performance(
 
     # Pressure ratio
     pressure_ratio = (
-        chamber_pressure_pa / ambient_pressure_pa
-        if ambient_pressure_pa > 0.0
-        else np.inf
+        chamber_pressure_pa / ambient_pressure_pa if ambient_pressure_pa > 0.0 else np.inf
     )
 
     # Over/under-expanded check
@@ -187,12 +185,13 @@ def optimal_area_ratio(
     # Solve for Mach from isentropic pressure ratio
     m = 2.0
     for _ in range(50):
-        f = (1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)) ** (
-            -gamma / (gamma - 1.0)
-        ) - p_ratio
-        df = gamma * m / (1.0 + (gamma - 1.0) / 2.0 * m**2) * (
-            1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)
-        ) ** (-gamma / (gamma - 1.0) - 1.0)
+        f = (1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)) ** (-gamma / (gamma - 1.0)) - p_ratio
+        df = (
+            gamma
+            * m
+            / (1.0 + (gamma - 1.0) / 2.0 * m**2)
+            * (1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)) ** (-gamma / (gamma - 1.0) - 1.0)
+        )
         if abs(df) < 1e-12:
             break
         m_new = m - f / df

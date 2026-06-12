@@ -169,7 +169,7 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "s_xx_m3": 6.6667e-4,
         },
         "tolerance": 0.005,
-        "reference": 'Roark\'s Formulas, 8th Ed., Table A.1: Rectangular section. '
+        "reference": "Roark's Formulas, 8th Ed., Table A.1: Rectangular section. "
         "A=bh=0.02, I=bh^3/12=6.667e-5, S=bh^2/6=6.667e-4",
     },
     # ---- NACA Airfoil Drag Polar (Validation against wind tunnel) ----

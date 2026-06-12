@@ -39,7 +39,7 @@ _ALUMINUM: dict[str, Material] = {
         thermal_conductivity_w_m_k=218.0,
         specific_heat_j_kg_k=904.0,
         applications=frozenset({"aircraft", "drone", "general"}),
-source="MIL-HDBK-5J Table 3.2.2.0(b)"
+        source="MIL-HDBK-5J Table 3.2.2.0(b)",
     ),
     "2024-T3": Material(
         name="2024-T3",
@@ -52,7 +52,7 @@ source="MIL-HDBK-5J Table 3.2.2.0(b)"
         thermal_conductivity_w_m_k=151.0,
         specific_heat_j_kg_k=875.0,
         applications=frozenset({"aircraft", "helicopter", "drone"}),
-source="MIL-HDBK-5J Table 3.2.3.0(b)"
+        source="MIL-HDBK-5J Table 3.2.3.0(b)",
     ),
     "2024-T351": Material(
         name="2024-T351",
@@ -65,7 +65,7 @@ source="MIL-HDBK-5J Table 3.2.3.0(b)"
         thermal_conductivity_w_m_k=151.0,
         specific_heat_j_kg_k=875.0,
         applications=frozenset({"aircraft", "helicopter", "drone"}),
-source="MIL-HDBK-5J Table 3.2.3.0(b)"
+        source="MIL-HDBK-5J Table 3.2.3.0(b)",
     ),
     "5052-H32": Material(
         name="5052-H32",
@@ -78,7 +78,7 @@ source="MIL-HDBK-5J Table 3.2.3.0(b)"
         thermal_conductivity_w_m_k=138.0,
         specific_heat_j_kg_k=880.0,
         applications=frozenset({"aircraft", "drone", "rocket"}),
-source="MIL-HDBK-5J Table 3.2.5.0(b)"
+        source="MIL-HDBK-5J Table 3.2.5.0(b)",
     ),
     "5083-H116": Material(
         name="5083-H116",
@@ -91,7 +91,7 @@ source="MIL-HDBK-5J Table 3.2.5.0(b)"
         thermal_conductivity_w_m_k=117.0,
         specific_heat_j_kg_k=900.0,
         applications=frozenset({"aircraft", "helicopter", "rocket", "marine"}),
-source="MIL-HDBK-5J Table 3.2.6.0(b)"
+        source="MIL-HDBK-5J Table 3.2.6.0(b)",
     ),
     "6061-T6": Material(
         name="6061-T6",
@@ -104,7 +104,7 @@ source="MIL-HDBK-5J Table 3.2.6.0(b)"
         thermal_conductivity_w_m_k=167.0,
         specific_heat_j_kg_k=896.0,
         applications=frozenset({"aircraft", "drone", "rocket", "helicopter", "general"}),
-source="MIL-HDBK-5J Table 3.2.7.0(b)"
+        source="MIL-HDBK-5J Table 3.2.7.0(b)",
     ),
     "6082-T6": Material(
         name="6082-T6",
@@ -117,7 +117,7 @@ source="MIL-HDBK-5J Table 3.2.7.0(b)"
         thermal_conductivity_w_m_k=170.0,
         specific_heat_j_kg_k=890.0,
         applications=frozenset({"aircraft", "drone", "rocket"}),
-source="Typical values"
+        source="Typical values",
     ),
     "7050-T7451": Material(
         name="7050-T7451",
@@ -130,7 +130,7 @@ source="Typical values"
         thermal_conductivity_w_m_k=154.0,
         specific_heat_j_kg_k=860.0,
         applications=frozenset({"aircraft", "helicopter"}),
-source="MMPDS-15"
+        source="MMPDS-15",
     ),
     "7075-T6": Material(
         name="7075-T6",
@@ -143,7 +143,7 @@ source="MMPDS-15"
         thermal_conductivity_w_m_k=130.0,
         specific_heat_j_kg_k=960.0,
         applications=frozenset({"aircraft", "drone", "helicopter"}),
-source="MIL-HDBK-5J Table 2.2.8.0(b)"
+        source="MIL-HDBK-5J Table 2.2.8.0(b)",
     ),
     "7075-T73": Material(
         name="7075-T73",
@@ -156,7 +156,7 @@ source="MIL-HDBK-5J Table 2.2.8.0(b)"
         thermal_conductivity_w_m_k=130.0,
         specific_heat_j_kg_k=960.0,
         applications=frozenset({"aircraft", "drone"}),
-source="MIL-HDBK-5J Table 2.2.8.0(c)"
+        source="MIL-HDBK-5J Table 2.2.8.0(c)",
     ),
     "7475-T761": Material(
         name="7475-T761",
@@ -169,7 +169,7 @@ source="MIL-HDBK-5J Table 2.2.8.0(c)"
         thermal_conductivity_w_m_k=154.0,
         specific_heat_j_kg_k=860.0,
         applications=frozenset({"aircraft", "helicopter"}),
-source="Typical values"
+        source="Typical values",
     ),
     "2219-T87": Material(
         name="2219-T87",
@@ -182,7 +182,7 @@ source="Typical values"
         thermal_conductivity_w_m_k=154.0,
         specific_heat_j_kg_k=864.0,
         applications=frozenset({"rocket", "spacecraft"}),
-source="MIL-HDBK-5J Table 3.2.9.0(b)"
+        source="MIL-HDBK-5J Table 3.2.9.0(b)",
     ),
     "2195": Material(
         name="2195",
@@ -195,7 +195,7 @@ source="MIL-HDBK-5J Table 3.2.9.0(b)"
         thermal_conductivity_w_m_k=130.0,
         specific_heat_j_kg_k=864.0,
         applications=frozenset({"rocket", "spacecraft", "satellite"}),
-source="MMPDS-15 / NASA MSFC data"
+        source="MMPDS-15 / NASA MSFC data",
     ),
 }
 
@@ -214,7 +214,7 @@ _TITANIUM: dict[str, Material] = {
         thermal_conductivity_w_m_k=6.7,
         specific_heat_j_kg_k=526.3,
         applications=frozenset({"aircraft", "rocket", "helicopter", "drone", "spacecraft"}),
-source="MIL-HDBK-5J Table 5.3.1.0(b)"
+        source="MIL-HDBK-5J Table 5.3.1.0(b)",
     ),
     "Ti-6Al-2Sn-4Zr-2Mo": Material(
         name="Ti-6Al-2Sn-4Zr-2Mo",
@@ -227,7 +227,7 @@ source="MIL-HDBK-5J Table 5.3.1.0(b)"
         thermal_conductivity_w_m_k=7.2,
         specific_heat_j_kg_k=520.0,
         applications=frozenset({"aircraft", "rocket", "spacecraft"}),
-source="MIL-HDBK-5J Table 5.3.2.0(b)"
+        source="MIL-HDBK-5J Table 5.3.2.0(b)",
     ),
     "Ti-5Al-2.5Sn": Material(
         name="Ti-5Al-2.5Sn",
@@ -240,7 +240,7 @@ source="MIL-HDBK-5J Table 5.3.2.0(b)"
         thermal_conductivity_w_m_k=7.8,
         specific_heat_j_kg_k=520.0,
         applications=frozenset({"aircraft", "spacecraft"}),
-source="MIL-HDBK-5J Table 5.3.3.0(b)"
+        source="MIL-HDBK-5J Table 5.3.3.0(b)",
     ),
     "Ti-10V-2Fe-3Al": Material(
         name="Ti-10V-2Fe-3Al",
@@ -253,7 +253,7 @@ source="MIL-HDBK-5J Table 5.3.3.0(b)"
         thermal_conductivity_w_m_k=7.5,
         specific_heat_j_kg_k=520.0,
         applications=frozenset({"aircraft", "helicopter"}),
-source="Typical values"
+        source="Typical values",
     ),
 }
 
@@ -272,7 +272,7 @@ _STEELS: dict[str, Material] = {
         thermal_conductivity_w_m_k=42.7,
         specific_heat_j_kg_k=477.0,
         applications=frozenset({"aircraft", "drone", "rocket", "general"}),
-source="MIL-HDBK-5J Table 2.3.1.0(b)"
+        source="MIL-HDBK-5J Table 2.3.1.0(b)",
     ),
     "4340": Material(
         name="4340",
@@ -285,7 +285,7 @@ source="MIL-HDBK-5J Table 2.3.1.0(b)"
         thermal_conductivity_w_m_k=44.5,
         specific_heat_j_kg_k=475.0,
         applications=frozenset({"aircraft", "helicopter", "rocket"}),
-source="MIL-HDBK-5J Table 2.3.2.0(b)"
+        source="MIL-HDBK-5J Table 2.3.2.0(b)",
     ),
     "17-4PH": Material(
         name="17-4PH",
@@ -298,7 +298,7 @@ source="MIL-HDBK-5J Table 2.3.2.0(b)"
         thermal_conductivity_w_m_k=17.9,
         specific_heat_j_kg_k=460.0,
         applications=frozenset({"rocket", "spacecraft", "engine"}),
-source="MIL-HDBK-5J Table 2.6.1.0(b)"
+        source="MIL-HDBK-5J Table 2.6.1.0(b)",
     ),
     "15-5PH": Material(
         name="15-5PH",
@@ -311,7 +311,7 @@ source="MIL-HDBK-5J Table 2.6.1.0(b)"
         thermal_conductivity_w_m_k=17.9,
         specific_heat_j_kg_k=460.0,
         applications=frozenset({"rocket", "spacecraft", "engine"}),
-source="MIL-HDBK-5J Table 2.6.2.0(b)"
+        source="MIL-HDBK-5J Table 2.6.2.0(b)",
     ),
     "A286": Material(
         name="A286",
@@ -324,7 +324,7 @@ source="MIL-HDBK-5J Table 2.6.2.0(b)"
         thermal_conductivity_w_m_k=15.1,
         specific_heat_j_kg_k=450.0,
         applications=frozenset({"rocket", "engine", "spacecraft"}),
-source="Typical values"
+        source="Typical values",
     ),
     "300M": Material(
         name="300M",
@@ -337,7 +337,7 @@ source="Typical values"
         thermal_conductivity_w_m_k=42.0,
         specific_heat_j_kg_k=460.0,
         applications=frozenset({"aircraft", "helicopter"}),
-source="MIL-HDBK-5J Table 2.3.3.0(b)"
+        source="MIL-HDBK-5J Table 2.3.3.0(b)",
     ),
     "304": Material(
         name="304",
@@ -350,7 +350,7 @@ source="MIL-HDBK-5J Table 2.3.3.0(b)"
         thermal_conductivity_w_m_k=16.2,
         specific_heat_j_kg_k=500.0,
         applications=frozenset({"rocket", "spacecraft", "engine", "general"}),
-source="Typical values"
+        source="Typical values",
     ),
     "316": Material(
         name="316",
@@ -363,7 +363,7 @@ source="Typical values"
         thermal_conductivity_w_m_k=16.2,
         specific_heat_j_kg_k=500.0,
         applications=frozenset({"rocket", "spacecraft", "engine", "marine"}),
-source="Typical values"
+        source="Typical values",
     ),
     "M50": Material(
         name="M50",
@@ -376,7 +376,7 @@ source="Typical values"
         thermal_conductivity_w_m_k=35.0,
         specific_heat_j_kg_k=460.0,
         applications=frozenset({"aircraft", "helicopter", "engine"}),
-source="MIL-HDBK-5J Table 2.4.1.0(b)"
+        source="MIL-HDBK-5J Table 2.4.1.0(b)",
     ),
     "52100": Material(
         name="52100",
@@ -389,7 +389,7 @@ source="MIL-HDBK-5J Table 2.4.1.0(b)"
         thermal_conductivity_w_m_k=46.6,
         specific_heat_j_kg_k=460.0,
         applications=frozenset({"aircraft", "helicopter", "engine"}),
-source="AISI/SAE handbook"
+        source="AISI/SAE handbook",
     ),
 }
 
@@ -408,7 +408,7 @@ _NICKEL: dict[str, Material] = {
         thermal_conductivity_w_m_k=14.9,
         specific_heat_j_kg_k=444.0,
         applications=frozenset({"rocket", "engine", "spacecraft"}),
-source="Special Metals datasheet"
+        source="Special Metals datasheet",
     ),
     "Inconel-625": Material(
         name="Inconel-625",
@@ -421,7 +421,7 @@ source="Special Metals datasheet"
         thermal_conductivity_w_m_k=9.8,
         specific_heat_j_kg_k=410.0,
         applications=frozenset({"rocket", "engine", "spacecraft", "marine"}),
-source="Special Metals datasheet"
+        source="Special Metals datasheet",
     ),
     "Inconel-718": Material(
         name="Inconel-718",
@@ -434,7 +434,7 @@ source="Special Metals datasheet"
         thermal_conductivity_w_m_k=11.4,
         specific_heat_j_kg_k=435.0,
         applications=frozenset({"rocket", "engine", "aircraft", "spacecraft"}),
-source="MIL-HDBK-5J Table 6.3.1.0(b)"
+        source="MIL-HDBK-5J Table 6.3.1.0(b)",
     ),
     "Inconel-X750": Material(
         name="Inconel-X750",
@@ -447,7 +447,7 @@ source="MIL-HDBK-5J Table 6.3.1.0(b)"
         thermal_conductivity_w_m_k=11.7,
         specific_heat_j_kg_k=430.0,
         applications=frozenset({"rocket", "engine", "aircraft"}),
-source="Special Metals datasheet"
+        source="Special Metals datasheet",
     ),
     "Hastelloy-X": Material(
         name="Hastelloy-X",
@@ -460,7 +460,7 @@ source="Special Metals datasheet"
         thermal_conductivity_w_m_k=13.4,
         specific_heat_j_kg_k=440.0,
         applications=frozenset({"rocket", "engine", "spacecraft"}),
-source="Haynes International datasheet"
+        source="Haynes International datasheet",
     ),
     "Waspaloy": Material(
         name="Waspaloy",
@@ -473,7 +473,7 @@ source="Haynes International datasheet"
         thermal_conductivity_w_m_k=11.3,
         specific_heat_j_kg_k=420.0,
         applications=frozenset({"aircraft", "engine"}),
-source="Special Metals datasheet"
+        source="Special Metals datasheet",
     ),
     "Rene-41": Material(
         name="Rene-41",
@@ -486,7 +486,7 @@ source="Special Metals datasheet"
         thermal_conductivity_w_m_k=11.3,
         specific_heat_j_kg_k=420.0,
         applications=frozenset({"aircraft", "engine", "rocket"}),
-source="Haynes International datasheet"
+        source="Haynes International datasheet",
     ),
     "Haynes-230": Material(
         name="Haynes-230",
@@ -499,7 +499,7 @@ source="Haynes International datasheet"
         thermal_conductivity_w_m_k=11.5,
         specific_heat_j_kg_k=420.0,
         applications=frozenset({"rocket", "engine", "spacecraft"}),
-source="Haynes International datasheet"
+        source="Haynes International datasheet",
     ),
 }
 
@@ -518,7 +518,7 @@ _COMPOSITES: dict[str, Material] = {
         thermal_conductivity_w_m_k=1.5,
         specific_heat_j_kg_k=900.0,
         applications=frozenset({"aircraft", "drone", "rocket", "spacecraft"}),
-source="MIL-HDBK-17-2F Table 4.4.1"
+        source="MIL-HDBK-17-2F Table 4.4.1",
     ),
     "Carbon-Epoxy-T700": Material(
         name="Carbon-Epoxy-T700",
@@ -531,7 +531,7 @@ source="MIL-HDBK-17-2F Table 4.4.1"
         thermal_conductivity_w_m_k=1.8,
         specific_heat_j_kg_k=900.0,
         applications=frozenset({"aircraft", "drone", "rocket", "spacecraft"}),
-source="Hexcel datasheet / MMPDS"
+        source="Hexcel datasheet / MMPDS",
     ),
     "Glass-Epoxy": Material(
         name="Glass-Epoxy",
@@ -544,7 +544,7 @@ source="Hexcel datasheet / MMPDS"
         thermal_conductivity_w_m_k=0.3,
         specific_heat_j_kg_k=900.0,
         applications=frozenset({"drone", "aircraft", "general"}),
-source="MIL-HDBK-17-2F Table 5.4.1"
+        source="MIL-HDBK-17-2F Table 5.4.1",
     ),
     "Kevlar-49": Material(
         name="Kevlar-49",
@@ -557,7 +557,7 @@ source="MIL-HDBK-17-2F Table 5.4.1"
         thermal_conductivity_w_m_k=0.04,
         specific_heat_j_kg_k=1420.0,
         applications=frozenset({"aircraft", "drone", "spacecraft"}),
-source="DuPont / MIL-HDBK-17-2F"
+        source="DuPont / MIL-HDBK-17-2F",
     ),
     "Carbon-Carbon": Material(
         name="Carbon-Carbon",
@@ -570,7 +570,7 @@ source="DuPont / MIL-HDBK-17-2F"
         thermal_conductivity_w_m_k=20.0,
         specific_heat_j_kg_k=710.0,
         applications=frozenset({"rocket", "spacecraft", "engine"}),
-source="MIL-HDBK-17-5"
+        source="MIL-HDBK-17-5",
     ),
     "Silica-Phenolic": Material(
         name="Silica-Phenolic",
@@ -583,7 +583,7 @@ source="MIL-HDBK-17-5"
         thermal_conductivity_w_m_k=0.5,
         specific_heat_j_kg_k=1000.0,
         applications=frozenset({"rocket", "spacecraft"}),
-source="Avcoat / NASA data"
+        source="Avcoat / NASA data",
     ),
 }
 
@@ -602,7 +602,7 @@ _REFRACTORY: dict[str, Material] = {
         thermal_conductivity_w_m_k=173.0,
         specific_heat_j_kg_k=134.0,
         applications=frozenset({"rocket", "engine", "spacecraft"}),
-source="Plansee / Goodfellow datasheet"
+        source="Plansee / Goodfellow datasheet",
     ),
     "Molybdenum": Material(
         name="Molybdenum",
@@ -615,7 +615,7 @@ source="Plansee / Goodfellow datasheet"
         thermal_conductivity_w_m_k=138.0,
         specific_heat_j_kg_k=251.0,
         applications=frozenset({"rocket", "engine", "spacecraft"}),
-source="Plansee datasheet"
+        source="Plansee datasheet",
     ),
     "C18150": Material(
         name="C18150",
@@ -628,7 +628,7 @@ source="Plansee datasheet"
         thermal_conductivity_w_m_k=310.0,
         specific_heat_j_kg_k=385.0,
         applications=frozenset({"rocket", "engine"}),
-source="NGK / Materion datasheet"
+        source="NGK / Materion datasheet",
     ),
     "GlidCop-Al-25": Material(
         name="GlidCop-Al-25",
@@ -641,7 +641,7 @@ source="NGK / Materion datasheet"
         thermal_conductivity_w_m_k=365.0,
         specific_heat_j_kg_k=385.0,
         applications=frozenset({"rocket", "engine"}),
-source="SCM Metal Products datasheet"
+        source="SCM Metal Products datasheet",
     ),
     "Rhenium": Material(
         name="Rhenium",
@@ -654,7 +654,7 @@ source="SCM Metal Products datasheet"
         thermal_conductivity_w_m_k=48.0,
         specific_heat_j_kg_k=137.0,
         applications=frozenset({"rocket", "engine", "spacecraft"}),
-source="Goodfellow datasheet"
+        source="Goodfellow datasheet",
     ),
 }
 
@@ -673,7 +673,7 @@ _OTHER: dict[str, Material] = {
         thermal_conductivity_w_m_k=105.0,
         specific_heat_j_kg_k=420.0,
         applications=frozenset({"aircraft", "spacecraft", "general"}),
-source="Materion datasheet"
+        source="Materion datasheet",
     ),
     "Magnesium-AZ31B": Material(
         name="Magnesium-AZ31B",
@@ -686,7 +686,7 @@ source="Materion datasheet"
         thermal_conductivity_w_m_k=96.0,
         specific_heat_j_kg_k=1020.0,
         applications=frozenset({"aircraft", "drone", "spacecraft"}),
-source="MIL-HDBK-5J Table 4.3.1.0(b)"
+        source="MIL-HDBK-5J Table 4.3.1.0(b)",
     ),
     "Copper-C11000": Material(
         name="Copper-C11000",
@@ -699,7 +699,7 @@ source="MIL-HDBK-5J Table 4.3.1.0(b)"
         thermal_conductivity_w_m_k=388.0,
         specific_heat_j_kg_k=385.0,
         applications=frozenset({"general", "engine", "rocket"}),
-source="ASTM B152"
+        source="ASTM B152",
     ),
 }
 
@@ -788,13 +788,13 @@ def material_lookup(name: str, property_filter: str | None = None) -> dict:
     Returns:
         dict with material properties and application tags
     """
+    if not name.strip():
+        raise ValueError("Material name must not be empty")
+
     matched = _fuzzy_match(name)
     if matched is None:
         available = sorted(_MATERIALS.keys())
-        raise ValueError(
-            f"Material '{name}' not found. "
-            f"Available: {', '.join(available)}"
-        )
+        raise ValueError(f"Material '{name}' not found. Available: {', '.join(available)}")
 
     mat = _MATERIALS[matched]
     result = {
@@ -816,8 +816,10 @@ def material_lookup(name: str, property_filter: str | None = None) -> dict:
         "warning": "These are representative values, not for certification.",
     }
 
-    if property_filter and property_filter != "all":
-        key = property_filter.lower()
+    if property_filter:
+        key = property_filter.strip().lower()
+        if key == "all":
+            return result
         mapping = {
             "youngs_modulus": "youngs_modulus_pa",
             "density": "density_kg_m3",
@@ -830,7 +832,10 @@ def material_lookup(name: str, property_filter: str | None = None) -> dict:
             "specific_strength": "specific_strength",
         }
         if key in mapping:
-            return {"material_name": mat.name, property_filter: result[mapping[key]]}
+            return {"material_name": mat.name, key: result[mapping[key]]}
+        raise ValueError(
+            f"Unknown material property '{property_filter}'. Available: {list(mapping.keys())}"
+        )
 
     return result
 

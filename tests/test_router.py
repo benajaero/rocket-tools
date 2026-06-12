@@ -22,6 +22,13 @@ class TestRouterBeam:
         assert result.params["length"] == 1.5
         assert result.params["youngs_modulus"] == 68.9e9
 
+    def test_beam_length_in_millimeters(self):
+        result = route_query("Can a beam handle 500N over 2500mm?")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "beam_analysis"
+        assert result.params["load"] == 500.0
+        assert result.params["length"] == 2.5
+
     def test_beam_missing_params(self):
         result = route_query("Beam analysis")
         assert isinstance(result, ClarificationRequest)
@@ -48,6 +55,11 @@ class TestRouterUnknown:
     def test_no_match(self):
         result = route_query("Hello world")
         assert isinstance(result, ClarificationRequest)
+
+    def test_blank_query(self):
+        result = route_query("   ")
+        assert isinstance(result, ClarificationRequest)
+        assert result.missing_params == []
 
 
 class TestRouterConfidence:
@@ -83,6 +95,14 @@ class TestRouterUnitConvert:
         assert result.params["value"] == 14.7
         assert result.params["from_unit"] == "psi"
         assert result.params["to_unit"] == "kpa"
+
+    def test_convert_long_unit_names(self):
+        result = route_query("Convert 10 meters to feet")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "unit_convert"
+        assert result.params["value"] == 10.0
+        assert result.params["from_unit"] == "m"
+        assert result.params["to_unit"] == "ft"
 
     def test_convert_missing_value(self):
         result = route_query("Convert psi to kPa")
@@ -120,7 +140,7 @@ class TestRouterAeroTools:
         assert isinstance(result, ToolCall)
         assert result.tool_name == "reynolds_number"
         assert result.params["velocity"] == 100.0
-        assert result.params["characteristic_length"] > 0
+        assert result.params["characteristic_length"] == 2.0
         assert result.params["altitude_m"] > 0
 
     def test_mach_number(self):

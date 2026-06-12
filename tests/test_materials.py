@@ -2,10 +2,16 @@
 
 import pytest
 
-from rocket_tools.materials import isa_atmosphere, material_lookup
+from rocket_tools.materials import isa_atmosphere, list_materials, material_lookup
 
 
 class TestMaterialLookup:
+    def test_list_materials(self):
+        result = list_materials()
+        assert len(result) >= 5
+        assert "6061-T6" in result
+        assert "Ti-6Al-4V" in result
+
     def test_6061_t6(self):
         result = material_lookup("6061-T6")
         assert result["material_name"] == "6061-T6"
@@ -19,6 +25,18 @@ class TestMaterialLookup:
     def test_property_filter(self):
         result = material_lookup("7075-T6", property_filter="density")
         assert result["density"] == 2810.0
+
+    def test_property_filter_is_normalized(self):
+        result = material_lookup("7075-T6", property_filter=" Density ")
+        assert result == {"material_name": "7075-T6", "density": 2810.0}
+
+    def test_unknown_property_filter(self):
+        with pytest.raises(ValueError, match="Unknown material property"):
+            material_lookup("7075-T6", property_filter="melting_point")
+
+    def test_empty_material_name(self):
+        with pytest.raises(ValueError, match="Material name must not be empty"):
+            material_lookup("  ")
 
     def test_unknown_material(self):
         with pytest.raises(ValueError, match="not found"):
@@ -51,3 +69,7 @@ class TestISA:
             isa_atmosphere(-1.0)
         with pytest.raises(ValueError):
             isa_atmosphere(30000.0)
+
+    def test_nonfinite_altitude(self):
+        with pytest.raises(ValueError, match="Altitude must be finite"):
+            isa_atmosphere(float("nan"))

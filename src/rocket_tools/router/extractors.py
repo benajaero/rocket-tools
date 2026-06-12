@@ -2,7 +2,13 @@
 
 import re
 
-_UNIT_RE = r"m|mm|cm|km|inch|inches|ft|feet|pa|kpa|mpa|psi|n|kn|lbf|c|k|f"
+_UNIT_RE = (
+    r"meters?|metres?|m|millimeters?|millimetres?|mm|centimeters?|centimetres?|cm|"
+    r"kilometers?|kilometres?|km|inch|inches|ft|feet|"
+    r"pascals?|pa|kilopascals?|kpa|megapascals?|mpa|psi|"
+    r"newtons?|n|kilonewtons?|kn|lbf|pounds?|"
+    r"celsius|c|kelvin|k|fahrenheit|f"
+)
 _CONVERSION_RE = re.compile(
     rf"(\d+\.?\d*)\s*({_UNIT_RE})\s+(?:to|into|in)\s+({_UNIT_RE})",
     re.IGNORECASE,
@@ -17,6 +23,18 @@ def _normalize_unit(unit: str) -> str:
         "meters": "m",
         "metre": "m",
         "metres": "m",
+        "millimeter": "mm",
+        "millimeters": "mm",
+        "millimetre": "mm",
+        "millimetres": "mm",
+        "centimeter": "cm",
+        "centimeters": "cm",
+        "centimetre": "cm",
+        "centimetres": "cm",
+        "kilometer": "km",
+        "kilometers": "km",
+        "kilometre": "km",
+        "kilometres": "km",
         "pascal": "pa",
         "pascals": "pa",
         "kilopascal": "kpa",
@@ -88,23 +106,43 @@ def extract_load(text: str) -> float | None:
 _LENGTH_UNIT_RE = r"m|mm|cm|km|meters?|metres?|inch|in|ft|feet|yd|yard"
 
 
+def _convert_length(val: float, unit: str) -> float:
+    if unit in ("mm", "millimeter", "millimeters", "millimetre", "millimetres"):
+        return val / 1000
+    if unit in ("cm", "centimeter", "centimeters", "centimetre", "centimetres"):
+        return val / 100
+    if unit in ("km", "kilometer", "kilometers", "kilometre", "kilometres"):
+        return val * 1000
+    if unit in ("inch", "in"):
+        return val * 0.0254
+    if unit in ("ft", "feet"):
+        return val * 0.3048
+    if unit in ("yd", "yard"):
+        return val * 0.9144
+    return val
+
+
 def extract_length(text: str) -> float | None:
-    result = extract_number_with_unit(text, _LENGTH_UNIT_RE, negative_lookahead=r"\s*/")
+    unit_pattern = (
+        r"millimeters?|millimetres?|centimeters?|centimetres?|kilometers?|kilometres?|"
+        r"meters?|metres?|mm|cm|km|inch|in|ft|feet|yd|yard|m"
+    )
+    label_pattern = r"length|chord|span|diameter|width|height"
+
+    labeled_patterns = [
+        rf"(?:{label_pattern})\s*(?:of|is|=|:)?\s*(\d+\.?\d*)\s*({unit_pattern})(?!\s*/)",
+        rf"(\d+\.?\d*)\s*({unit_pattern})(?!\s*/)\s*(?:{label_pattern}|long|wide|tall)",
+        rf"(?:over|across)\s+(\d+\.?\d*)\s*({unit_pattern})(?!\s*/)",
+    ]
+    for pattern in labeled_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return _convert_length(float(match.group(1)), match.group(2).lower())
+
+    result = extract_number_with_unit(text, unit_pattern, negative_lookahead=r"\s*/")
     if result:
         val, unit = result
-        if unit in ("mm",):
-            return val / 1000
-        if unit in ("cm",):
-            return val / 100
-        if unit in ("km",):
-            return val * 1000
-        if unit in ("inch", "in"):
-            return val * 0.0254
-        if unit in ("ft", "feet"):
-            return val * 0.3048
-        if unit in ("yd", "yard"):
-            return val * 0.9144
-        return val
+        return _convert_length(val, unit)
     return None
 
 

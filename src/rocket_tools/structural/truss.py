@@ -13,7 +13,6 @@ References:
       Formulation of element stiffness matrices and global assembly.
 """
 
-
 import numpy as np
 
 G_STD = 9.80665
@@ -81,9 +80,9 @@ def truss_analysis(
         if i_node < 0 or i_node >= n_nodes or j_node < 0 or j_node >= n_nodes:
             raise ValueError(f"Element {e_idx}: invalid node index")
 
-# noqa: N806
+        # noqa: N806
         E = props.get("youngs_modulus_pa", 0.0)  # noqa: N806
-# noqa: N806
+        # noqa: N806
         A = props.get("area_m2", 0.0)  # noqa: N806
         if E <= 0 or A <= 0:
             raise ValueError(f"Element {e_idx}: E and A must be > 0")
@@ -94,42 +93,55 @@ def truss_analysis(
         if dim == 3:
             zi, zj = nodes[i_node][2], nodes[j_node][2]
             dx, dy, dz = xj - xi, yj - yi, zj - zi
-# noqa: N806
+            # noqa: N806
             L = np.sqrt(dx**2 + dy**2 + dz**2)  # noqa: N806
             cx, cy, cz = dx / L, dy / L, dz / L
             # 3D transformation
-            k_local = (E * A / L) * np.array([
-                [1, -1],
-                [-1, 1],
-            ])
-# noqa: N806
-            T = np.array([  # noqa: N806
-                [cx, cy, cz, 0, 0, 0],
-                [0, 0, 0, cx, cy, cz],
-            ])
-            k_global = T.T @ k_local @ T
+            k_local = (E * A / L) * np.array(
+                [
+                    [1, -1],
+                    [-1, 1],
+                ]
+            )
+            transform = np.array(
+                [
+                    [cx, cy, cz, 0, 0, 0],
+                    [0, 0, 0, cx, cy, cz],
+                ]
+            )
+            k_global = transform.T @ k_local @ transform
             dof_map = [
-                i_node * 3, i_node * 3 + 1, i_node * 3 + 2,
-                j_node * 3, j_node * 3 + 1, j_node * 3 + 2,
+                i_node * 3,
+                i_node * 3 + 1,
+                i_node * 3 + 2,
+                j_node * 3,
+                j_node * 3 + 1,
+                j_node * 3 + 2,
             ]
         else:
             dx, dy = xj - xi, yj - yi
-# noqa: N806
+            # noqa: N806
             L = np.sqrt(dx**2 + dy**2)  # noqa: N806
             cx, cy = dx / L, dy / L
             # 2D transformation
-            k_local = (E * A / L) * np.array([
-                [1, -1],
-                [-1, 1],
-            ])
-            T = np.array([  # noqa: N806
-                [cx, cy, 0, 0],
-                [0, 0, cx, cy],
-            ])
-            k_global = T.T @ k_local @ T
+            k_local = (E * A / L) * np.array(
+                [
+                    [1, -1],
+                    [-1, 1],
+                ]
+            )
+            transform = np.array(
+                [
+                    [cx, cy, 0, 0],
+                    [0, 0, cx, cy],
+                ]
+            )
+            k_global = transform.T @ k_local @ transform
             dof_map = [
-                i_node * 2, i_node * 2 + 1,
-                j_node * 2, j_node * 2 + 1,
+                i_node * 2,
+                i_node * 2 + 1,
+                j_node * 2,
+                j_node * 2 + 1,
             ]
 
         # Add to global stiffness
@@ -137,15 +149,17 @@ def truss_analysis(
             for jj, gj in enumerate(dof_map):
                 K[gi, gj] += k_global[ii, jj]
 
-        element_results.append({
-            "element": e_idx,
-            "node_i": i_node,
-            "node_j": j_node,
-            "length_m": L,
-            "area_m2": A,
-            "youngs_modulus_pa": E,
-            "axial_stiffness_n_m": E * A / L,
-        })
+        element_results.append(
+            {
+                "element": e_idx,
+                "node_i": i_node,
+                "node_j": j_node,
+                "length_m": L,
+                "area_m2": A,
+                "youngs_modulus_pa": E,
+                "axial_stiffness_n_m": E * A / L,
+            }
+        )
 
     # Apply loads
     for load in loads:
@@ -197,9 +211,9 @@ def truss_analysis(
     member_forces = []
     for e_idx, (elem, props) in enumerate(zip(elements, element_properties)):
         i_node, j_node = elem
-# noqa: N806
+        # noqa: N806
         E = props["youngs_modulus_pa"]  # noqa: N806
-# noqa: N806
+        # noqa: N806
         A = props["area_m2"]  # noqa: N806
 
         if dim == 3:
@@ -208,8 +222,8 @@ def truss_analysis(
             dx, dy, dz = xj - xi, yj - yi, zj - zi
             L = np.sqrt(dx**2 + dy**2 + dz**2)  # noqa: N806
             cx, cy, cz = dx / L, dy / L, dz / L
-            ui = U[i_node * 3:i_node * 3 + 3]
-            uj = U[j_node * 3:j_node * 3 + 3]
+            ui = U[i_node * 3 : i_node * 3 + 3]
+            uj = U[j_node * 3 : j_node * 3 + 3]
             delta = (uj[0] - ui[0]) * cx + (uj[1] - ui[1]) * cy + (uj[2] - ui[2]) * cz
         else:
             xi, yi = nodes[i_node]
@@ -217,45 +231,53 @@ def truss_analysis(
             dx, dy = xj - xi, yj - yi
             L = np.sqrt(dx**2 + dy**2)  # noqa: N806
             cx, cy = dx / L, dy / L
-            ui = U[i_node * 2:i_node * 2 + 2]
-            uj = U[j_node * 2:j_node * 2 + 2]
+            ui = U[i_node * 2 : i_node * 2 + 2]
+            uj = U[j_node * 2 : j_node * 2 + 2]
             delta = (uj[0] - ui[0]) * cx + (uj[1] - ui[1]) * cy
 
         force = (E * A / L) * delta
         stress = force / A
 
-        member_forces.append({
-            "element": e_idx,
-            "node_i": i_node,
-            "node_j": j_node,
-            "force_n": round(float(force), 4),
-            "force_kn": round(float(force) / 1000, 6),
-            "stress_pa": round(float(stress), 2),
-            "stress_mpa": round(float(stress) / 1e6, 4),
-            "state": "tension" if force > 0 else "compression" if force < 0 else "zero",
-            "elongation_m": round(float(delta), 8),
-        })
+        member_forces.append(
+            {
+                "element": e_idx,
+                "node_i": i_node,
+                "node_j": j_node,
+                "force_n": round(float(force), 4),
+                "force_kn": round(float(force) / 1000, 6),
+                "stress_pa": round(float(stress), 2),
+                "stress_mpa": round(float(stress) / 1e6, 4),
+                "state": "tension" if force > 0 else "compression" if force < 0 else "zero",
+                "elongation_m": round(float(delta), 8),
+            }
+        )
 
     # Node displacements
     node_displacements = []
     for i in range(n_nodes):
         if dim == 3:
-            disp = U[i * 3:i * 3 + 3]
-            node_displacements.append({
-                "node": i,
-                "dx_m": round(float(disp[0]), 8),
-                "dy_m": round(float(disp[1]), 8),
-                "dz_m": round(float(disp[2]), 8),
-                "magnitude_m": round(float(np.sqrt(disp[0]**2 + disp[1]**2 + disp[2]**2)), 8),
-            })
+            disp = U[i * 3 : i * 3 + 3]
+            node_displacements.append(
+                {
+                    "node": i,
+                    "dx_m": round(float(disp[0]), 8),
+                    "dy_m": round(float(disp[1]), 8),
+                    "dz_m": round(float(disp[2]), 8),
+                    "magnitude_m": round(
+                        float(np.sqrt(disp[0] ** 2 + disp[1] ** 2 + disp[2] ** 2)), 8
+                    ),
+                }
+            )
         else:
-            disp = U[i * 2:i * 2 + 2]
-            node_displacements.append({
-                "node": i,
-                "dx_m": round(float(disp[0]), 8),
-                "dy_m": round(float(disp[1]), 8),
-                "magnitude_m": round(float(np.sqrt(disp[0]**2 + disp[1]**2)), 8),
-            })
+            disp = U[i * 2 : i * 2 + 2]
+            node_displacements.append(
+                {
+                    "node": i,
+                    "dx_m": round(float(disp[0]), 8),
+                    "dy_m": round(float(disp[1]), 8),
+                    "magnitude_m": round(float(np.sqrt(disp[0] ** 2 + disp[1] ** 2)), 8),
+                }
+            )
 
     return {
         "dimension": dim,

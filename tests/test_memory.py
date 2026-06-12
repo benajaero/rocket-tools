@@ -1,6 +1,8 @@
 """Tests for session memory."""
 
-from rocket_tools.memory import get_store
+import pytest
+
+from rocket_tools.memory import SessionStore, get_store
 
 
 class TestSessionStore:
@@ -35,3 +37,27 @@ class TestSessionStore:
         mem.record("beam_analysis", {"load": 500}, {"stress": 100})
         assert len(mem.history) == 1
         assert mem.history[0].tool_name == "beam_analysis"
+
+    def test_record_history_copies_mutable_values(self):
+        store = get_store()
+        sid = store.create()
+        mem = store.get(sid)
+        params = {"cross_section": {"width": 0.05}}
+        result = {"stress": {"max": 100}}
+
+        mem.record("beam_analysis", params, result)
+        params["cross_section"]["width"] = 0.1
+        result["stress"]["max"] = 200
+
+        assert mem.history[0].params["cross_section"]["width"] == 0.05
+        assert mem.history[0].result["stress"]["max"] == 100
+
+    def test_get_rejects_invalid_session_id(self):
+        store = get_store()
+
+        with pytest.raises(ValueError, match="non-empty string"):
+            store.get("")
+
+    def test_store_rejects_non_positive_ttl(self):
+        with pytest.raises(ValueError, match="greater than 0"):
+            SessionStore(ttl_seconds=0)

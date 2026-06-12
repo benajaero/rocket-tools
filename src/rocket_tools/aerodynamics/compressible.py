@@ -23,7 +23,7 @@ GAMMA = 1.4  # Ratio of specific heats for air
 
 
 @njit(cache=True)
-def _mach_from_area_ratio(a_a_star: float, gamma: float = GAMMA) :
+def _mach_from_area_ratio(a_a_star: float, gamma: float = GAMMA):
     """Solve for supersonic Mach number given A/A* using Newton-Raphson."""
     if a_a_star < 1.0:
         raise ValueError("A/A* must be >= 1.0")
@@ -44,7 +44,7 @@ def _mach_from_area_ratio(a_a_star: float, gamma: float = GAMMA) :
 
 
 @njit(cache=True)
-def _area_ratio(m: float, gamma: float = GAMMA) :
+def _area_ratio(m: float, gamma: float = GAMMA):
     if m <= 0.0:
         raise ValueError("Mach number must be > 0")
     g1 = (gamma + 1.0) / 2.0
@@ -53,7 +53,7 @@ def _area_ratio(m: float, gamma: float = GAMMA) :
 
 
 @njit(cache=True)
-def _d_area_ratio_dm(m: float, gamma: float = GAMMA) :
+def _d_area_ratio_dm(m: float, gamma: float = GAMMA):
     g1 = (gamma + 1.0) / 2.0
     g2 = (gamma - 1.0) / 2.0
     term = (1.0 + g2 * m**2) / g1
@@ -63,43 +63,43 @@ def _d_area_ratio_dm(m: float, gamma: float = GAMMA) :
 
 
 @njit(cache=True)
-def _isentropic_t_ratio(m: float, gamma: float = GAMMA) :
+def _isentropic_t_ratio(m: float, gamma: float = GAMMA):
     return 1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)
 
 
 @njit(cache=True)
-def _isentropic_p_ratio(m: float, gamma: float = GAMMA) :
+def _isentropic_p_ratio(m: float, gamma: float = GAMMA):
     return (1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)) ** (gamma / (gamma - 1.0))
 
 
 @njit(cache=True)
-def _isentropic_rho_ratio(m: float, gamma: float = GAMMA) :
+def _isentropic_rho_ratio(m: float, gamma: float = GAMMA):
     return (1.0 / (1.0 + (gamma - 1.0) / 2.0 * m**2)) ** (1.0 / (gamma - 1.0))
 
 
 @njit(cache=True)
-def _normal_shock_m2(m1: float, gamma: float = GAMMA) :
+def _normal_shock_m2(m1: float, gamma: float = GAMMA):
     m1sq = m1**2
     return np.sqrt((1.0 + (gamma - 1.0) / 2.0 * m1sq) / (gamma * m1sq - (gamma - 1.0) / 2.0))
 
 
 @njit(cache=True)
-def _normal_shock_p2_p1(m1: float, gamma: float = GAMMA) :
+def _normal_shock_p2_p1(m1: float, gamma: float = GAMMA):
     return 1.0 + 2.0 * gamma / (gamma + 1.0) * (m1**2 - 1.0)
 
 
 @njit(cache=True)
-def _normal_shock_rho2_rho1(m1: float, gamma: float = GAMMA) :
+def _normal_shock_rho2_rho1(m1: float, gamma: float = GAMMA):
     return (gamma + 1.0) * m1**2 / (2.0 + (gamma - 1.0) * m1**2)
 
 
 @njit(cache=True)
-def _normal_shock_t2_t1(m1: float, gamma: float = GAMMA) :
+def _normal_shock_t2_t1(m1: float, gamma: float = GAMMA):
     return _normal_shock_p2_p1(m1, gamma) / _normal_shock_rho2_rho1(m1, gamma)
 
 
 @njit(cache=True)
-def _normal_shock_p0_ratio(m1: float, gamma: float = GAMMA) :
+def _normal_shock_p0_ratio(m1: float, gamma: float = GAMMA):
     """Stagnation pressure ratio p02/p01 across normal shock."""
     p2_p1 = _normal_shock_p2_p1(m1, gamma)
     p02_p2 = (1.0 + (gamma - 1.0) / 2.0 * _normal_shock_m2(m1, gamma) ** 2) ** (
@@ -110,7 +110,7 @@ def _normal_shock_p0_ratio(m1: float, gamma: float = GAMMA) :
 
 
 @njit(cache=True)
-def _prandtl_meyer_nu(m: float, gamma: float = GAMMA) :
+def _prandtl_meyer_nu(m: float, gamma: float = GAMMA):
     """Prandtl-Meyer function nu(M) in radians."""
     if m <= 1.0:
         return 0.0
@@ -122,7 +122,7 @@ def _prandtl_meyer_nu(m: float, gamma: float = GAMMA) :
 
 
 @njit(cache=True)
-def _prandtl_meyer_mach(nu: float, gamma: float = GAMMA) :
+def _prandtl_meyer_mach(nu: float, gamma: float = GAMMA):
     """Solve for Mach number given Prandtl-Meyer angle (radians)."""
     if nu <= 0.0:
         return 1.0

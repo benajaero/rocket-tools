@@ -1,8 +1,8 @@
-"""rocket-tools: Engineering reasoning engine for the agentic era.
+"""rocket-tools: Aerospace engineering calculations for Python, CLI, and MCP agents.
 
-Built by Human Engine labs — https://www.humanengine.co/
+Built by Human Engine Labs — https://www.humanengine.co/
 """
 
 __version__ = "0.3.3"
-__author__ = "Human Engine labs"
+__author__ = "Human Engine Labs"
 __url__ = "https://www.humanengine.co/"

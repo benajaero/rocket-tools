@@ -1,4 +1,4 @@
-from rocket_tools.server import main
+from rocket_tools.cli import main
 
 if __name__ == "__main__":
     main()

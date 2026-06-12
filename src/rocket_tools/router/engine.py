@@ -48,6 +48,13 @@ def extract_params(query: str, config) -> dict[str, Any]:
 
 
 def route_query(query: str, session=None) -> ToolCall | ClarificationRequest:
+    if not isinstance(query, str) or not query.strip():
+        return ClarificationRequest(
+            message="Please provide an engineering query with specific numbers and units.",
+            possible_tools=list(INTENT_REGISTRY.keys()),
+            missing_params=[],
+        )
+
     scores = classify_intent(query)
     if not scores or scores[0][1] == 0.0:
         return ClarificationRequest(
@@ -62,11 +69,13 @@ def route_query(query: str, session=None) -> ToolCall | ClarificationRequest:
     config = INTENT_REGISTRY[best_tool]
     params = extract_params(query, config)
 
-    merged = {**config.defaults, **params}
-
+    session_defaults = {}
     if session is not None:
         session_defaults = getattr(session, "parameters", {}).get(best_tool, {})
-        merged = {**session_defaults, **merged}
+        if not isinstance(session_defaults, dict):
+            session_defaults = {}
+
+    merged = {**session_defaults, **config.defaults, **params}
 
     if "material" in merged and best_tool == "beam_analysis":
         try:

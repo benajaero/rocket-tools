@@ -27,6 +27,26 @@ class TestServerMaterialLookup:
         assert data["youngs_modulus_pa"] == 68.9e9
 
 
+class TestServerListMaterials:
+    def test_list_materials(self):
+        result = asyncio.run(_call_tool("list_materials", {}))
+        if isinstance(result, tuple):
+            data = [item.text for item in result[0]]
+        elif (
+            isinstance(result, list)
+            and result
+            and isinstance(result[0], list)
+            and all(hasattr(item, "text") for item in result[0])
+        ):
+            data = [item.text for item in result[0]]
+        elif isinstance(result, list) and all(isinstance(item, str) for item in result):
+            data = result
+        else:
+            data = json.loads(result[0].text)
+        assert len(data) >= 5
+        assert "6061-T6" in data
+
+
 class TestServerISA:
     def test_sea_level(self):
         result = asyncio.run(_call_tool("isa_atmosphere", {"altitude_m": 0.0}))

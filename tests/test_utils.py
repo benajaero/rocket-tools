@@ -31,6 +31,18 @@ class TestUnitConvert:
         result = unit_convert(0.0, "c", "k")
         assert result["converted_value"] == 273.15
 
+    def test_temperature_c_to_f(self):
+        result = unit_convert(100.0, "c", "f")
+        assert result["converted_value"] == 212.0
+
+    def test_temperature_f_to_k(self):
+        result = unit_convert(32.0, "f", "k")
+        assert pytest.approx(result["converted_value"], 1e-9) == 273.15
+
+    def test_temperature_k_to_f(self):
+        result = unit_convert(273.15, "k", "f")
+        assert pytest.approx(result["converted_value"], 1e-9) == 32.0
+
 
 class TestValidation:
     def test_validate_positive_pass(self):

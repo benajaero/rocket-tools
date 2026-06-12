@@ -18,7 +18,7 @@ from numba import njit
 
 
 @njit(cache=True)
-def _euler_buckling_load(e: float, i_val: float, effective_length: float) :
+def _euler_buckling_load(e: float, i_val: float, effective_length: float):
     if e <= 0.0 or i_val <= 0.0 or effective_length <= 0.0:
         raise ValueError("E, I, and effective_length must be > 0")
     return (np.pi**2 * e * i_val) / (effective_length**2)
@@ -27,7 +27,7 @@ def _euler_buckling_load(e: float, i_val: float, effective_length: float) :
 @njit(cache=True)
 def _johnson_buckling_load(
     yield_strength: float, area: float, e: float, i_val: float, effective_length: float
-) :
+):
     """Johnson parabola for short columns (inelastic buckling)."""
     if yield_strength <= 0.0 or area <= 0.0 or e <= 0.0 or i_val <= 0.0 or effective_length <= 0.0:
         raise ValueError("All inputs must be > 0")
@@ -117,7 +117,7 @@ def plate_buckling_coefficient(
     aspect_ratio: float,
     boundary_condition: Literal["simply_supported", "clamped", "free_edge"] = "simply_supported",
     load_type: Literal["compression", "shear", "bending"] = "compression",
-) :
+):
     """Return approximate buckling coefficient k for flat rectangular plates.
 
     Used for aircraft wing skins, rocket propellant tank walls,

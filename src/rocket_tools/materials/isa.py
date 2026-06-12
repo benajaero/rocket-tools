@@ -43,6 +43,8 @@ for i, h in enumerate(_ISA_ALTITUDES):
 
 @lru_cache(maxsize=settings.isa_cache_size)
 def isa_atmosphere(altitude_m: float) -> dict:
+    if not np.isfinite(altitude_m):
+        raise ValueError("Altitude must be finite")
     if altitude_m < 0 or altitude_m > _ISA_MAX:
         raise ValueError(f"Altitude must be 0-{_ISA_MAX} m")
 

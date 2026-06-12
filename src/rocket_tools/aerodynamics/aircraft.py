@@ -22,7 +22,7 @@ R_AIR = 287.05
 
 
 @njit(cache=True)
-def _lift_curve_slope_2d(mach: float, gamma: float = GAMMA, aspect_ratio: float = np.inf) :
+def _lift_curve_slope_2d(mach: float, gamma: float = GAMMA, aspect_ratio: float = np.inf):
     """2D lift curve slope a0 (per radian)."""
     if mach < 1.0:
         # Prandtl-Glauert compressibility correction
@@ -217,10 +217,7 @@ def breguet_endurance(
         sfc_si = specific_fuel_consumption * 2.832e-5
 
     endurance_s = (
-        (1.0 / sfc_si)
-        * lift_to_drag_ratio
-        * np.log(initial_mass_kg / final_mass_kg)
-        / 9.80665
+        (1.0 / sfc_si) * lift_to_drag_ratio * np.log(initial_mass_kg / final_mass_kg) / 9.80665
     )
 
     return {

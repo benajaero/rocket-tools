@@ -21,6 +21,8 @@ def _reynolds_number(rho: float, v: float, char_length: float, mu: float) -> flo
 
 @njit(cache=True)
 def _mach_number(v: float, a: float) -> float:
+    if v < 0.0:
+        raise ValueError("Velocity must be >= 0")
     if a <= 0.0:
         raise ValueError("Speed of sound must be > 0")
     return v / a
@@ -63,6 +65,11 @@ def _skin_friction_coefficient(re: float, laminar: bool = True) -> float:
 # ---- Public API ----
 
 
+def _require_finite(value: float, name: str) -> None:
+    if not np.isfinite(value):
+        raise ValueError(f"{name} must be finite")
+
+
 def reynolds_number(
     velocity: float,
     characteristic_length: float,
@@ -77,10 +84,16 @@ def reynolds_number(
     Either provide density and viscosity directly, or altitude_m for ISA lookup,
     or temperature_k for standard density with given temperature.
     """
+    _require_finite(velocity, "Velocity")
+    _require_finite(characteristic_length, "Characteristic length")
+
     if density is not None and dynamic_viscosity is not None:
+        _require_finite(density, "Density")
+        _require_finite(dynamic_viscosity, "Dynamic viscosity")
         rho = density
         mu = dynamic_viscosity
     elif altitude_m is not None:
+        _require_finite(altitude_m, "Altitude")
         from rocket_tools.materials import isa_atmosphere
 
         isa = isa_atmosphere(altitude_m)
@@ -92,6 +105,9 @@ def reynolds_number(
         s_const = 110.4
         mu = mu_ref * (t / t_ref) ** 1.5 * (t_ref + s_const) / (t + s_const)
     elif temperature_k is not None:
+        _require_finite(temperature_k, "Temperature")
+        if temperature_k <= 0.0:
+            raise ValueError("Temperature must be > 0 K")
         # Standard sea-level density, given temperature
         rho = 1.225 * (288.15 / temperature_k)  # ideal gas approx
         mu_ref = 1.789e-5
@@ -116,6 +132,8 @@ def reynolds_number(
 
 
 def mach_number(velocity: float, altitude_m: float) -> dict:
+    _require_finite(velocity, "Velocity")
+    _require_finite(altitude_m, "Altitude")
     from rocket_tools.materials import isa_atmosphere
 
     isa = isa_atmosphere(altitude_m)
@@ -142,6 +160,8 @@ def mach_number(velocity: float, altitude_m: float) -> dict:
 
 
 def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
+    _require_finite(velocity, "Velocity")
+    _require_finite(altitude_m, "Altitude")
     from rocket_tools.materials import isa_atmosphere
 
     isa = isa_atmosphere(altitude_m)
@@ -159,6 +179,10 @@ def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
 def lift_coefficient(
     lift: float, velocity: float, altitude_m: float, reference_area: float
 ) -> dict:
+    _require_finite(lift, "Lift")
+    _require_finite(velocity, "Velocity")
+    _require_finite(altitude_m, "Altitude")
+    _require_finite(reference_area, "Reference area")
     from rocket_tools.materials import isa_atmosphere
 
     isa = isa_atmosphere(altitude_m)
@@ -176,6 +200,10 @@ def lift_coefficient(
 def drag_coefficient(
     drag: float, velocity: float, altitude_m: float, reference_area: float
 ) -> dict:
+    _require_finite(drag, "Drag")
+    _require_finite(velocity, "Velocity")
+    _require_finite(altitude_m, "Altitude")
+    _require_finite(reference_area, "Reference area")
     from rocket_tools.materials import isa_atmosphere
 
     isa = isa_atmosphere(altitude_m)
@@ -191,7 +219,11 @@ def drag_coefficient(
 
 
 def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "laminar") -> dict:
-    laminar = flow_regime.lower() in ("laminar", "subsonic")
+    _require_finite(reynolds_number, "Reynolds number")
+    normalized_regime = flow_regime.lower()
+    if normalized_regime not in ("laminar", "subsonic", "transitional", "turbulent"):
+        raise ValueError("Flow regime must be one of: laminar, subsonic, transitional, turbulent")
+    laminar = normalized_regime in ("laminar", "subsonic")
     cf = _skin_friction_coefficient(reynolds_number, laminar)
     return {
         "skin_friction_coefficient": round(float(cf), 6),
@@ -212,18 +244,20 @@ def aero_analysis(
     """
     Comprehensive aerodynamic analysis in a single call.
     """
+    _require_finite(reference_area, "Reference area")
+    _require_finite(lift, "Lift")
+    _require_finite(drag, "Drag")
+    if reference_area <= 0.0:
+        raise ValueError("Reference area must be > 0")
+
     re_result = reynolds_number(
         velocity=velocity, characteristic_length=characteristic_length, altitude_m=altitude_m
     )
     mach_result = mach_number(velocity=velocity, altitude_m=altitude_m)
     q_result = dynamic_pressure(velocity=velocity, altitude_m=altitude_m)
 
-    cl = None
-    cd = None
-    if lift > 0 and reference_area > 0:
-        cl = lift_coefficient(lift, velocity, altitude_m, reference_area)["lift_coefficient"]
-    if drag > 0 and reference_area > 0:
-        cd = drag_coefficient(drag, velocity, altitude_m, reference_area)["drag_coefficient"]
+    cl = lift_coefficient(lift, velocity, altitude_m, reference_area)["lift_coefficient"]
+    cd = drag_coefficient(drag, velocity, altitude_m, reference_area)["drag_coefficient"]
 
     re_val = re_result["reynolds_number"]
     cf = skin_friction_coefficient(re_val, re_result["flow_regime"])["skin_friction_coefficient"]
@@ -237,7 +271,7 @@ def aero_analysis(
         "mach_regime": mach_result["regime"],
         "lift_coefficient": cl,
         "drag_coefficient": cd,
-        "lift_to_drag_ratio": round(cl / cd, 3) if cl and cd and cd != 0 else None,
+        "lift_to_drag_ratio": round(cl / cd, 3) if cd != 0 else None,
         "skin_friction_coefficient": cf,
         "altitude_m": altitude_m,
         "velocity_m_s": velocity,
