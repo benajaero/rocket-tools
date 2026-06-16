@@ -18,7 +18,7 @@ class TestHealthEndpoints:
         data = response.json()
         assert data["service"] == "rocket-tools"
         assert "endpoints" in data
-        assert data["tools"] == 30
+        assert data["tools"] == 35
 
     def test_health(self, client):
         response = client.get("/health")
@@ -31,7 +31,7 @@ class TestHealthEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ready"
-        assert data["tools"] == 30
+        assert data["tools"] == 35
 
     def test_metrics(self, client):
         response = client.get("/metrics")

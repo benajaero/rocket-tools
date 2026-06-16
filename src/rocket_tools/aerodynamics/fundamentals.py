@@ -191,13 +191,13 @@ def drag_coefficient(
 
 
 def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "laminar") -> dict:
-    laminar = flow_regime.lower() in ("laminar", "subsonic")
+    laminar = flow_regime.lower() == "laminar"
     cf = _skin_friction_coefficient(reynolds_number, laminar)
     return {
         "skin_friction_coefficient": round(float(cf), 6),
         "reynolds_number": reynolds_number,
         "flow_regime": flow_regime,
-        "correlation": "blasius" if not laminar else "blasius_laminar",
+        "correlation": "blasius_laminar" if laminar else "blasius_turbulent",
     }
 
 
@@ -220,13 +220,21 @@ def aero_analysis(
 
     cl = None
     cd = None
-    if lift > 0 and reference_area > 0:
-        cl = lift_coefficient(lift, velocity, altitude_m, reference_area)["lift_coefficient"]
-    if drag > 0 and reference_area > 0:
-        cd = drag_coefficient(drag, velocity, altitude_m, reference_area)["drag_coefficient"]
+    if reference_area > 0:
+        if lift != 0.0:
+            cl = lift_coefficient(lift, velocity, altitude_m, reference_area)["lift_coefficient"]
+        if drag != 0.0:
+            cd = drag_coefficient(drag, velocity, altitude_m, reference_area)["drag_coefficient"]
 
     re_val = re_result["reynolds_number"]
     cf = skin_friction_coefficient(re_val, re_result["flow_regime"])["skin_friction_coefficient"]
+
+    if cl is not None and cd is not None and cd != 0.0:
+        lift_to_drag = round(cl / cd, 3)
+    elif cl is not None and cd == 0.0:
+        lift_to_drag = float("inf")
+    else:
+        lift_to_drag = None
 
     return {
         "reynolds_number": re_val,
@@ -237,7 +245,7 @@ def aero_analysis(
         "mach_regime": mach_result["regime"],
         "lift_coefficient": cl,
         "drag_coefficient": cd,
-        "lift_to_drag_ratio": round(cl / cd, 3) if cl and cd and cd != 0 else None,
+        "lift_to_drag_ratio": lift_to_drag,
         "skin_friction_coefficient": cf,
         "altitude_m": altitude_m,
         "velocity_m_s": velocity,

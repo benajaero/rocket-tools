@@ -59,7 +59,7 @@ def _d_area_ratio_dm(m: float, gamma: float = GAMMA) :
     term = (1.0 + g2 * m**2) / g1
     return -(1.0 / m**2) * term ** (g1 / (gamma - 1.0)) + (1.0 / m) * term ** (
         g1 / (gamma - 1.0) - 1.0
-    ) * (g1 / (gamma - 1.0)) * term ** (-1.0) * (2.0 * g2 * m / g1)
+    ) * (g1 / (gamma - 1.0)) * (2.0 * g2 * m / g1)
 
 
 @njit(cache=True)

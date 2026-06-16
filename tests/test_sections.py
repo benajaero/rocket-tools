@@ -60,3 +60,44 @@ class TestSectionProperties:
     def test_negative_dimension(self):
         with pytest.raises(ValueError):
             section_properties("rectangle", width=-0.1, height=0.2)
+
+    def test_all_shapes_have_positive_properties(self):
+        shapes = [
+            ("rectangle", {"width": 0.1, "height": 0.2}),
+            ("hollow_rectangle", {"width": 0.1, "height": 0.2, "wall_thickness": 0.01}),
+            ("circle", {"diameter": 0.1}),
+            ("hollow_circle", {"outer_diameter": 0.1, "inner_diameter": 0.08}),
+            (
+                "ibeam",
+                {
+                    "flange_width": 0.1,
+                    "height": 0.2,
+                    "flange_thickness": 0.01,
+                    "web_thickness": 0.008,
+                },
+            ),
+            (
+                "cchannel",
+                {
+                    "flange_width": 0.05,
+                    "height": 0.1,
+                    "flange_thickness": 0.008,
+                    "web_thickness": 0.006,
+                },
+            ),
+            (
+                "tsection",
+                {
+                    "flange_width": 0.08,
+                    "height": 0.1,
+                    "flange_thickness": 0.01,
+                    "web_thickness": 0.008,
+                },
+            ),
+        ]
+        for shape, kwargs in shapes:
+            result = section_properties(shape, **kwargs)
+            assert result["area_m2"] > 0, shape
+            assert result["i_xx_m4"] > 0, shape
+            assert result["s_xx_m3"] > 0, shape
+            assert result["r_xx_m"] > 0, shape

@@ -51,3 +51,29 @@ class TestISA:
             isa_atmosphere(-1.0)
         with pytest.raises(ValueError):
             isa_atmosphere(30000.0)
+
+
+class TestMaterialHelpers:
+    def test_list_materials(self):
+        from rocket_tools.materials.database import list_materials
+
+        names = list_materials()
+        assert "6061-T6" in names
+        assert "Ti-6Al-4V" in names
+        assert len(names) >= 49
+
+    def test_search_materials(self):
+        from rocket_tools.materials.database import search_materials
+
+        titanium = search_materials("Ti-6Al")
+        assert any(m["name"] == "Ti-6Al-4V" for m in titanium)
+        assert not any(m["name"] == "6061-T6" for m in titanium)
+
+    def test_compare_materials(self):
+        from rocket_tools.materials.database import compare_materials
+
+        result = compare_materials(["6061-T6", "7075-T6", "Ti-6Al-4V"])
+        assert len(result) == 3
+        # Default sort is descending specific strength
+        assert result[0]["specific_strength"] >= result[-1]["specific_strength"]
+

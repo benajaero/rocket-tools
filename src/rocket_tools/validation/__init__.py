@@ -11,6 +11,6 @@ References:
     - Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed.
 """
 
-from .benchmarks import get_benchmark, list_benchmarks
+from .benchmarks import get_benchmark, list_benchmarks, validate_benchmark
 
-__all__ = ["get_benchmark", "list_benchmarks"]
+__all__ = ["get_benchmark", "list_benchmarks", "validate_benchmark"]

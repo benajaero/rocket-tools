@@ -3,6 +3,7 @@
 import asyncio
 import json
 
+from rocket_tools.observability import _TOOL_CALL_COUNTER
 from rocket_tools.server import mcp
 
 
@@ -12,12 +13,16 @@ async def _call_tool(name: str, params: dict):
 
 class TestServerUnitConvert:
     def test_m_to_mm(self):
+        # Capture metric before call
+        before = _TOOL_CALL_COUNTER.labels(tool_name="unit_convert", status="success")._value.get()
         result = asyncio.run(
             _call_tool("unit_convert", {"value": 1.0, "from_unit": "m", "to_unit": "mm"})
         )
         assert len(result) == 1
         data = json.loads(result[0].text)
         assert data["converted_value"] == 1000.0
+        after = _TOOL_CALL_COUNTER.labels(tool_name="unit_convert", status="success")._value.get()
+        assert after > before
 
 
 class TestServerMaterialLookup:

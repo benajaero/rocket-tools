@@ -67,3 +67,41 @@ class TestOptimalAreaRatio:
         assert result["optimal_exit_mach"] > 1.0
         assert result["optimal_area_ratio"] > 1.0
         assert result["pressure_ratio"] == 50.0
+
+    def test_invalid_pressure_ratio(self):
+        with pytest.raises(ValueError):
+            optimal_area_ratio(chamber_pressure_pa=1e5, ambient_pressure_pa=1e5)
+
+
+class TestNozzleErrorBranches:
+    def test_invalid_chamber_pressure(self):
+        with pytest.raises(ValueError):
+            nozzle_performance(
+                chamber_pressure_pa=0,
+                chamber_temperature_k=3000.0,
+                ambient_pressure_pa=1e5,
+                throat_area_m2=0.01,
+                exit_area_m2=0.05,
+            )
+
+    def test_invalid_area_order(self):
+        with pytest.raises(ValueError):
+            nozzle_performance(
+                chamber_pressure_pa=5e6,
+                chamber_temperature_k=3000.0,
+                ambient_pressure_pa=1e5,
+                throat_area_m2=0.05,
+                exit_area_m2=0.01,
+            )
+
+    def test_matched_expansion(self):
+        result = nozzle_performance(
+            chamber_pressure_pa=5e6,
+            chamber_temperature_k=3000.0,
+            ambient_pressure_pa=1e5,
+            throat_area_m2=0.01,
+            exit_area_m2=0.1,
+            gamma=1.2,
+            molecular_weight=20.0,
+        )
+        assert result["expansion_state"] in ("optimal", "underexpanded", "overexpanded")

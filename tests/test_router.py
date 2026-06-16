@@ -54,7 +54,7 @@ class TestRouterConfidence:
     def test_beam_partial_params(self):
         result = route_query("Can a beam handle 500N over 2m?")
         assert isinstance(result, ToolCall)
-        assert result.confidence == pytest.approx(2 / 3, abs=0.01)
+        assert result.confidence == pytest.approx(1.10 * 2 / 3, abs=0.01)
 
     def test_beam_full_params(self):
         result = route_query("Design a 6061-T6 beam for 1000N, 1.5m")

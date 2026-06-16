@@ -1,7 +1,7 @@
 """Workflow execution engine with safe interpolation."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from rocket_tools.utils.safe_eval import safe_eval
 from rocket_tools.utils.validation import ToolError
@@ -110,41 +110,19 @@ def run_workflow(workflow: Workflow, inputs: dict) -> WorkflowResult:
 
 
 def _call_tool(tool_name: str, params: dict) -> dict:
-    from rocket_tools import aerodynamics, materials, structural
+    """Dispatch a workflow step to the matching MCP tool function.
 
-    if tool_name == "beam_analysis":
-        return structural.beam_analysis(**params)
-    elif tool_name == "aero_analysis":
-        return aerodynamics.aero_analysis(**params)
-    elif tool_name == "material_lookup":
-        return materials.material_lookup(**params)
-    elif tool_name == "isa_atmosphere":
-        return materials.isa_atmosphere(**params)
-    elif tool_name == "reynolds_number":
-        return aerodynamics.reynolds_number(**params)
-    elif tool_name == "mach_number":
-        return aerodynamics.mach_number(**params)
-    elif tool_name == "dynamic_pressure":
-        return aerodynamics.dynamic_pressure(**params)
-    elif tool_name == "lift_coefficient":
-        return aerodynamics.lift_coefficient(**params)
-    elif tool_name == "drag_coefficient":
-        return aerodynamics.drag_coefficient(**params)
-    elif tool_name == "skin_friction_coefficient":
-        return aerodynamics.skin_friction_coefficient(**params)
-    elif tool_name == "unit_convert":
-        from rocket_tools.utils import unit_convert
+    All tool functions are imported from rocket_tools.server so that workflows
+    stay in sync with the exposed MCP surface.
+    """
+    from rocket_tools import server
 
-        return unit_convert(**params)
-    else:
+    tool_fn = getattr(server, tool_name, None)
+    if tool_fn is None:
         raise ToolError(
             f"Unknown tool: {tool_name}",
             error_code="UNKNOWN_TOOL",
             parameter="tool_name",
-            constraint=(
-                "one of: beam_analysis, aero_analysis, material_lookup, "
-                "isa_atmosphere, reynolds_number, mach_number, dynamic_pressure, "
-                "lift_coefficient, drag_coefficient, skin_friction_coefficient, "
-                "unit_convert"
-            ),
+            constraint="a registered rocket-tools MCP tool name",
         )
+    return cast(dict, tool_fn(**params))

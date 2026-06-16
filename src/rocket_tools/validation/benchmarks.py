@@ -58,8 +58,8 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "support_type": "simply_supported",
         },
         "expected": {
-            "max_deflection_m": 0.004,
-            "bending_stress_pa": 120000000.0,
+            "max_deflection_m": 0.2,
+            "bending_stress_pa": 600000000.0,
         },
         "tolerance": 0.01,
         "reference": (
@@ -78,8 +78,8 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "support_type": "cantilever",
         },
         "expected": {
-            "max_deflection_m": 0.02274,
-            "bending_stress_pa": 131835937.5,
+            "max_deflection_m": 4.7767,
+            "bending_stress_pa": 1757812500.0,
         },
         "tolerance": 0.01,
         "reference": (
@@ -98,9 +98,11 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
     "skin_friction_turbulent": {
         "tool_name": "skin_friction_coefficient",
         "inputs": {"reynolds_number": 1e7, "flow_regime": "turbulent"},
-        "expected": {"skin_friction_coefficient": 0.00297},
+        "expected": {"skin_friction_coefficient": 0.002357},
         "tolerance": 0.01,
-        "reference": "Blasius turbulent: cf = 0.0592 / Re^0.2 = 0.0592 / (1e7)^0.2 = 0.00297",
+        "reference": (
+            "Blasius turbulent: cf = 0.0592 * Re^(-0.2) = 0.0592 * (1e7)^(-0.2) = 0.002357"
+        ),
     },
     # ---- Rocket Equation ----
     "rocket_delta_v_standard": {

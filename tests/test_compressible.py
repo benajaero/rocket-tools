@@ -77,3 +77,41 @@ class TestPrandtlMeyer:
             prandtl_meyer(0.5)
         with pytest.raises(ValueError):
             prandtl_meyer_from_angle(-1.0)
+
+
+class TestAreaMachRelation:
+    def test_area_ratio_at_mach_1(self):
+        from rocket_tools.aerodynamics.compressible import _area_ratio
+
+        assert _area_ratio(1.0, 1.4) == pytest.approx(1.0, abs=1e-6)
+
+    def test_area_ratio_supersonic(self):
+        from rocket_tools.aerodynamics.compressible import _area_ratio
+
+        assert _area_ratio(2.0, 1.4) > 1.0
+
+    def test_mach_from_area_ratio_invalid(self):
+        from rocket_tools.aerodynamics.compressible import _mach_from_area_ratio
+
+        with pytest.raises(ValueError):
+            _mach_from_area_ratio(0.5, 1.4)
+
+    def test_mach_from_area_ratio_round_trip(self):
+        from rocket_tools.aerodynamics.compressible import _area_ratio, _mach_from_area_ratio
+
+        for mach in [1.5, 2.0, 3.0, 5.0]:
+            ar = _area_ratio(mach, 1.4)
+            recovered = _mach_from_area_ratio(ar, 1.4)
+            assert recovered == pytest.approx(mach, rel=1e-4)
+
+
+class TestGammaVariation:
+    def test_isentropic_with_different_gamma(self):
+        result_air = isentropic_flow(2.0, gamma=1.4)
+        result_he = isentropic_flow(2.0, gamma=1.67)
+        assert result_air["pressure_ratio"] != result_he["pressure_ratio"]
+
+    def test_normal_shock_with_different_gamma(self):
+        result_air = normal_shock(2.0, gamma=1.4)
+        result_he = normal_shock(2.0, gamma=1.67)
+        assert result_air["pressure_ratio"] != result_he["pressure_ratio"]

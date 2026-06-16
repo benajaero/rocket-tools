@@ -1,7 +1,12 @@
 """FastMCP server exposing aerospace engineering tools with Pydantic validation."""
 
+import functools
+import time
+from collections.abc import Callable
+
 from mcp.server.fastmcp import FastMCP
 
+from rocket_tools.observability import record_tool_call
 from rocket_tools.schemas import (
     AeroAnalysisInput,
     BreguetEnduranceInput,
@@ -43,6 +48,32 @@ from rocket_tools.schemas import (
 from rocket_tools.schemas.structural import BeamAnalysisInput
 from rocket_tools.utils.validation import ToolError
 
+
+def _timed_tool(tool_name: str):
+    """Decorator that records Prometheus metrics for each MCP tool call."""
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            start = time.perf_counter()
+            status = "success"
+            try:
+                result = func(*args, **kwargs)
+                if isinstance(result, dict) and result.get("error"):
+                    status = "error"
+                return result
+            except Exception:
+                status = "error"
+                raise
+            finally:
+                duration = time.perf_counter() - start
+                record_tool_call(tool_name, status, duration)
+
+        return wrapper
+
+    return decorator
+
+
 mcp = FastMCP("rocket-tools")
 
 
@@ -69,6 +100,7 @@ def _format_error(e: Exception) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("unit_convert")
 def unit_convert(value: float, from_unit: str, to_unit: str) -> dict:
     """Convert engineering units.
 
@@ -84,6 +116,7 @@ def unit_convert(value: float, from_unit: str, to_unit: str) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("material_lookup")
 def material_lookup(name: str, property_filter: str = "all") -> dict:
     """Look up aerospace material properties by name.
 
@@ -99,6 +132,7 @@ def material_lookup(name: str, property_filter: str = "all") -> dict:
 
 
 @mcp.tool()
+@_timed_tool("isa_atmosphere")
 def isa_atmosphere(altitude_m: float) -> dict:
     """Get ISA atmosphere properties at a given altitude (0-25000 m)."""
     from rocket_tools.materials import isa_atmosphere as _isa
@@ -114,6 +148,7 @@ def isa_atmosphere(altitude_m: float) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("beam_analysis")
 def beam_analysis(
     load: float,
     length: float,
@@ -154,6 +189,7 @@ def beam_analysis(
 
 
 @mcp.tool()
+@_timed_tool("section_properties")
 def section_properties(
     shape: str,
     width: float | None = None,
@@ -193,6 +229,7 @@ def section_properties(
 
 
 @mcp.tool()
+@_timed_tool("column_buckling")
 def column_buckling(
     youngs_modulus: float,
     area_moment: float,
@@ -229,6 +266,7 @@ def column_buckling(
 
 
 @mcp.tool()
+@_timed_tool("plate_buckling_coefficient")
 def plate_buckling_coefficient(
     aspect_ratio: float,
     boundary_condition: str = "simply_supported",
@@ -259,6 +297,7 @@ def plate_buckling_coefficient(
 
 
 @mcp.tool()
+@_timed_tool("margin_of_safety")
 def margin_of_safety(
     allowable_stress_pa: float | None = None,
     actual_stress_pa: float | None = None,
@@ -300,6 +339,7 @@ def margin_of_safety(
 
 
 @mcp.tool()
+@_timed_tool("von_mises_stress")
 def von_mises_stress(
     sigma_x: float,
     sigma_y: float = 0.0,
@@ -336,6 +376,7 @@ def von_mises_stress(
 
 
 @mcp.tool()
+@_timed_tool("combined_margin_of_safety")
 def combined_margin_of_safety(
     sigma_x: float,
     sigma_y: float = 0.0,
@@ -375,6 +416,7 @@ def combined_margin_of_safety(
 
 
 @mcp.tool()
+@_timed_tool("deflection_margin")
 def deflection_margin(
     actual_deflection_m: float,
     allowable_deflection_m: float | None = None,
@@ -405,6 +447,7 @@ def deflection_margin(
 
 
 @mcp.tool()
+@_timed_tool("truss_analysis")
 def truss_analysis(
     nodes: list,
     elements: list,
@@ -445,6 +488,7 @@ def truss_analysis(
 
 
 @mcp.tool()
+@_timed_tool("reynolds_number")
 def reynolds_number(
     velocity: float,
     characteristic_length: float,
@@ -483,6 +527,7 @@ def reynolds_number(
 
 
 @mcp.tool()
+@_timed_tool("mach_number")
 def mach_number(velocity: float, altitude_m: float) -> dict:
     """Compute Mach number at given altitude."""
     from rocket_tools.aerodynamics import mach_number as _ma
@@ -495,6 +540,7 @@ def mach_number(velocity: float, altitude_m: float) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("dynamic_pressure")
 def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
     """Compute dynamic pressure q = 0.5 * rho * V^2 at given altitude."""
     from rocket_tools.aerodynamics import dynamic_pressure as _q
@@ -507,6 +553,7 @@ def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("lift_coefficient")
 def lift_coefficient(
     lift: float, velocity: float, altitude_m: float, reference_area: float
 ) -> dict:
@@ -528,6 +575,7 @@ def lift_coefficient(
 
 
 @mcp.tool()
+@_timed_tool("drag_coefficient")
 def drag_coefficient(
     drag: float, velocity: float, altitude_m: float, reference_area: float
 ) -> dict:
@@ -549,6 +597,7 @@ def drag_coefficient(
 
 
 @mcp.tool()
+@_timed_tool("skin_friction_coefficient")
 def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "laminar") -> dict:
     """Compute skin friction coefficient using Blasius correlation."""
     from rocket_tools.aerodynamics import skin_friction_coefficient as _cf
@@ -564,6 +613,7 @@ def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "lamina
 
 
 @mcp.tool()
+@_timed_tool("aero_analysis")
 def aero_analysis(
     velocity: float,
     altitude_m: float,
@@ -600,6 +650,7 @@ def aero_analysis(
 
 
 @mcp.tool()
+@_timed_tool("isentropic_flow")
 def isentropic_flow(mach: float, gamma: float = 1.4) -> dict:
     """Compute isentropic flow ratios (T/T0, P/P0, rho/rho0, A/A*) for given Mach number."""
     from rocket_tools.aerodynamics import isentropic_flow as _if
@@ -612,6 +663,7 @@ def isentropic_flow(mach: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("normal_shock")
 def normal_shock(mach1: float, gamma: float = 1.4) -> dict:
     """Compute normal shock relations for upstream Mach number > 1."""
     from rocket_tools.aerodynamics import normal_shock as _ns
@@ -624,6 +676,7 @@ def normal_shock(mach1: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("oblique_shock")
 def oblique_shock(mach1: float, deflection_deg: float, gamma: float = 1.4) -> dict:
     """Compute oblique shock relations for upstream Mach and deflection angle."""
     from rocket_tools.aerodynamics import oblique_shock as _os
@@ -636,6 +689,7 @@ def oblique_shock(mach1: float, deflection_deg: float, gamma: float = 1.4) -> di
 
 
 @mcp.tool()
+@_timed_tool("prandtl_meyer")
 def prandtl_meyer(mach: float, gamma: float = 1.4) -> dict:
     """Compute Prandtl-Meyer expansion angle for Mach >= 1."""
     from rocket_tools.aerodynamics import prandtl_meyer as _pm
@@ -648,6 +702,7 @@ def prandtl_meyer(mach: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("prandtl_meyer_from_angle")
 def prandtl_meyer_from_angle(angle_deg: float, gamma: float = 1.4) -> dict:
     """Compute Mach number from Prandtl-Meyer expansion angle."""
     from rocket_tools.aerodynamics import prandtl_meyer_from_angle as _pmfa
@@ -663,6 +718,7 @@ def prandtl_meyer_from_angle(angle_deg: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("lift_curve_slope")
 def lift_curve_slope(
     mach: float,
     aspect_ratio: float,
@@ -693,6 +749,7 @@ def lift_curve_slope(
 
 
 @mcp.tool()
+@_timed_tool("drag_polar")
 def drag_polar(
     cl: float,
     cd0: float,
@@ -723,6 +780,7 @@ def drag_polar(
 
 
 @mcp.tool()
+@_timed_tool("breguet_range")
 def breguet_range(
     lift_to_drag_ratio: float,
     specific_fuel_consumption: float,
@@ -753,6 +811,7 @@ def breguet_range(
 
 
 @mcp.tool()
+@_timed_tool("breguet_endurance")
 def breguet_endurance(
     lift_to_drag_ratio: float,
     specific_fuel_consumption: float,
@@ -780,6 +839,7 @@ def breguet_endurance(
 
 
 @mcp.tool()
+@_timed_tool("wing_loading")
 def wing_loading(weight_n: float, wing_area_m2: float) -> dict:
     """Compute wing loading and stall speed estimates."""
     from rocket_tools.aerodynamics import wing_loading as _wl
@@ -795,6 +855,7 @@ def wing_loading(weight_n: float, wing_area_m2: float) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("nozzle_performance")
 def nozzle_performance(
     chamber_pressure_pa: float,
     chamber_temperature_k: float,
@@ -831,6 +892,7 @@ def nozzle_performance(
 
 
 @mcp.tool()
+@_timed_tool("optimal_area_ratio")
 def optimal_area_ratio(
     chamber_pressure_pa: float, ambient_pressure_pa: float, gamma: float = 1.4
 ) -> dict:
@@ -856,6 +918,7 @@ def optimal_area_ratio(
 
 
 @mcp.tool()
+@_timed_tool("rocket_delta_v")
 def rocket_delta_v(
     specific_impulse_s: float,
     initial_mass_kg: float,
@@ -883,6 +946,7 @@ def rocket_delta_v(
 
 
 @mcp.tool()
+@_timed_tool("multi_stage_delta_v")
 def multi_stage_delta_v(stages: list[dict], gravity: float = 9.80665) -> dict:
     """Compute total delta-v for multi-stage rocket."""
     from rocket_tools.design import multi_stage_delta_v as _msdv
@@ -895,6 +959,7 @@ def multi_stage_delta_v(stages: list[dict], gravity: float = 9.80665) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("orbital_velocity")
 def orbital_velocity(
     altitude_m: float,
     body_radius_m: float = 6_371_000.0,
@@ -922,6 +987,7 @@ def orbital_velocity(
 
 
 @mcp.tool()
+@_timed_tool("payload_fraction")
 def payload_fraction(
     delta_v_required_ms: float,
     specific_impulse_s: float,
@@ -949,6 +1015,7 @@ def payload_fraction(
 
 
 @mcp.tool()
+@_timed_tool("thrust_to_weight")
 def thrust_to_weight(thrust_n: float, mass_kg: float, gravity: float = 9.80665) -> dict:
     """Compute thrust-to-weight ratio."""
     from rocket_tools.design import thrust_to_weight as _ttw
@@ -961,6 +1028,7 @@ def thrust_to_weight(thrust_n: float, mass_kg: float, gravity: float = 9.80665) 
 
 
 @mcp.tool()
+@_timed_tool("composite_cg")
 def composite_cg(masses: list[float], positions: list[list[float]]) -> dict:
     """Compute center of gravity and mass moments for composite body."""
     from rocket_tools.design import composite_cg as _ccg
@@ -973,6 +1041,7 @@ def composite_cg(masses: list[float], positions: list[list[float]]) -> dict:
 
 
 @mcp.tool()
+@_timed_tool("propellant_tank_sizing")
 def propellant_tank_sizing(
     propellant_volume_m3: float,
     ullage_fraction: float = 0.1,

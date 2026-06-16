@@ -9,6 +9,13 @@ _CONVERSION_RE = re.compile(
 )
 
 
+def extract_number(text: str) -> float | None:
+    m = re.search(r"(\d+\.?\d*(?:[eE][+-]?\d+)?)", text)
+    if m:
+        return float(m.group(1))
+    return None
+
+
 def _normalize_unit(unit: str) -> str:
     mapping = {
         "inches": "inch",
@@ -215,4 +222,152 @@ def extract_flow_regime(text: str) -> str | None:
         return "laminar"
     if re.search(r"\bturbulent\b", text, re.IGNORECASE):
         return "turbulent"
+    return None
+
+
+def extract_stress(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"MPa|mpa|GPa|gpa|Pa|pa|psi|ksi|kPa|kpa")
+    if result:
+        val, unit = result
+        if unit.lower() in ("gpa",):
+            return val * 1e9
+        if unit.lower() in ("mpa",):
+            return val * 1e6
+        if unit.lower() in ("kpa",):
+            return val * 1e3
+        if unit.lower() in ("psi",):
+            return val * 6894.757
+        if unit.lower() in ("ksi",):
+            return val * 6.894757e6
+        return val
+    return None
+
+
+def extract_pressure(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"MPa|mpa|bar|kPa|kpa|Pa|pa|psi|atm")
+    if result:
+        val, unit = result
+        if unit.lower() in ("bar",):
+            return val * 1e5
+        if unit.lower() in ("mpa",):
+            return val * 1e6
+        if unit.lower() in ("kpa",):
+            return val * 1e3
+        if unit.lower() in ("psi",):
+            return val * 6894.757
+        if unit.lower() in ("atm",):
+            return val * 101325.0
+        return val
+    return None
+
+
+def extract_temperature(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"K|k|°C|C|°F|F")
+    if result:
+        val, unit = result
+        if unit.lower() in ("°f", "f"):
+            return (val - 32) * 5 / 9 + 273.15
+        if unit.lower() in ("°c", "c"):
+            return val + 273.15
+        return val
+    return None
+
+
+def extract_gamma(text: str) -> float | None:
+    m = re.search(r"gamma\s*(?:of|is|=|:)?\s*(\d+\.?\d*)", text, re.IGNORECASE)
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def extract_mach(text: str) -> float | None:
+    m = re.search(r"Mach\s*(?:number\s*)?(?:of|is|=|:)?\s*(\d+\.?\d*)", text, re.IGNORECASE)
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def extract_angle(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"deg|degrees?|°|rad|radians?")
+    if result:
+        val, unit = result
+        if unit.lower() in ("rad", "radians"):
+            return val * 57.2958
+        return val
+    return None
+
+
+def extract_aspect_ratio(text: str) -> float | None:
+    m = re.search(r"aspect\s*ratio\s*(?:of|is|=|:)?\s*(\d+\.?\d*)", text, re.IGNORECASE)
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def extract_sweep(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"deg|degrees?|°", negative_lookahead=r"\s*from")
+    if result:
+        return result[0]
+    return None
+
+
+def extract_mass(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"kg|g|lbm|lb|slug")
+    if result:
+        val, unit = result
+        if unit.lower() in ("g",):
+            return val / 1000
+        if unit.lower() in ("lbm", "lb"):
+            return val * 0.453592
+        if unit.lower() in ("slug",):
+            return val * 14.5939
+        return val
+    return None
+
+
+def extract_thrust(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"N|n|kN|kn|lbf|kip")
+    if result:
+        val, unit = result
+        if unit.lower() in ("kn",):
+            return val * 1000
+        if unit.lower() in ("lbf",):
+            return val * 4.4482216152605
+        if unit.lower() in ("kip",):
+            return val * 4448.2216152605
+        return val
+    return None
+
+
+def extract_youngs_modulus(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"GPa|gpa|MPa|mpa|Pa|pa|psi|ksi|kPa|kpa")
+    if result:
+        val, unit = result
+        if unit.lower() in ("gpa",):
+            return val * 1e9
+        if unit.lower() in ("mpa",):
+            return val * 1e6
+        if unit.lower() in ("kpa",):
+            return val * 1e3
+        if unit.lower() in ("psi",):
+            return val * 6894.757
+        if unit.lower() in ("ksi",):
+            return val * 6.894757e6
+        return val
+    return None
+
+
+def extract_deflection(text: str) -> float | None:
+    result = extract_number_with_unit(text, r"mm|cm|m|inch|in|ft|feet")
+    if result:
+        val, unit = result
+        if unit in ("mm",):
+            return val / 1000
+        if unit in ("cm",):
+            return val / 100
+        if unit in ("inch", "in"):
+            return val * 0.0254
+        if unit in ("ft", "feet"):
+            return val * 0.3048
+        return val
     return None
