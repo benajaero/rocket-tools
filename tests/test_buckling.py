@@ -49,9 +49,7 @@ class TestColumnBuckling:
 
     def test_invalid_input(self):
         with pytest.raises(ValueError):
-            column_buckling(
-                youngs_modulus=-1, area_moment=1, area=1, length=1, yield_strength=1
-            )
+            column_buckling(youngs_modulus=-1, area_moment=1, area=1, length=1, yield_strength=1)
 
 
 class TestPlateBuckling:

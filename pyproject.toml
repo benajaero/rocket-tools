@@ -1,25 +1,29 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rocket-tools"
 version = "0.3.3"
-description = "Aerospace engineering intelligence for AI agents"
+description = "Aerospace engineering calculations for Python, CLI, and MCP agents"
 readme = "README.md"
-license = {text = "Apache-2.0"}
-requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11,<3.13"
+keywords = ["aerospace", "engineering", "mcp", "aerodynamics", "structural-analysis"]
 authors = [
-    {name = "Human Engine labs", email = "engineering@humanengine.dev"}
+    {name = "Human Engine Labs", email = "engineering@humanengine.dev"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
 ]
 dependencies = [
     "mcp>=1.0.0",
@@ -41,14 +45,19 @@ dev = [
     "ruff>=0.1.0",
     "matplotlib>=3.7",
 ]
+release = [
+    "build>=1.2",
+    "twine>=5.0",
+]
 
 [project.scripts]
-rocket-tools = "rocket_tools.server:main"
+rocket-tools = "rocket_tools.cli:main"
 
 [project.urls]
 Homepage = "https://www.humanengine.co/"
 Repository = "https://github.com/benajaero/rocket-tools"
 Issues = "https://github.com/benajaero/rocket-tools/issues"
+Changelog = "https://github.com/benajaero/rocket-tools/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -56,9 +65,12 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+rocket_tools = ["py.typed", "workflows/built_in/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py", "bench_*.py"]
+python_files = ["test_*.py"]
 addopts = "--strict-markers --disable-warnings"
 
 [tool.coverage.run]

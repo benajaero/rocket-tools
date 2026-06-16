@@ -7,8 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package manifest and source
+# Copy package metadata and source
 COPY pyproject.toml .
+COPY README.md LICENSE ./
 COPY src ./src
 
 # Install production dependencies

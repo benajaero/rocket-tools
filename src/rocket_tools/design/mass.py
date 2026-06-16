@@ -38,9 +38,9 @@ def composite_cg(masses: list[float], positions: list[list[float]]) -> dict:
     cg_z = sum(m * p[2] for m, p in zip(masses, positions)) / total_mass
 
     # Moments of inertia about CG (parallel axis theorem)
-    i_xx = sum(m * ((p[1] - cg_y)**2 + (p[2] - cg_z)**2) for m, p in zip(masses, positions))
-    i_yy = sum(m * ((p[0] - cg_x)**2 + (p[2] - cg_z)**2) for m, p in zip(masses, positions))
-    i_zz = sum(m * ((p[0] - cg_x)**2 + (p[1] - cg_y)**2) for m, p in zip(masses, positions))
+    i_xx = sum(m * ((p[1] - cg_y) ** 2 + (p[2] - cg_z) ** 2) for m, p in zip(masses, positions))
+    i_yy = sum(m * ((p[0] - cg_x) ** 2 + (p[2] - cg_z) ** 2) for m, p in zip(masses, positions))
+    i_zz = sum(m * ((p[0] - cg_x) ** 2 + (p[1] - cg_y) ** 2) for m, p in zip(masses, positions))
     i_xy = sum(m * (p[0] - cg_x) * (p[1] - cg_y) for m, p in zip(masses, positions))
     i_xz = sum(m * (p[0] - cg_x) * (p[2] - cg_z) for m, p in zip(masses, positions))
     i_yz = sum(m * (p[1] - cg_y) * (p[2] - cg_z) for m, p in zip(masses, positions))

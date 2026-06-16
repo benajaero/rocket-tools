@@ -1,5 +1,6 @@
 """Session memory for contextual engineering conversations."""
 
+import copy
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -23,6 +24,8 @@ class SessionMemory:
     history: list[ToolExecution] = field(default_factory=list)
 
     def merge(self, new_params: dict, tool_name: str) -> dict:
+        if not isinstance(new_params, dict):
+            raise ValueError("new_params must be a dictionary")
         defaults = self.parameters.get(tool_name, {})
         merged = {**defaults, **{k: v for k, v in new_params.items() if v is not None}}
         self.parameters[tool_name] = merged
@@ -30,7 +33,7 @@ class SessionMemory:
         return merged
 
     def record(self, tool_name: str, params: dict, result: dict):
-        self.history.append(ToolExecution(tool_name, params, result))
+        self.history.append(ToolExecution(tool_name, copy.deepcopy(params), copy.deepcopy(result)))
         self.last_accessed = time.time()
 
 
@@ -39,6 +42,8 @@ class SessionStore:
         from rocket_tools.config import settings
 
         self._ttl = ttl_seconds if ttl_seconds is not None else settings.session_ttl_seconds
+        if self._ttl <= 0:
+            raise ValueError("ttl_seconds must be greater than 0")
         self._sessions: dict[str, SessionMemory] = {}
 
     def create(self, mission_type: str = "general") -> str:
@@ -47,10 +52,14 @@ class SessionStore:
         return sid
 
     def get(self, sid: str) -> SessionMemory:
+        if not isinstance(sid, str) or not sid:
+            raise ValueError("sid must be a non-empty string")
         self._cleanup()
         if sid not in self._sessions:
             return SessionMemory(session_id=sid)
-        return self._sessions[sid]
+        session = self._sessions[sid]
+        session.last_accessed = time.time()
+        return session
 
     def _cleanup(self):
         now = time.time()

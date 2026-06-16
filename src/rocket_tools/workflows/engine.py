@@ -1,5 +1,6 @@
 """Workflow execution engine with safe interpolation."""
 
+import math
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -29,6 +30,22 @@ class Workflow:
 class WorkflowResult:
     outputs: dict
     trace: list[dict]
+
+
+_SUPPORTED_INPUT_TYPES = {
+    "str",
+    "string",
+    "float",
+    "number",
+    "int",
+    "integer",
+    "dict",
+    "object",
+    "list",
+    "array",
+    "bool",
+    "boolean",
+}
 
 
 class _DotDict:
@@ -84,7 +101,75 @@ def resolve_interpolation(value: Any, context: dict) -> Any:
     return value
 
 
+def validate_workflow_inputs(workflow: Workflow, inputs: dict) -> None:
+    if not isinstance(inputs, dict):
+        raise ToolError(
+            "Workflow inputs must be a dictionary",
+            error_code="INVALID_INPUT",
+            parameter="inputs",
+            constraint="dict",
+        )
+
+    for name, spec in workflow.inputs.items():
+        spec = spec if isinstance(spec, dict) else {}
+        required = spec.get("required", False)
+
+        if required and name not in inputs:
+            raise ToolError(
+                f"Missing required workflow input: {name}",
+                error_code="MISSING_INPUT",
+                parameter=name,
+                constraint="required input",
+            )
+        if name not in inputs or inputs[name] is None:
+            continue
+
+        expected_name = spec.get("type")
+        expected_key = str(expected_name).lower() if expected_name else ""
+        if expected_key not in _SUPPORTED_INPUT_TYPES:
+            continue
+
+        value = inputs[name]
+        if expected_key in ("float", "number"):
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                raise ToolError(
+                    f"Workflow input '{name}' must be a number",
+                    error_code="INVALID_INPUT_TYPE",
+                    parameter=name,
+                    constraint=str(expected_name),
+                )
+            if not math.isfinite(float(value)):
+                raise ToolError(
+                    f"Workflow input '{name}' must be finite",
+                    error_code="INVALID_INPUT",
+                    parameter=name,
+                    constraint="finite number",
+                )
+            continue
+
+        if expected_key in ("int", "integer"):
+            valid = isinstance(value, int) and not isinstance(value, bool)
+        elif expected_key in ("str", "string"):
+            valid = isinstance(value, str)
+        elif expected_key in ("dict", "object"):
+            valid = isinstance(value, dict)
+        elif expected_key in ("list", "array"):
+            valid = isinstance(value, list)
+        elif expected_key in ("bool", "boolean"):
+            valid = isinstance(value, bool)
+        else:
+            valid = True
+        if not valid:
+            raise ToolError(
+                f"Workflow input '{name}' must be {expected_name}",
+                error_code="INVALID_INPUT_TYPE",
+                parameter=name,
+                constraint=str(expected_name),
+            )
+
+
 def run_workflow(workflow: Workflow, inputs: dict) -> WorkflowResult:
+    validate_workflow_inputs(workflow, inputs)
     context = {"inputs": inputs}
     trace = []
 

@@ -15,7 +15,7 @@ from numba import njit
 
 
 @njit(cache=True)
-def _rectangle_properties(b: float, h: float) :
+def _rectangle_properties(b: float, h: float):
     """Area, I, S, r for solid rectangle."""
     area = b * h
     i_xx = (b * h**3) / 12.0
@@ -25,7 +25,7 @@ def _rectangle_properties(b: float, h: float) :
 
 
 @njit(cache=True)
-def _hollow_rectangle_properties(b: float, h: float, t: float) :
+def _hollow_rectangle_properties(b: float, h: float, t: float):
     """Area, I, S, r for hollow rectangle (box section)."""
     b_i = b - 2.0 * t
     h_i = h - 2.0 * t
@@ -37,7 +37,7 @@ def _hollow_rectangle_properties(b: float, h: float, t: float) :
 
 
 @njit(cache=True)
-def _circle_properties(d: float) :
+def _circle_properties(d: float):
     """Area, I, S, r for solid circle."""
     r = d / 2.0
     area = np.pi * r**2
@@ -48,7 +48,7 @@ def _circle_properties(d: float) :
 
 
 @njit(cache=True)
-def _hollow_circle_properties(d_o: float, d_i: float) :
+def _hollow_circle_properties(d_o: float, d_i: float):
     """Area, I, S, r for hollow circle (tube)."""
     r_o = d_o / 2.0
     r_i = d_i / 2.0
@@ -60,9 +60,7 @@ def _hollow_circle_properties(d_o: float, d_i: float) :
 
 
 @njit(cache=True)
-def _ibeam_properties(
-    b_f: float, h: float, t_f: float, t_w: float
-) :
+def _ibeam_properties(b_f: float, h: float, t_f: float, t_w: float):
     """Area, I, S, r for I-beam.
 
     Approximate: flange width b_f, overall height h, flange thickness t_f, web thickness t_w.
@@ -70,7 +68,7 @@ def _ibeam_properties(
     h_w = h - 2.0 * t_f
     area = 2.0 * b_f * t_f + h_w * t_w
     i_web = (t_w * h_w**3) / 12.0
-    i_flanges = 2.0 * ((b_f * t_f**3) / 12.0 + b_f * t_f * ((h_w + t_f) / 2.0)**2)
+    i_flanges = 2.0 * ((b_f * t_f**3) / 12.0 + b_f * t_f * ((h_w + t_f) / 2.0) ** 2)
     i_xx = i_web + i_flanges
     s_xx = i_xx / (h / 2.0)
     r_xx = np.sqrt(i_xx / area) if area > 0.0 else 0.0
@@ -78,9 +76,7 @@ def _ibeam_properties(
 
 
 @njit(cache=True)
-def _cchannel_properties(
-    b: float, h: float, t_f: float, t_w: float
-) :
+def _cchannel_properties(b: float, h: float, t_f: float, t_w: float):
     """Area, I, S, r for C-channel.
 
     Approximate: flange width b, overall height h, flange thickness t_f, web thickness t_w.
@@ -88,7 +84,7 @@ def _cchannel_properties(
     h_w = h - 2.0 * t_f
     area = 2.0 * b * t_f + h_w * t_w
     i_web = (t_w * h_w**3) / 12.0
-    i_flanges = 2.0 * ((b * t_f**3) / 12.0 + b * t_f * ((h_w + t_f) / 2.0)**2)
+    i_flanges = 2.0 * ((b * t_f**3) / 12.0 + b * t_f * ((h_w + t_f) / 2.0) ** 2)
     i_xx = i_web + i_flanges
     s_xx = i_xx / (h / 2.0)
     r_xx = np.sqrt(i_xx / area) if area > 0.0 else 0.0
@@ -96,9 +92,7 @@ def _cchannel_properties(
 
 
 @njit(cache=True)
-def _tsection_properties(
-    b_f: float, h: float, t_f: float, t_w: float
-) :
+def _tsection_properties(b_f: float, h: float, t_f: float, t_w: float):
     """Area, I, S, r for T-section.
 
     Approximate: flange width b_f, overall height h, flange thickness t_f, web thickness t_w.
@@ -108,8 +102,8 @@ def _tsection_properties(
     # Centroid from base
     y_c = (b_f * t_f * (h - t_f / 2.0) + h_w * t_w * (h_w / 2.0)) / area
     # I about centroid
-    i_flange = (b_f * t_f**3) / 12.0 + b_f * t_f * (h - t_f / 2.0 - y_c)**2
-    i_web = (t_w * h_w**3) / 12.0 + h_w * t_w * (y_c - h_w / 2.0)**2
+    i_flange = (b_f * t_f**3) / 12.0 + b_f * t_f * (h - t_f / 2.0 - y_c) ** 2
+    i_web = (t_w * h_w**3) / 12.0 + h_w * t_w * (y_c - h_w / 2.0) ** 2
     i_xx = i_flange + i_web
     s_xx = i_xx / max(y_c, h - y_c)
     r_xx = np.sqrt(i_xx / area) if area > 0.0 else 0.0
@@ -118,8 +112,13 @@ def _tsection_properties(
 
 def section_properties(
     shape: Literal[
-        "rectangle", "hollow_rectangle", "circle", "hollow_circle",
-        "ibeam", "cchannel", "tsection",
+        "rectangle",
+        "hollow_rectangle",
+        "circle",
+        "hollow_circle",
+        "ibeam",
+        "cchannel",
+        "tsection",
     ],
     **kwargs: float,
 ) -> dict:

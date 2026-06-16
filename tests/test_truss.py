@@ -107,7 +107,10 @@ class TestTruss3D:
                 [0.5, 0.5, 2.0],
             ],
             elements=[
-                [0, 4], [1, 4], [2, 4], [3, 4],
+                [0, 4],
+                [1, 4],
+                [2, 4],
+                [3, 4],
             ],
             element_properties=[
                 {"youngs_modulus_pa": 200e9, "area_m2": 0.001},

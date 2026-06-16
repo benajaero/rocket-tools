@@ -90,8 +90,12 @@ class TestVonMisesStress:
 
     def test_3d_stress(self):
         result = von_mises_stress(
-            sigma_x=100e6, sigma_y=50e6, sigma_z=25e6,
-            tau_xy=30e6, tau_yz=15e6, tau_xz=10e6,
+            sigma_x=100e6,
+            sigma_y=50e6,
+            sigma_z=25e6,
+            tau_xy=30e6,
+            tau_yz=15e6,
+            tau_xz=10e6,
         )
         assert result["von_mises_stress_pa"] > 0
         assert result["max_shear_stress_pa"] > 0
@@ -125,7 +129,9 @@ class TestCombinedMargin:
 
     def test_pure_shear(self):
         result = combined_margin_of_safety(
-            sigma_x=0, sigma_y=0, tau_xy=100e6,
+            sigma_x=0,
+            sigma_y=0,
+            tau_xy=100e6,
             yield_strength_pa=276e6,
         )
         assert result["von_mises_stress_pa"] == pytest.approx(173.2e6, abs=0.1e6)

@@ -4,7 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from rocket_tools.workflows import load_all_workflows, load_workflow, run_workflow
+from rocket_tools.utils import ValidationError
+from rocket_tools.workflows import (
+    list_builtin_workflows,
+    load_all_workflows,
+    load_builtin_workflow,
+    load_workflow,
+    run_workflow,
+)
 
 BUILT_IN_DIR = Path(__file__).parent.parent / "src" / "rocket_tools" / "workflows" / "built_in"
 
@@ -23,6 +30,28 @@ class TestLoadWorkflow:
         assert "design_beam_with_conversion" in wfs
         assert "multi_load_beam" in wfs
         assert "aero_characterization" in wfs
+
+    def test_load_builtin_workflow_by_name(self):
+        names = list_builtin_workflows()
+        assert "design_beam" in names
+
+        wf = load_builtin_workflow("design_beam")
+        assert wf.name == "design_beam"
+
+    def test_load_builtin_workflow_by_filename(self):
+        wf = load_builtin_workflow("aero_characterization.yaml")
+        assert wf.name == "aero_characterization"
+
+    def test_unknown_builtin_workflow_has_available_names(self):
+        with pytest.raises(ValueError, match="Available workflows"):
+            load_builtin_workflow("missing")
+
+    def test_malformed_workflow_rejected(self, tmp_path):
+        path = tmp_path / "bad.yaml"
+        path.write_text("name: bad\nsteps:\n  - just-a-string\n")
+
+        with pytest.raises(ValidationError, match="step 0 must be a mapping"):
+            load_workflow(path)
 
 
 class TestRunWorkflow:
@@ -103,3 +132,36 @@ class TestRunWorkflow:
 
         with pytest.raises(Exception):
             resolve_interpolation("${missing.key}", {})
+
+    def test_interpolation_rejects_function_calls(self):
+        from rocket_tools.workflows.engine import resolve_interpolation
+
+        with pytest.raises(Exception, match="Function calls are not allowed"):
+            resolve_interpolation("${__import__('os').system('echo nope')}", {})
+
+    def test_missing_required_input_rejected_before_interpolation(self):
+        wf = load_workflow(BUILT_IN_DIR / "design_beam.yaml")
+
+        with pytest.raises(ValidationError, match="Missing required workflow input: load"):
+            run_workflow(
+                wf,
+                {
+                    "material": "6061-T6",
+                    "length": 2.0,
+                    "cross_section": {"type": "rectangle", "width": 0.05, "height": 0.01},
+                },
+            )
+
+    def test_wrong_input_type_rejected(self):
+        wf = load_workflow(BUILT_IN_DIR / "design_beam.yaml")
+
+        with pytest.raises(ValidationError, match="must be a number"):
+            run_workflow(
+                wf,
+                {
+                    "material": "6061-T6",
+                    "load": "500",
+                    "length": 2.0,
+                    "cross_section": {"type": "rectangle", "width": 0.05, "height": 0.01},
+                },
+            )

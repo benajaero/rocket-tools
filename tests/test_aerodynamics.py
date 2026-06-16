@@ -42,6 +42,14 @@ class TestReynoldsNumber:
         )
         assert result["flow_regime"] == "laminar"
 
+    def test_temperature_must_be_physical(self):
+        with pytest.raises(ValueError, match="Temperature must be > 0 K"):
+            reynolds_number(
+                velocity=100.0,
+                characteristic_length=1.0,
+                temperature_k=0.0,
+            )
+
 
 class TestMachNumber:
     def test_sea_level(self):
@@ -53,6 +61,10 @@ class TestMachNumber:
         result = mach_number(200.0, 0.0)
         assert result["mach_number"] < 1.0
         assert result["regime"] == "subsonic"
+
+    def test_negative_velocity_rejected(self):
+        with pytest.raises(ValueError, match="Velocity must be >= 0"):
+            mach_number(-1.0, 0.0)
 
 
 class TestDynamicPressure:
@@ -75,11 +87,15 @@ class TestLiftDragCoefficients:
 class TestSkinFriction:
     def test_laminar(self):
         result = skin_friction_coefficient(1e5, "laminar")
-        assert result["skin_friction_coefficient"] > 0
+        assert result["skin_friction_coefficient"] == pytest.approx(1.328 / 1e5**0.5, abs=5e-7)
 
     def test_turbulent(self):
         result = skin_friction_coefficient(1e6, "turbulent")
-        assert result["skin_friction_coefficient"] > 0
+        assert result["skin_friction_coefficient"] == pytest.approx(0.0592 * 1e6**-0.2, abs=5e-7)
+
+    def test_unknown_flow_regime_rejected(self):
+        with pytest.raises(ValueError, match="Flow regime must be one of"):
+            skin_friction_coefficient(1e6, "unknown")
 
 
 class TestAeroAnalysis:
@@ -98,3 +114,25 @@ class TestAeroAnalysis:
         assert result["lift_coefficient"] is not None
         assert result["drag_coefficient"] is not None
         assert result["lift_to_drag_ratio"] is not None
+
+    def test_zero_lift_reports_zero_coefficient_and_ratio(self):
+        result = aero_analysis(
+            velocity=250.0,
+            altitude_m=0.0,
+            characteristic_length=2.0,
+            reference_area=10.0,
+            lift=0.0,
+            drag=5000.0,
+        )
+        assert result["lift_coefficient"] == 0.0
+        assert result["drag_coefficient"] > 0.0
+        assert result["lift_to_drag_ratio"] == 0.0
+
+    def test_reference_area_required(self):
+        with pytest.raises(ValueError, match="Reference area must be > 0"):
+            aero_analysis(
+                velocity=250.0,
+                altitude_m=0.0,
+                characteristic_length=2.0,
+                reference_area=0.0,
+            )

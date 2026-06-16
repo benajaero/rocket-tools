@@ -37,6 +37,11 @@ class BeamAnalysisInput(BaseModel):
         default="simply_supported",
         description="Support constraint type",
     )
+    yield_strength: float | None = Field(
+        default=None,
+        gt=0,
+        description="Optional material yield strength in Pa for yield safety factor",
+    )
 
 
 class BeamAnalysisOutput(BaseModel):
@@ -51,6 +56,9 @@ class BeamAnalysisOutput(BaseModel):
     area_moment_m4: float
     cross_sectional_area_m2: float
     critical_buckling_load_n: float
+    effective_length_factor: float | None = None
+    yield_strength_pa: float | None = None
+    safety_factor_yield: float | None = None
     safety_factor_euler_buckling: float | None
     section_efficiency_m2: float
     load_type: str
@@ -64,8 +72,7 @@ class SectionPropertiesInput(BaseModel):
     """Input for section_properties tool."""
 
     shape: Literal[
-        "rectangle", "hollow_rectangle", "circle", "hollow_circle",
-        "ibeam", "cchannel", "tsection"
+        "rectangle", "hollow_rectangle", "circle", "hollow_circle", "ibeam", "cchannel", "tsection"
     ] = Field(..., description="Cross-section shape type")
     width: float | None = Field(None, gt=0)
     height: float | None = Field(None, gt=0)
@@ -89,9 +96,9 @@ class ColumnBucklingInput(BaseModel):
     area: float = Field(..., gt=0, description="Cross-sectional area in m^2")
     length: float = Field(..., gt=0, description="Column length in m")
     yield_strength: float = Field(..., gt=0, description="Material yield strength in Pa")
-    end_condition: Literal[
-        "pinned_pinned", "fixed_free", "fixed_pinned", "fixed_fixed"
-    ] = Field(default="pinned_pinned")
+    end_condition: Literal["pinned_pinned", "fixed_free", "fixed_pinned", "fixed_fixed"] = Field(
+        default="pinned_pinned"
+    )
 
 
 # ---- Plate Buckling ----

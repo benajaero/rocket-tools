@@ -32,9 +32,7 @@ def margin_of_safety(
     allowable_load_n: float | None = None,
     actual_load_n: float | None = None,
     factor_of_safety: float = 1.5,
-    failure_mode: Literal[
-        "yield", "ultimate", "buckling", "fatigue", "custom"
-    ] = "yield",
+    failure_mode: Literal["yield", "ultimate", "buckling", "fatigue", "custom"] = "yield",
 ) -> dict:
     """Compute margin of safety for aerospace structural analysis.
 
@@ -158,11 +156,13 @@ def von_mises_stress(
     sigma_vm = np.sqrt((term1 + term2 + term3 + term4) / 2.0)
 
     # Principal stresses (eigenvalues of stress tensor)
-    stress_tensor = np.array([
-        [sigma_x, tau_xy, tau_xz],
-        [tau_xy, sigma_y, tau_yz],
-        [tau_xz, tau_yz, sigma_z],
-    ])
+    stress_tensor = np.array(
+        [
+            [sigma_x, tau_xy, tau_xz],
+            [tau_xy, sigma_y, tau_yz],
+            [tau_xz, tau_yz, sigma_z],
+        ]
+    )
     eigenvalues = np.linalg.eigvalsh(stress_tensor)
     eigenvalues.sort()
     sigma_1, sigma_2, sigma_3 = eigenvalues[2], eigenvalues[1], eigenvalues[0]
@@ -275,9 +275,7 @@ def deflection_margin(
     elif span_length_m is not None and span_length_m > 0:
         allowable = span_length_m / deflection_limit_ratio
     else:
-        raise ValueError(
-            "Must provide either allowable_deflection_m or span_length_m"
-        )
+        raise ValueError("Must provide either allowable_deflection_m or span_length_m")
 
     if allowable <= 0:
         raise ValueError("allowable deflection must be > 0")

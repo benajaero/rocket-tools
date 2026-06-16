@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use rocket-tools in research or engineering work, please cite it."
+title: "rocket-tools"
+type: software
+authors:
+  - name: "Human Engine Labs"
+version: "0.2.0"
+date-released: "2026-06-12"
+license: "Apache-2.0"
+url: "https://github.com/benajaero/rocket-tools"
+repository-code: "https://github.com/benajaero/rocket-tools"
+abstract: "Aerospace engineering calculations for Python, CLI, and MCP agents."

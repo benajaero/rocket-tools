@@ -132,6 +132,18 @@ def material_lookup(name: str, property_filter: str = "all") -> dict:
 
 
 @mcp.tool()
+@_timed_tool("list_materials")
+def list_materials() -> list[str]:
+    """List available bundled aerospace materials."""
+    from rocket_tools.materials import list_materials as _lm
+
+    try:
+        return _lm()
+    except Exception as e:
+        return _format_error(e)  # type: ignore[return-value]
+
+
+@mcp.tool()
 @_timed_tool("isa_atmosphere")
 def isa_atmosphere(altitude_m: float) -> dict:
     """Get ISA atmosphere properties at a given altitude (0-25000 m)."""
@@ -156,6 +168,7 @@ def beam_analysis(
     cross_section: dict,
     load_type: str = "point_midspan",
     support_type: str = "simply_supported",
+    yield_strength: float | None = None,
 ) -> dict:
     """
     Analyze a beam under load.
@@ -175,6 +188,7 @@ def beam_analysis(
             cross_section=cross_section,  # type: ignore[arg-type]
             load_type=load_type,  # type: ignore[arg-type]
             support_type=support_type,  # type: ignore[arg-type]
+            yield_strength=yield_strength,
         )
         return _ba(
             validated.load,
@@ -183,6 +197,7 @@ def beam_analysis(
             validated.cross_section.model_dump(),
             validated.load_type,
             validated.support_type,
+            yield_strength=validated.yield_strength,
         )
     except Exception as e:
         return _format_error(e)
