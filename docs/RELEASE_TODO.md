@@ -49,10 +49,16 @@ Do NOT publish without explicit approval — prep to that line and stop.
   parameter and return key, valid enum/range in the description, and a one-line "returns" that
   names the structured output keys. Spot-checked `unit_convert` lists units but not directions;
   several tools rely on Pydantic schema alone. Make descriptions self-sufficient.
-- [ ] **P1 — Structured-error contract consistency.** `_format_error` emits
-  `{error, error_code, message, parameter, constraint, suggestion}` but `ToolError.to_dict()`
-  emits `{error_type, ...}` (test_utils asserts `error_type`). Unify one error schema across
-  every tool and document it so an LLM can branch on it. Add a test asserting the shape.
+- [x] **P1 — Structured-error contract consistency.** *(Done 2026-07-20.)* All tools now return
+  one schema — `{error, error_code, error_type, message, parameter, constraint, suggestion}`.
+  `_format_error` gained the missing `error_type` on the internal branch, and a new
+  `_format_pydantic_error` maps Pydantic `ValidationError` to a clean **`INVALID_PARAMETER`**
+  (was mislabelled `INTERNAL_ERROR`) with the offending field name in `parameter` and the
+  constraint surfaced — instead of a raw multi-line Pydantic dump. Added `TestServerErrorContract`
+  (4 tests, through `mcp.call_tool`). `server.py` coverage 32% → 44%; suite 307 → 311.
+  Discovered: FastMCP rejects **gross type mismatches** (e.g. a string for a float) at the
+  protocol boundary before our handler, so our contract governs semantically-invalid but
+  correctly-typed inputs (negative/out-of-range/bad-enum) — the realistic agent mistake.
 - [ ] **P2 — Reconcile tool count.** 39 registered vs "35" in README/CHANGELOG/skills. Fix docs
   and add a test that asserts `len(registered tools) == documented count`.
 - [ ] **P2 — Return-value schemas.** Consider Pydantic *output* models (not just inputs) so the
@@ -147,3 +153,9 @@ Do NOT publish without explicit approval — prep to that line and stop.
   equatorial 6378 km. Fine and consistent, but document the constant so results are reproducible.
 - ISA tool at 25 km now matches US Std Atm 1976 to <0.5%; the 0/11 km cases are exact. Consider
   tightening the remaining ISA tolerances (Correctness P2) now that the tool is trustworthy.
+- **Follow-up (MCP quality):** `unit_convert` with an unknown unit raises a plain `ValueError`
+  in the units module → still surfaces as `INTERNAL_ERROR`. Make the units module raise
+  `ToolError`/`INVALID_PARAMETER` for unknown units so bad-unit calls are actionable too.
+- `server.py` still 44% — the happy-path of most tools is untested. Next Testing pass: call each
+  tool with valid input through `mcp.call_tool` and assert key outputs (raises coverage + guards
+  the response-key contract the skills docs promise).

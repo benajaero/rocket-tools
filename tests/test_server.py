@@ -89,3 +89,76 @@ class TestServerAeroAnalysis:
         data = json.loads(result[0].text)
         assert "reynolds_number" in data
         assert "mach_number" in data
+
+
+# The error contract every tool must honour so an agent can branch on it reliably.
+_ERROR_KEYS = {
+    "error",
+    "error_code",
+    "error_type",
+    "message",
+    "parameter",
+    "constraint",
+    "suggestion",
+}
+
+
+class TestServerErrorContract:
+    def _error(self, name: str, params: dict) -> dict:
+        result = asyncio.run(_call_tool(name, params))
+        return json.loads(result[0].text)
+
+    def test_invalid_value_is_invalid_parameter_not_internal(self):
+        # A negative velocity is the caller's mistake, not a server fault.
+        data = self._error("mach_number", {"velocity": -5.0, "altitude_m": 0.0})
+        assert data["error"] is True
+        assert data["error_code"] == "INVALID_PARAMETER"
+        assert data["error_type"] == "invalid_parameter"
+        assert data["parameter"] == "velocity"
+        assert "velocity" in data["message"]
+
+    def test_invalid_enum_names_the_parameter(self):
+        # A correctly-typed but out-of-set enum value reaches the tool's own
+        # validation (gross type mismatches are rejected earlier by FastMCP).
+        data = self._error(
+            "beam_analysis",
+            {
+                "load": 100.0,
+                "length": 2.0,
+                "youngs_modulus": 200e9,
+                "cross_section": {"type": "rectangle", "width": 0.05, "height": 0.01},
+                "support_type": "floating",
+            },
+        )
+        assert data["error_code"] == "INVALID_PARAMETER"
+        assert data["parameter"] == "support_type"
+        assert "simply_supported" in data["message"]
+
+    def test_nested_field_error_reports_the_bad_input(self):
+        data = self._error(
+            "beam_analysis",
+            {
+                "load": -1.0,
+                "length": 2.0,
+                "youngs_modulus": 200e9,
+                "cross_section": {"type": "rectangle", "width": 0.05, "height": 0.01},
+            },
+        )
+        assert data["error_code"] == "INVALID_PARAMETER"
+        assert data["parameter"] == "load"
+
+    def test_error_schema_is_consistent_across_error_kinds(self):
+        # Out-of-range value and out-of-set enum must share one schema.
+        range_err = self._error("mach_number", {"velocity": -5.0, "altitude_m": 0.0})
+        enum_err = self._error(
+            "beam_analysis",
+            {
+                "load": 100.0,
+                "length": 2.0,
+                "youngs_modulus": 200e9,
+                "cross_section": {"type": "rectangle", "width": 0.05, "height": 0.01},
+                "support_type": "floating",
+            },
+        )
+        assert set(range_err) == _ERROR_KEYS
+        assert set(enum_err) == _ERROR_KEYS

@@ -1,6 +1,7 @@
 """FastMCP server exposing aerospace engineering tools with Pydantic validation."""
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import ValidationError as PydanticValidationError
 
 from rocket_tools.schemas import (
     AeroAnalysisInput,
@@ -47,15 +48,49 @@ mcp = FastMCP("rocket-tools")
 
 
 # ---- Structured Error Formatter ----
+#
+# Every tool returns the SAME error schema so an agent can branch on it reliably:
+#   {error, error_code, error_type, message, parameter, constraint, suggestion}
+# error_code is the machine identifier (INVALID_PARAMETER / INTERNAL_ERROR / ...);
+# error_type is its lowercase form, kept for backwards compatibility.
+
+
+def _format_pydantic_error(e: PydanticValidationError) -> dict:
+    """Turn a Pydantic ValidationError into a clean, actionable structured error.
+
+    An invalid argument is the agent's fault, not an internal fault, so it is
+    reported as INVALID_PARAMETER with the offending field name(s) and constraint
+    surfaced directly instead of a raw multi-line Pydantic dump.
+    """
+    errors = e.errors()
+    parameters = [".".join(str(p) for p in err["loc"]) for err in errors]
+    parameter = ", ".join(dict.fromkeys(parameters))  # de-duped, order-preserving
+    constraint = "; ".join(f"{p}: {err['msg']}" for p, err in zip(parameters, errors))
+    message = f"Invalid input for {parameter}: " + "; ".join(err["msg"] for err in errors)
+    return {
+        "error": True,
+        "error_code": "INVALID_PARAMETER",
+        "error_type": "invalid_parameter",
+        "message": message,
+        "parameter": parameter,
+        "constraint": constraint,
+        "suggestion": (
+            f"Correct the '{parameter}' argument(s) and retry. "
+            "Check units and allowed ranges in the tool description."
+        ),
+    }
 
 
 def _format_error(e: Exception) -> dict:
     """Format any exception into a structured MCP-compatible error response."""
     if isinstance(e, ToolError):
         return e.to_dict()
+    if isinstance(e, PydanticValidationError):
+        return _format_pydantic_error(e)
     return {
         "error": True,
         "error_code": "INTERNAL_ERROR",
+        "error_type": "internal_error",
         "message": str(e),
         "parameter": "",
         "constraint": "",
