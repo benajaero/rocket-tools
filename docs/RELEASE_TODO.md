@@ -89,10 +89,16 @@ Do NOT publish without explicit approval — prep to that line and stop.
   package works without the extension, bring `isa_atmosphere_lookup` to 7-layer parity with the
   Python model, and add a cibuildwheel matrix (manylinux + macOS arm64/x86_64 + Windows). Not
   required for a 1.0 release.
-- [ ] **P1 — Reproducible clean-room install test** (from release-checklist) run in CI: build,
-  `twine check`, install the wheel in a fresh venv, import + smoke-run. Currently only manual.
-- [ ] **P1 — Version single-sourcing.** Assert `pyproject.version == rocket_tools.__version__`
-  in a test so they can never drift.
+- [x] **P1 — Reproducible clean-room install gate** *(Done 2026-07-21.)* Added
+  `scripts/verify_release.sh`: build sdist+wheel, `twine check`, install the wheel in a throwaway
+  venv (repo off sys.path), and smoke-test the surface (56 tools, 4 resources, three
+  reference-validated computations). Verified green end-to-end. `twine check` PASSED for both
+  artifacts; wheel confirmed to contain every new module (provenance, aerothermo, propulsion,
+  orbital, validation, uncertainty) plus the workflow YAMLs and `py.typed`. Referenced from
+  `release-checklist.md`. Next: run it in CI (`.github/workflows`).
+- [x] **P1 — Version single-sourcing.** *(Done 2026-07-21.)* `tests/test_packaging.py` asserts
+  `pyproject.version == rocket_tools.__version__`, plus module-importability, tool/resource
+  inventory floor (no silent tool loss), console-script entry point, and the `py.typed` marker.
 - [ ] **P1 — `Development Status :: 3 - Alpha` → `4 - Beta`/`5 - Production` for 1.0**; confirm
   every classifier and the `requires-python = ">=3.11,<3.13"` cap (numba 0.65 supports 3.13 —
   re-check whether the upper cap is still needed).
