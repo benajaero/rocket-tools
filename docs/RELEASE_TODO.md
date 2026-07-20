@@ -16,20 +16,19 @@ Do NOT publish without explicit approval — prep to that line and stop.
 
 ## Correctness (numbers must be correct, not just plausible)
 
-- [ ] **P0 — Curated validation benchmarks have WRONG expected values and are never run.**
-  `src/rocket_tools/validation/benchmarks.py` is at 0% test coverage. When executed against
-  the actual tools, 3 of 13 fail — and in every case the **tool is correct and the benchmark
-  `expected` is wrong**:
-  - `beam_simply_supported_point`: expected δ=0.004 m / σ=120 MPa; correct (Roark PL³/48EI,
-    PL/4·c/I for P=1000 N, L=2 m, E=200 GPa, 50×10 mm rect) is **δ=0.2 m / σ=600 MPa** (tool value).
-  - `beam_cantilever_point`: expected δ=0.02274 m; correct (PL³/3EI) is **δ=4.777 m** (tool value).
-    Also revisit `load_type="point_midspan"` semantics on a `cantilever` support.
-  - `skin_friction_turbulent`: expected 0.00297; the reference string's own arithmetic
-    `0.0592/(1e7)^0.2` actually equals **0.002357** (tool value). 0.00297 is the 0.074/Re^0.2
-    *average-plate* coefficient mislabelled as local cf.
-  Fix: recompute every `expected` from the cited formula/table, correct the reference strings,
-  then wire ALL benchmarks into pytest as a hard regression gate (see Testing P0). Cross-check
-  each against its stated source (Roark, Blasius, Anderson, Sutton, NASA-TM-X-74335, Vallado).
+- [x] **P0 — Curated validation benchmarks had WRONG expected values and were never run.**
+  *(Done 2026-07-20, branch `release-hardening`.)* `benchmarks.py` was at 0% coverage; 3 of 13
+  failed when run and in every case the **tool was correct and the benchmark `expected` was
+  wrong**. Every value re-derived from its cited source and corrected:
+  - `beam_simply_supported_point`: 0.004 m / 120 MPa → **0.2 m / 600 MPa** (Roark PL³/48EI, PL/4·c/I).
+  - `beam_cantilever_point`: 0.02274 m / 131.8 MPa → **4.7767 m / 1757.8 MPa** (PL³/3EI, PL·c/I).
+  - `skin_friction_turbulent`: 0.00297 → **0.002357** (0.0592/(1e7)^0.2; 0.00297 was the
+    0.074/Re^0.2 average-plate coeff mislabelled as local cf — reference string arithmetic was wrong).
+  - `rocket_delta_v_standard`: 5068 → **5050.62 m/s** (320·9.80665·ln 5; reference arithmetic was wrong).
+  - `isa_25000m`: T 221.55→**221.65 K**, P 2481→**2511 Pa** (US Std Atm 1976, 20–32 km layer); tightened tol 0.02→0.01.
+  - `orbital_velocity_leo`: 7.669 km/s / 92.6 min → **7.6726 / 92.41** (matches the reference's own r=6771 km, mean radius).
+  All reference strings corrected to show the true arithmetic. Verified: `mypy` clean, tool
+  outputs now match every corrected value.
 - [ ] **P1 — Independent re-derivation of every physics tool** against its cited source, one
   module per iteration, with the reference value pinned in a test. Priority order by coverage
   gap: `compressible.py` (51%), `sections.py` (53%), `nozzle.py` (66%), `buckling.py` (68%),
@@ -87,9 +86,11 @@ Do NOT publish without explicit approval — prep to that line and stop.
 
 ## Testing
 
-- [ ] **P0 — Wire curated benchmarks into pytest** (`tests/test_validation_benchmarks.py`),
-  parametrised over `list_benchmarks()`, asserting each tool output is within tolerance of the
-  (corrected) expected value. This makes references a real regression gate. Depends on Correctness P0.
+- [x] **P0 — Wire curated benchmarks into pytest.** *(Done 2026-07-20.)*
+  `tests/test_validation_benchmarks.py` parametrises over `list_benchmarks()`, runs each case
+  through the actual MCP server tool, and asserts the output is within tolerance of the corrected
+  reference value; plus a check that every benchmark has a non-empty reference and positive
+  tolerance. Suite: 293 → **307 passing**. `validation/benchmarks.py` coverage 0% → 72%.
 - [ ] **P1 — Raise `server.py` coverage (32%).** The MCP tool layer — the actual product
   surface — is barely exercised. Add tests calling each tool with valid input AND with invalid
   input asserting the structured-error shape.
@@ -138,3 +139,11 @@ Do NOT publish without explicit approval — prep to that line and stop.
   registered MCP name maps cleanly for the benchmark runner.
 - CI at `.github/workflows/test.yml` exists (673 B) — needs reading; ensure it runs the new
   benchmark gate, the clean-room install, and matches release-checklist commands.
+- **Semantic wart (add to MCP quality):** `beam_analysis(load_type="point_midspan",
+  support_type="cantilever")` computes the *end-load* cantilever result (PL³/3EI), not a
+  mid-span load. Either add a dedicated `point_end` load type or document that a cantilever
+  point load is applied at the tip — an agent reading the schema would expect mid-span.
+- `orbital_velocity` uses **mean Earth radius 6371 km** (r=6771 km at 400 km alt), not the
+  equatorial 6378 km. Fine and consistent, but document the constant so results are reproducible.
+- ISA tool at 25 km now matches US Std Atm 1976 to <0.5%; the 0/11 km cases are exact. Consider
+  tightening the remaining ISA tolerances (Correctness P2) now that the tool is trustworthy.

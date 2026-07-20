@@ -39,12 +39,16 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "tool_name": "isa_atmosphere",
         "inputs": {"altitude_m": 25000.0},
         "expected": {
-            "temperature_k": 221.55,
-            "pressure_pa": 2481.0,
+            "temperature_k": 221.65,
+            "pressure_pa": 2511.0,
             "density_kg_m3": 0.0395,
         },
-        "tolerance": 0.02,
-        "reference": "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, Table 1 (25 km)",
+        "tolerance": 0.01,
+        "reference": (
+            "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, 20-32 km layer "
+            "(base 20 km: T=216.65 K, P=5474.89 Pa, lapse +0.001 K/m). "
+            "At 25 km: T=221.65 K, P=2511 Pa, rho=0.03947 kg/m^3"
+        ),
     },
     # ---- Beam Deflection ----
     "beam_simply_supported_point": {
@@ -58,13 +62,15 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "support_type": "simply_supported",
         },
         "expected": {
-            "max_deflection_m": 0.004,
-            "bending_stress_pa": 120000000.0,
+            "max_deflection_m": 0.2,
+            "bending_stress_pa": 600000000.0,
         },
-        "tolerance": 0.01,
+        "tolerance": 0.005,
         "reference": (
             "Roark's Formulas, 8th Ed., Table 8.1, Case 1: "
-            "Simply supported, center load. delta = PL^3 / (48EI)"
+            "Simply supported, center load. delta = PL^3 / (48EI), sigma = (PL/4)(c/I). "
+            "P=1000 N, L=2 m, E=200 GPa, 50x10 mm rect (I=4.1667e-9 m^4): "
+            "delta=0.2 m, sigma=600 MPa"
         ),
     },
     "beam_cantilever_point": {
@@ -78,13 +84,15 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "support_type": "cantilever",
         },
         "expected": {
-            "max_deflection_m": 0.02274,
-            "bending_stress_pa": 131835937.5,
+            "max_deflection_m": 4.776664,
+            "bending_stress_pa": 1757812500.0,
         },
-        "tolerance": 0.01,
+        "tolerance": 0.005,
         "reference": (
             "Roark's Formulas, 8th Ed., Table 8.1, Case 4: "
-            "Cantilever, end load. delta = PL^3 / (3EI)"
+            "Cantilever, end load. delta = PL^3 / (3EI), sigma = (PL)(c/I). "
+            "P=500 N, L=1.5 m, E=69 GPa, 40x8 mm rect (I=1.7067e-9 m^4): "
+            "delta=4.7767 m, sigma=1757.8 MPa"
         ),
     },
     # ---- Skin Friction ----
@@ -98,9 +106,13 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
     "skin_friction_turbulent": {
         "tool_name": "skin_friction_coefficient",
         "inputs": {"reynolds_number": 1e7, "flow_regime": "turbulent"},
-        "expected": {"skin_friction_coefficient": 0.00297},
+        "expected": {"skin_friction_coefficient": 0.002357},
         "tolerance": 0.01,
-        "reference": "Blasius turbulent: cf = 0.0592 / Re^0.2 = 0.0592 / (1e7)^0.2 = 0.00297",
+        "reference": (
+            "Prandtl 1/7-power turbulent local skin friction: "
+            "cf = 0.0592 / Re^0.2 = 0.0592 / (1e7)^0.2 = 0.002357. "
+            "(Do not confuse with the 0.074/Re^0.2 flat-plate average drag coefficient.)"
+        ),
     },
     # ---- Rocket Equation ----
     "rocket_delta_v_standard": {
@@ -111,12 +123,12 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "final_mass_kg": 2000,
         },
         "expected": {
-            "delta_v_ms": 5068.0,
+            "delta_v_ms": 5050.62,
             "mass_ratio": 5.0,
         },
         "tolerance": 0.005,
         "reference": 'Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed., Eq. 4-6. '
-        "delta-v = Isp * g0 * ln(m0/mf) = 320 * 9.80665 * ln(5) = 5068 m/s",
+        "delta-v = Isp * g0 * ln(m0/mf) = 320 * 9.80665 * ln(5) = 5050.6 m/s",
     },
     # ---- Isentropic Flow ----
     "isentropic_mach_2": {
@@ -150,13 +162,15 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "tool_name": "orbital_velocity",
         "inputs": {"altitude_m": 400e3},
         "expected": {
-            "circular_velocity_kms": 7.669,
-            "orbital_period_min": 92.6,
+            "circular_velocity_kms": 7.6726,
+            "orbital_period_min": 92.41,
         },
         "tolerance": 0.005,
         "reference": (
             'Vallado, "Fundamentals of Astrodynamics and Applications", '
-            "4th Ed., Eq. 1-28. v_c = sqrt(mu/r) = sqrt(3.986e14 / 6771000)"
+            "4th Ed., Eq. 1-28. Mean Earth radius 6371 km + 400 km alt = r=6771 km. "
+            "v_c = sqrt(mu/r) = sqrt(3.986004e14 / 6771000) = 7.6726 km/s; "
+            "period = 2*pi*sqrt(r^3/mu) = 92.41 min"
         ),
     },
     # ---- Section Properties ----
