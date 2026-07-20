@@ -118,9 +118,47 @@ Do NOT publish without explicit approval — prep to that line and stop.
   through the actual MCP server tool, and asserts the output is within tolerance of the corrected
   reference value; plus a check that every benchmark has a non-empty reference and positive
   tolerance. Suite: 293 → **307 passing**. `validation/benchmarks.py` coverage 0% → 72%.
-- [ ] **P1 — Raise `server.py` coverage (32%).** The MCP tool layer — the actual product
-  surface — is barely exercised. Add tests calling each tool with valid input AND with invalid
-  input asserting the structured-error shape.
+- [x] **P1 — Raise `server.py` coverage** *(Done 2026-07-21.)* Added `test_all_tools_happy_path.py`:
+  a valid MCP-layer call for **all 50 computational tools** (with a guard test that any new tool
+  must get one), asserting a non-error result. `server.py` 44% → **79%**, total 77.56% → **81.56%**.
+  Invalid-input structured-error shape already covered by `TestServerErrorContract`.
+- [ ] **P1 — CI green + comprehensive (YAML pending a `workflow`-scoped push).** The
+  `--cov-fail-under=80` gate was **failing** (77.56%); the coverage fix above resolves that. Two
+  remaining CI-config bugs: the matrix's 3.13 leg can never install (`requires-python <3.13`), and
+  lint/format only cover `src/`. The updated workflow below is verified green locally but this
+  session's token lacks GitHub's `workflow` scope, so **the maintainer must apply it** (paste into
+  `.github/workflows/test.yml` and push, or re-auth `gh auth refresh -s workflow`):
+
+  ```yaml
+  # .github/workflows/test.yml
+  name: Test
+  on: [push, pull_request]
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          python-version: ["3.11", "3.12"]   # match requires-python (<3.13)
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+          with:
+            python-version: ${{ matrix.python-version }}
+        - run: pip install -e ".[dev]"
+        - run: pytest --cov=src --cov-report=xml --cov-fail-under=80
+        - run: ruff check src/ tests/
+        - run: ruff format --check src/ tests/
+        - run: mypy src/
+    package:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+          with:
+            python-version: "3.12"
+        - run: pip install -e ".[release]"
+        - run: scripts/verify_release.sh
+  ```
 - [ ] **P1 — `validation/benchmarks.py` and `validation/__init__.py` at 0%** — covered by the
   Testing P0 item; keep `--cov-fail-under` honest.
 - [x] **P1 — NACA 1135 table-driven validation + invariant sweeps** *(Done 2026-07-20.)*

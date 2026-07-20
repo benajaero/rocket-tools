@@ -2,8 +2,8 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-414%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-77%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-476%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-82%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
