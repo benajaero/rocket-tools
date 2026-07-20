@@ -5,6 +5,9 @@ All notable changes to rocket-tools.
 ## [Unreleased]
 
 ### Added
+- **Propulsion thermochemistry** — `characteristic_velocity()`, `ideal_specific_impulse()`, `throat_mass_flux()`
+  - Geometry-free propellant figures of merit (Sutton & Biblarz Ch. 3): c* via the Vandenkerckhove function, ideal exhaust velocity/Isp from the pressure ratio, choked throat mass flux
+  - New `characteristic_velocity_lox_rp1` regression benchmark; tool count 47 → 50
 - **Aerothermodynamics** — `stagnation_temperature()`, `recovery_temperature()`, `sutton_graves_heat_flux()`, `ballistic_entry_peak_deceleration()`
   - Stagnation/recovery temperature (Anderson), Sutton-Graves stagnation-point heat flux (NASA TR R-376), Allen-Eggers ballistic-entry peak deceleration (NACA TR 1381)
   - New `stagnation_temperature_mach3` and `ballistic_entry_allen_eggers` regression benchmarks; tool count 43 → 47

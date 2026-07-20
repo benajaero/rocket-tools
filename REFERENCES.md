@@ -12,7 +12,7 @@ This document catalogs the primary references and data sources used throughout r
 | **MMPDS-15** | `materials/database.py` | Metallic Materials Properties Development and Standardization (successor to MIL-HDBK-5). Updated allowables for modern alloys. |
 | **MIL-HDBK-17** | `materials/database.py` | Composite Materials Handbook. Source for carbon/epoxy, glass/epoxy, and Kevlar properties. |
 | **ISO 2533:1975** | `materials/isa.py` | Standard Atmosphere. Defines the International Standard Atmosphere (ISA) temperature, pressure, and density profiles. |
-| **NASA-TM-X-74335** | `materials/isa.py` | U.S. Standard Atmosphere, 1976. Implementation reference for atmosphere tables 0–25 km. |
+| **NASA-TM-X-74335** | `materials/isa.py` | U.S. Standard Atmosphere, 1976. Implementation reference for the full 7-layer atmosphere model, 0–86 km (84,852 m geopotential). |
 | **FAA AC 25.571-1D** | `structural/margin.py` | Damage Tolerance and Fatigue Evaluation of Structure. Defines margin of safety methodology and factors of safety for aircraft. |
 | **ASME Y14.5** | `utils/units.py` | Dimensioning and Tolerancing. Basis for SI/imperial unit conversion constants. |
 
@@ -45,8 +45,8 @@ This document catalogs the primary references and data sources used throughout r
 
 | Reference | Used In | Key Formulas |
 |-----------|---------|--------------|
-| **Sutton & Biblarz: Rocket Propulsion Elements** (9th Ed.) | `aerodynamics/nozzle.py`, `design/performance.py` | Tsiolkovsky rocket equation, thrust coefficient, specific impulse, characteristic velocity $c^*$, optimal expansion ratio (Ch. 3). |
-| **Hill & Peterson: Mechanics and Thermodynamics of Propulsion** (2nd Ed.) | `aerodynamics/nozzle.py` | Isentropic nozzle flow relations, choked flow conditions, area-Mach relation. |
+| **Sutton & Biblarz: Rocket Propulsion Elements** (9th Ed.) | `aerodynamics/nozzle.py`, `aerodynamics/propulsion.py`, `design/performance.py` | Tsiolkovsky rocket equation, thrust coefficient, specific impulse, characteristic velocity $c^*$ (Eq. 3-32), ideal exhaust velocity (Eq. 3-16), choked mass flow (Eq. 3-24), Vandenkerckhove function, optimal expansion ratio (Ch. 3). |
+| **Hill & Peterson: Mechanics and Thermodynamics of Propulsion** (2nd Ed.) | `aerodynamics/nozzle.py`, `aerodynamics/propulsion.py` | Isentropic nozzle flow relations, choked flow conditions, area-Mach relation. |
 
 ### Orbital Mechanics
 

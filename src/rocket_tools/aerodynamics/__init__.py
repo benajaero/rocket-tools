@@ -28,6 +28,11 @@ from .fundamentals import (
     skin_friction_coefficient,
 )
 from .nozzle import nozzle_performance, optimal_area_ratio
+from .propulsion import (
+    characteristic_velocity,
+    ideal_specific_impulse,
+    throat_mass_flux,
+)
 
 __all__ = [
     # Fundamentals
@@ -58,4 +63,8 @@ __all__ = [
     "recovery_temperature",
     "sutton_graves_heat_flux",
     "ballistic_entry_peak_deceleration",
+    # Propulsion thermochemistry
+    "characteristic_velocity",
+    "ideal_specific_impulse",
+    "throat_mass_flux",
 ]

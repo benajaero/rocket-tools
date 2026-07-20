@@ -8,6 +8,7 @@ from rocket_tools.schemas import (
     BallisticEntryInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
+    CharacteristicVelocityInput,
     ColumnBucklingInput,
     CombinedMarginInput,
     CompositeCGInput,
@@ -16,6 +17,7 @@ from rocket_tools.schemas import (
     DragPolarInput,
     DynamicPressureInput,
     HohmannTransferInput,
+    IdealSpecificImpulseInput,
     ISAAtmosphereInput,
     IsentropicFlowInput,
     LiftCoefficientInput,
@@ -42,6 +44,7 @@ from rocket_tools.schemas import (
     SkinFrictionInput,
     StagnationTemperatureInput,
     SuttonGravesInput,
+    ThroatMassFluxInput,
     ThrustToWeightInput,
     TrussAnalysisInput,
     UnitConvertInput,
@@ -908,6 +911,95 @@ def optimal_area_ratio(
             validated.chamber_pressure_pa,
             validated.ambient_pressure_pa,
             validated.gamma,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Propulsion Thermochemistry Tools ----
+
+
+@mcp.tool()
+def characteristic_velocity(
+    chamber_temperature_k: float, gamma: float = 1.2, molecular_weight: float = 22.0
+) -> dict:
+    """Characteristic velocity c* = sqrt(R*Tc)/Gamma (m/s), a propellant figure of merit.
+
+    Geometry-free: measures how well the chamber converts propellant to throat
+    mass flux (c* = p_c*A_t/mdot). gamma is exhaust ratio of specific heats,
+    molecular_weight in kg/kmol. Typical c*: 1500-1800 (LOX/RP-1), ~2400 (LOX/LH2).
+    """
+    from rocket_tools.aerodynamics import characteristic_velocity as _cs
+
+    try:
+        validated = CharacteristicVelocityInput(
+            chamber_temperature_k=chamber_temperature_k,
+            gamma=gamma,
+            molecular_weight=molecular_weight,
+        )
+        return _cs(validated.chamber_temperature_k, validated.gamma, validated.molecular_weight)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def ideal_specific_impulse(
+    chamber_temperature_k: float,
+    pressure_ratio: float,
+    gamma: float = 1.2,
+    molecular_weight: float = 22.0,
+) -> dict:
+    """Ideal exhaust velocity and Isp from the exit/chamber pressure ratio.
+
+    v_e = sqrt(2*g/(g-1)*R*Tc*(1-(pe/pc)^((g-1)/g))), Isp = v_e/g0. pressure_ratio
+    is pe/pc in (0, 1); also returns the vacuum limit (pe/pc -> 0). Ideal (frozen,
+    isentropic, 1-D) upper bound; real engines run a few percent below.
+    """
+    from rocket_tools.aerodynamics import ideal_specific_impulse as _isp
+
+    try:
+        validated = IdealSpecificImpulseInput(
+            chamber_temperature_k=chamber_temperature_k,
+            pressure_ratio=pressure_ratio,
+            gamma=gamma,
+            molecular_weight=molecular_weight,
+        )
+        return _isp(
+            validated.chamber_temperature_k,
+            validated.pressure_ratio,
+            validated.gamma,
+            validated.molecular_weight,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def throat_mass_flux(
+    chamber_pressure_pa: float,
+    chamber_temperature_k: float,
+    gamma: float = 1.2,
+    molecular_weight: float = 22.0,
+) -> dict:
+    """Choked mass flux mdot/At = pc*Gamma/sqrt(R*Tc), in kg/(s*m^2).
+
+    Multiply by throat area to get the ideal choked mass flow. gamma is exhaust
+    ratio of specific heats, molecular_weight in kg/kmol.
+    """
+    from rocket_tools.aerodynamics import throat_mass_flux as _tmf
+
+    try:
+        validated = ThroatMassFluxInput(
+            chamber_pressure_pa=chamber_pressure_pa,
+            chamber_temperature_k=chamber_temperature_k,
+            gamma=gamma,
+            molecular_weight=molecular_weight,
+        )
+        return _tmf(
+            validated.chamber_pressure_pa,
+            validated.chamber_temperature_k,
+            validated.gamma,
+            validated.molecular_weight,
         )
     except Exception as e:
         return _format_error(e)

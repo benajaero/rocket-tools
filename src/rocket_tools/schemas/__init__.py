@@ -12,11 +12,13 @@ from .aerodynamics import (
     BallisticEntryInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
+    CharacteristicVelocityInput,
     DragCoefficientInput,
     DragCoefficientOutput,
     DragPolarInput,
     DynamicPressureInput,
     DynamicPressureOutput,
+    IdealSpecificImpulseInput,
     IsentropicFlowInput,
     LiftCoefficientInput,
     LiftCoefficientOutput,
@@ -36,6 +38,7 @@ from .aerodynamics import (
     SkinFrictionOutput,
     StagnationTemperatureInput,
     SuttonGravesInput,
+    ThroatMassFluxInput,
     WingLoadingInput,
 )
 from .design import (
@@ -127,6 +130,10 @@ __all__ = [
     "RecoveryTemperatureInput",
     "SuttonGravesInput",
     "BallisticEntryInput",
+    # Aerodynamics - Propulsion
+    "CharacteristicVelocityInput",
+    "IdealSpecificImpulseInput",
+    "ThroatMassFluxInput",
     # Design
     "RocketDeltaVInput",
     "MultiStageDeltaVInput",

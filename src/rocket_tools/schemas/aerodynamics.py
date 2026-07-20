@@ -305,3 +305,40 @@ class BallisticEntryInput(BaseModel):
     scale_height_m: float = Field(
         default=7160.0, gt=0, description="Atmospheric scale height in m (Earth ~7160)"
     )
+
+
+# ---- Propulsion Thermochemistry ----
+
+
+class CharacteristicVelocityInput(BaseModel):
+    """Input for characteristic_velocity tool."""
+
+    chamber_temperature_k: float = Field(..., gt=0, description="Chamber temperature in K")
+    gamma: float = Field(default=1.2, gt=1.0, description="Ratio of specific heats of exhaust")
+    molecular_weight: float = Field(
+        default=22.0, gt=0, description="Exhaust molecular weight in kg/kmol"
+    )
+
+
+class IdealSpecificImpulseInput(BaseModel):
+    """Input for ideal_specific_impulse tool."""
+
+    chamber_temperature_k: float = Field(..., gt=0, description="Chamber temperature in K")
+    pressure_ratio: float = Field(
+        ..., gt=0, lt=1, description="Exit/chamber pressure ratio pe/pc, in (0, 1)"
+    )
+    gamma: float = Field(default=1.2, gt=1.0, description="Ratio of specific heats of exhaust")
+    molecular_weight: float = Field(
+        default=22.0, gt=0, description="Exhaust molecular weight in kg/kmol"
+    )
+
+
+class ThroatMassFluxInput(BaseModel):
+    """Input for throat_mass_flux tool."""
+
+    chamber_pressure_pa: float = Field(..., gt=0, description="Chamber total pressure in Pa")
+    chamber_temperature_k: float = Field(..., gt=0, description="Chamber temperature in K")
+    gamma: float = Field(default=1.2, gt=1.0, description="Ratio of specific heats of exhaust")
+    molecular_weight: float = Field(
+        default=22.0, gt=0, description="Exhaust molecular weight in kg/kmol"
+    )

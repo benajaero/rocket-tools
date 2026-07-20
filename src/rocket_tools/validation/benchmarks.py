@@ -193,6 +193,17 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "period = 2*pi*sqrt(r^3/mu) = 92.41 min"
         ),
     },
+    # ---- Propulsion Thermochemistry ----
+    "characteristic_velocity_lox_rp1": {
+        "tool_name": "characteristic_velocity",
+        "inputs": {"chamber_temperature_k": 3500.0, "gamma": 1.22, "molecular_weight": 23.3},
+        "expected": {"characteristic_velocity_ms": 1713.043},
+        "tolerance": 0.001,
+        "reference": (
+            'Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed., Eq. 3-32. '
+            "c* = sqrt(R*Tc)/Gamma; Tc=3500 K, gamma=1.22, M=23.3 kg/kmol -> 1713.0 m/s"
+        ),
+    },
     # ---- Aerothermodynamics ----
     "stagnation_temperature_mach3": {
         "tool_name": "stagnation_temperature",

@@ -159,8 +159,18 @@ Build one fully-verified module per iteration, validated against authoritative s
   M=3), Sutton-Graves NASA TR R-376 (constant 1.7415e-4 → W/m², unit interpretation confirmed by
   cross-check), Allen-Eggers NACA TR 1381 (a_max=79.7 g, V_peak=V_e/√e). 17 tests + 2 benchmarks;
   suite → 343. Also refined README (badges 240→343 tests, 82%→77%, 35→47 tools; new capability rows).
-- [ ] **Propulsion depth** — combustion c*, real-gas nozzle corrections, throttling, staging
-  optimizer. Cite Sutton & Biblarz, Hill & Peterson.
+- [x] **Propulsion depth (thermochemistry)** *(Done 2026-07-20.)* New `aerodynamics/propulsion.py`:
+  `characteristic_velocity` (c* via Vandenkerckhove), `ideal_specific_impulse` (v_e/Isp from
+  pressure ratio), `throat_mass_flux` (choked mdot/At) (+3 MCP tools → 50). Validated vs Sutton
+  Ch. 3: c*=1713.04 m/s (LOX/RP-1, cross-checked against the two-form c* identity), ideal
+  Isp=285.06 s, mass flux=4086.30 kg/s/m². 13 tests + 1 benchmark; suite → 353. README/REFERENCES
+  updated (50 tools, propulsion capability row).
+- [ ] **Propulsion depth (staging optimizer)** — deferred. Prototyped the restricted N-stage
+  Lagrange optimum; it is correct for identical stages (equal ΔV split, verified) but the
+  bracketing is fragile for heterogeneous Isp/ε (produced a negative ΔV). Needs a robust solver
+  and validation against a published worked example (Curtis Ch. 11) before shipping — do NOT
+  ship until a real number matches a reference. Also: real-gas/frozen-vs-equilibrium nozzle
+  corrections, throttling.
 
 ## Discovered / notes (append as we go)
 
