@@ -20,6 +20,7 @@ All notable changes to rocket-tools.
   - Tool count: 39 → 43 MCP tools
 
 ### Fixed
+- **Rust kernels now compile** — the experimental `src/rust_kernels/` PyO3 crate failed `cargo check` (10 visibility errors + deprecated API); made all `#[pyfunction]`s public, moved to the PyO3 0.21 `Bound` module API, and added macOS linker config so it builds standalone. Documented that it is not part of the published wheel (added a crate README). Native-wheel packaging remains future work.
 - **Structured-error contract** — all MCP tools now return one schema `{error, error_code, error_type, message, parameter, constraint, suggestion}`; invalid inputs are labelled `INVALID_PARAMETER` (not `INTERNAL_ERROR`) with the offending field surfaced
 - **Validation benchmarks** — corrected six reference values that contradicted their cited sources (beam deflection/stress, turbulent skin friction, rocket delta-v, ISA 25 km, LEO velocity) and wired all benchmarks into the test suite as a regression gate
 

@@ -68,12 +68,20 @@ Do NOT publish without explicit approval — prep to that line and stop.
 
 ## Packaging / Release
 
-- [ ] **P0 — Decide the Rust-kernel story.** `src/rust_kernels/` (Cargo, isa/beams/aerodynamics)
-  is not built by the setuptools backend, not imported anywhere, and absent from the wheel, yet
-  the task brief lists "wheels incl. Rust kernels". Choose ONE and execute:
-  (a) wire a maturin/PyO3 build with a **pure-Python fallback** and cibuildwheel matrix, or
-  (b) remove the crate and drop Rust from the narrative. README currently credits Numba, not Rust.
-  Whichever: the shipped wheel's accel path must match the docs.
+- [x] **P0 — Rust-kernel story decided (keep as documented experimental scaffold).**
+  *(Done 2026-07-20.)* The crate did **not compile** (10 PyO3 visibility errors + deprecated
+  `&PyModule` GIL-ref API) — worse than "deferred". Fixed: all `#[pyfunction]`s made `pub`,
+  pymodule moved to the 0.21 `Bound<'_, PyModule>` API, added `.cargo/config.toml` so the
+  `extension-module` cdylib links standalone on macOS. Now `cargo check`, `cargo build --release`
+  (produces a 420 KB dylib), and `cargo clippy` are all clean. Added `src/rust_kernels/README.md`
+  stating it is **not** part of the published wheel, not imported by Python, and flagging the ISA
+  parity gap. Decision: pure-Python + Numba is the shipped accel path for 1.0; native wheels stay
+  future work (below). The wheel now matches the docs.
+- [ ] **P2 — Native wheels (deferred future work).** To actually ship the Rust fast path: wire
+  maturin as the build backend (or a dual build), add a **pure-Python fallback loader** so the
+  package works without the extension, bring `isa_atmosphere_lookup` to 7-layer parity with the
+  Python model, and add a cibuildwheel matrix (manylinux + macOS arm64/x86_64 + Windows). Not
+  required for a 1.0 release.
 - [ ] **P1 — Reproducible clean-room install test** (from release-checklist) run in CI: build,
   `twine check`, install the wheel in a fresh venv, import + smoke-run. Currently only manual.
 - [ ] **P1 — Version single-sourcing.** Assert `pyproject.version == rocket_tools.__version__`

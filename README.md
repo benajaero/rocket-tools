@@ -290,7 +290,7 @@ rocket_tools/
 ├── config.py       # pydantic-settings configuration (ROCKET_* env vars)
 ├── server.py       # FastMCP tool definitions with schema validation
 ├── asgi.py         # Production SSE + health/metrics endpoints
-└── rust_kernels/   # Rust PyO3 extension (scaffolded, deferred)
+└── rust_kernels/   # Experimental Rust/PyO3 kernels — compiles; NOT in the wheel (see its README)
 ```
 
 **Numba JIT** accelerates all hot paths.

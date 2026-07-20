@@ -1,0 +1,10 @@
+# On macOS a PyO3 `extension-module` cdylib must defer Python symbols to the
+# host interpreter at load time. maturin sets this automatically; these flags
+# let a bare `cargo build`/`cargo test` link standalone as well. (Linux resolves
+# the symbols with `-undefined dynamic_lookup` implied by the extension-module
+# feature, so no override is needed there.)
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
+
+[target.x86_64-apple-darwin]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]

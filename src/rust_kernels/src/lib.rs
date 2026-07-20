@@ -5,7 +5,7 @@ mod isa;
 mod aerodynamics;
 
 #[pymodule]
-fn _rust_kernels(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _rust_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(beams::beam_bending_stress, m)?)?;
     m.add_function(wrap_pyfunction!(beams::beam_deflection_simply_supported, m)?)?;
     m.add_function(wrap_pyfunction!(beams::beam_deflection_cantilever, m)?)?;
