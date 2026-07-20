@@ -38,6 +38,7 @@ from rocket_tools.schemas import (
     PlateBucklingInput,
     PrandtlMeyerFromAngleInput,
     PrandtlMeyerInput,
+    PropagateUncertaintyInput,
     PropellantTankSizingInput,
     RecoveryTemperatureInput,
     ReynoldsNumberInput,
@@ -129,6 +130,48 @@ def cite_tool(tool_name: str) -> dict:
     try:
         validated = CiteToolInput(tool_name=tool_name)
         return get_provenance(validated.tool_name)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def propagate_uncertainty(
+    tool_name: str,
+    params: dict,
+    samples: int = 1000,
+    seed: int = 42,
+    sensitivity: bool = True,
+) -> dict:
+    """Monte-Carlo uncertainty propagation and sensitivity ranking for any tool.
+
+    Run `tool_name` many times with uncertain inputs and report each output's
+    mean, std, min, max, and 95% CI, plus a sensitivity ranking of which inputs
+    drive each output (Pearson correlation).
+
+    `params` maps the tool's arguments to fixed numbers or distribution dicts:
+    {"distribution":"normal","mean":M,"std":S}; "uniform" with low/high;
+    "lognormal" with mean/sigma; "truncated_normal" with mean/std/low/high.
+    Example: propagate_uncertainty("rocket_delta_v",
+      {"specific_impulse_s":{"distribution":"normal","mean":320,"std":5},
+       "initial_mass_kg":10000, "final_mass_kg":2000}).
+    """
+    from rocket_tools.uncertainty import run_with_uncertainty
+
+    try:
+        validated = PropagateUncertaintyInput(
+            tool_name=tool_name,
+            params=params,
+            samples=samples,
+            seed=seed,
+            sensitivity=sensitivity,
+        )
+        return run_with_uncertainty(
+            validated.tool_name,
+            validated.params,
+            validated.samples,
+            validated.seed,
+            validated.sensitivity,
+        )
     except Exception as e:
         return _format_error(e)
 

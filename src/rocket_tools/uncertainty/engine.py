@@ -41,7 +41,13 @@ def _build_param_dict(param_samples: dict, idx: int) -> dict:
     return {key: _sample_value(value, idx) for key, value in param_samples.items()}
 
 
-def run_with_uncertainty(tool_name: str, params: dict, samples: int = 1000, seed: int = 42) -> dict:
+def run_with_uncertainty(
+    tool_name: str,
+    params: dict,
+    samples: int = 1000,
+    seed: int = 42,
+    sensitivity: bool = True,
+) -> dict:
     _validate_sample_count(samples)
     param_samples = _resolve_param_distributions(params, samples, seed)
     results = []
@@ -50,7 +56,71 @@ def run_with_uncertainty(tool_name: str, params: dict, samples: int = 1000, seed
         result = _call_tool(tool_name, p)
         results.append(result)
 
-    return _aggregate_results(results, samples)
+    aggregated = _aggregate_results(results, samples)
+    if sensitivity:
+        aggregated["sensitivity"] = _compute_sensitivity(param_samples, results)
+    return aggregated
+
+
+def _flatten_samples(param_samples: dict, prefix: str = "") -> dict[str, Any]:
+    """Flatten nested sample dicts to dotted keys (e.g. cross_section.width)."""
+    flat: dict[str, Any] = {}
+    for key, value in param_samples.items():
+        name = f"{prefix}{key}"
+        if isinstance(value, dict):
+            flat.update(_flatten_samples(value, f"{name}."))
+        else:
+            flat[name] = value
+    return flat
+
+
+def _compute_sensitivity(param_samples: dict, results: list[dict]) -> dict[str, Any]:
+    """Rank inputs by Pearson correlation with each numeric output (global SA).
+
+    Only inputs that were actually varied (a distribution, non-zero variance) are
+    ranked. A near +/-1 correlation means that input drives the output; near 0
+    means it does not. This is a one-pass, variance-based sensitivity measure
+    computed from the same Monte-Carlo samples used for propagation.
+    """
+    flat = _flatten_samples(param_samples)
+    varied: dict[str, np.ndarray] = {}
+    for key, arr in flat.items():
+        try:
+            a = np.asarray(arr, dtype=float)
+        except (TypeError, ValueError):
+            continue
+        if a.ndim == 1 and float(np.std(a)) > 0.0:
+            varied[key] = a
+    if not varied or not results:
+        return {}
+
+    output_keys = [k for k, v in results[0].items() if isinstance(v, (int, float))]
+    sensitivity: dict[str, Any] = {}
+    for okey in output_keys:
+        mask = np.array(
+            [okey in r and isinstance(r[okey], (int, float)) for r in results], dtype=bool
+        )
+        if mask.sum() < 3:
+            continue
+        ovals = np.array([float(r[okey]) for r in results if okey in r], dtype=float)
+        if float(np.std(ovals)) == 0.0:
+            continue
+        ranked: list[tuple[float, str, float]] = []
+        for ikey, ivals in varied.items():
+            iv = ivals[mask]
+            if float(np.std(iv)) == 0.0:
+                continue
+            corr = float(np.corrcoef(iv, ovals)[0, 1])
+            if np.isnan(corr):
+                continue
+            ranked.append((abs(corr), ikey, corr))
+        ranked.sort(reverse=True)
+        if ranked:
+            sensitivity[okey] = [
+                {"input": ikey, "correlation": round(corr, 4), "abs_correlation": round(abscorr, 4)}
+                for abscorr, ikey, corr in ranked
+            ]
+    return sensitivity
 
 
 def _aggregate_results(results: list[dict], samples: int) -> dict:

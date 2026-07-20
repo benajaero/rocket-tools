@@ -74,7 +74,12 @@ from .structural import (
     TrussAnalysisInput,
     VonMisesInput,
 )
-from .utils import CiteToolInput, UnitConvertInput, UnitConvertOutput
+from .utils import (
+    CiteToolInput,
+    PropagateUncertaintyInput,
+    UnitConvertInput,
+    UnitConvertOutput,
+)
 
 __all__ = [
     # Structural
@@ -148,6 +153,7 @@ __all__ = [
     "OrbitalPeriodInput",
     # Utils
     "CiteToolInput",
+    "PropagateUncertaintyInput",
     "UnitConvertInput",
     "UnitConvertOutput",
 ]

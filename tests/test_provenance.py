@@ -13,8 +13,8 @@ from rocket_tools.provenance import (
 )
 from rocket_tools.server import mcp
 
-# Meta/research tools that describe the server rather than compute a physical result.
-META_TOOLS = {"cite_tool", "list_references"}
+# Meta/research tools that describe or orchestrate rather than compute a physical result.
+META_TOOLS = {"cite_tool", "list_references", "propagate_uncertainty"}
 
 
 def _registered_tool_names() -> set[str]:

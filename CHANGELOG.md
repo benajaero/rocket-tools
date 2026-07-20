@@ -5,6 +5,10 @@ All notable changes to rocket-tools.
 ## [Unreleased]
 
 ### Added
+- **Uncertainty & sensitivity** — `propagate_uncertainty()` MCP tool
+  - Monte-Carlo propagation over any computational tool: per-output mean, std, min, max, and 95% CI
+  - Correlation-based sensitivity ranking of which inputs drive each output (one-pass, from the same samples)
+  - Expanded the workflow/uncertainty tool dispatch from 11 hand-picked tools to **all 50** computational tools (dynamic registry), so uncertainty and workflows reach every calculation. Tool count 52 → 53
 - **Research provenance tools** — `cite_tool()` and `list_references()`
   - `cite_tool(tool_name)` returns the authoritative reference(s), governing formula, modelling assumptions, and any curated validation benchmark backing a tool (with a `validated` flag) — so any computed number is traceable and citable
   - `list_references()` returns the de-duplicated bibliography and the documented tool list

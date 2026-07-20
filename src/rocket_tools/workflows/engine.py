@@ -194,42 +194,41 @@ def run_workflow(workflow: Workflow, inputs: dict) -> WorkflowResult:
     return WorkflowResult(outputs=outputs, trace=trace)
 
 
-def _call_tool(tool_name: str, params: dict) -> dict:
-    from rocket_tools import aerodynamics, materials, structural
+_TOOL_DISPATCH: dict[str, Any] = {}
 
-    if tool_name == "beam_analysis":
-        return structural.beam_analysis(**params)
-    elif tool_name == "aero_analysis":
-        return aerodynamics.aero_analysis(**params)
-    elif tool_name == "material_lookup":
-        return materials.material_lookup(**params)
-    elif tool_name == "isa_atmosphere":
-        return materials.isa_atmosphere(**params)
-    elif tool_name == "reynolds_number":
-        return aerodynamics.reynolds_number(**params)
-    elif tool_name == "mach_number":
-        return aerodynamics.mach_number(**params)
-    elif tool_name == "dynamic_pressure":
-        return aerodynamics.dynamic_pressure(**params)
-    elif tool_name == "lift_coefficient":
-        return aerodynamics.lift_coefficient(**params)
-    elif tool_name == "drag_coefficient":
-        return aerodynamics.drag_coefficient(**params)
-    elif tool_name == "skin_friction_coefficient":
-        return aerodynamics.skin_friction_coefficient(**params)
-    elif tool_name == "unit_convert":
-        from rocket_tools.utils import unit_convert
 
-        return unit_convert(**params)
-    else:
+def _build_dispatch() -> dict[str, Any]:
+    """Map every computational tool name to its library callable (built once).
+
+    Used by both the workflow engine and the uncertainty engine so any tool can
+    be composed or have its uncertainty propagated, not just a hand-picked few.
+    """
+    from rocket_tools import aerodynamics, design, materials, structural
+    from rocket_tools.utils import unit_convert
+
+    dispatch: dict[str, Any] = {"unit_convert": unit_convert}
+    for module in (aerodynamics, structural, design, materials):
+        for name in getattr(module, "__all__", []):
+            dispatch[name] = getattr(module, name)
+    return dispatch
+
+
+def list_callable_tools() -> list[str]:
+    """Sorted names of every tool the workflow / uncertainty engines can call."""
+    if not _TOOL_DISPATCH:
+        _TOOL_DISPATCH.update(_build_dispatch())
+    return sorted(_TOOL_DISPATCH)
+
+
+def _call_tool(tool_name: str, params: dict) -> Any:
+    if not _TOOL_DISPATCH:
+        _TOOL_DISPATCH.update(_build_dispatch())
+    fn = _TOOL_DISPATCH.get(tool_name)
+    if fn is None:
         raise ToolError(
             f"Unknown tool: {tool_name}",
             error_code="UNKNOWN_TOOL",
             parameter="tool_name",
-            constraint=(
-                "one of: beam_analysis, aero_analysis, material_lookup, "
-                "isa_atmosphere, reynolds_number, mach_number, dynamic_pressure, "
-                "lift_coefficient, drag_coefficient, skin_friction_coefficient, "
-                "unit_convert"
-            ),
+            constraint=f"one of: {', '.join(sorted(_TOOL_DISPATCH))}",
         )
+    return fn(**params)

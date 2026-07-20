@@ -2,7 +2,7 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-391%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-398%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-77%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
@@ -46,7 +46,7 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 
 | Capability | What You Get |
 |------------|--------------|
-| **52 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
+| **53 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
 | **49+ Materials** | Aluminum, titanium, steel, nickel superalloys, composites, refractory metals — with thermal & mechanical properties, filterable by application (rocket, drone, aircraft, spacecraft, engine) |
 | **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types, Euler-Johnson column buckling, plate buckling coefficients, margin of safety (stress/load/deflection), von Mises combined stress, 2D/3D truss analysis |
 | **Compressible Flow** | Isentropic relations, normal & oblique shocks, Prandtl-Meyer expansions — all Numba JIT-compiled |
@@ -57,6 +57,7 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 | **Aerothermodynamics** | Stagnation & recovery temperature, Sutton-Graves stagnation heat flux, Allen-Eggers ballistic-entry peak deceleration |
 | **Propulsion Thermochemistry** | Characteristic velocity c*, ideal specific impulse from pressure ratio, choked throat mass flux (Sutton & Biblarz Ch. 3) |
 | **Research Provenance** | `cite_tool` returns the authoritative reference, formula, assumptions, and validation benchmark behind any tool; `list_references` gives the full bibliography — every number is traceable |
+| **Uncertainty & Sensitivity** | `propagate_uncertainty` runs Monte-Carlo over any tool with normal/uniform/lognormal/truncated-normal inputs, reporting mean/std/95% CI and a correlation-based ranking of which inputs drive each output |
 | **Natural Language Router** | Ask *"What's the Reynolds number at 250 m/s and 5 km?"* and get a validated tool call — no API memorization needed |
 | **ISA Atmosphere** | Full 7-layer U.S. Standard Atmosphere 1976, 0–86 km, with ~54 ns cached lookups |
 | **Workflow Engine** | Chain tools into reusable YAML workflows for design reviews |
