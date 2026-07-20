@@ -33,6 +33,7 @@ from rocket_tools.schemas import (
     OptimalAreaRatioInput,
     OrbitalPeriodInput,
     OrbitalVelocityInput,
+    ParameterSweepInput,
     PayloadFractionInput,
     PlaneChangeInput,
     PlateBucklingInput,
@@ -50,6 +51,7 @@ from rocket_tools.schemas import (
     ThrustToWeightInput,
     TrussAnalysisInput,
     UnitConvertInput,
+    ValidateResultInput,
     VisVivaInput,
     VonMisesInput,
     WingLoadingInput,
@@ -171,6 +173,80 @@ def propagate_uncertainty(
             validated.samples,
             validated.seed,
             validated.sensitivity,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def list_validation_benchmarks() -> dict:
+    """List curated validation benchmarks available for self-checking a result.
+
+    Each entry gives the benchmark name, the tool it validates, its inputs, and
+    the authoritative reference. Pass a name and your tool output to `validate_result`.
+    """
+    from rocket_tools.validation import get_benchmark, list_benchmarks
+
+    try:
+        benchmarks = []
+        for name in list_benchmarks():
+            bm = get_benchmark(name)
+            benchmarks.append(
+                {
+                    "name": name,
+                    "tool_name": bm["tool_name"],
+                    "inputs": bm["inputs"],
+                    "reference": bm["reference"],
+                }
+            )
+        return {"benchmarks": benchmarks, "count": len(benchmarks)}
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def validate_result(benchmark_name: str, result: dict) -> dict:
+    """Check a computed result against a curated, reference-backed benchmark.
+
+    Given a benchmark name (from `list_validation_benchmarks`) and a tool's output
+    dict, returns whether each expected value is within tolerance, the per-key
+    errors, and the authoritative reference. Use it to self-verify a number.
+    """
+    from rocket_tools.validation import validate_benchmark
+
+    try:
+        validated = ValidateResultInput(benchmark_name=benchmark_name, result=result)
+        return validate_benchmark(validated.benchmark_name, validated.result)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def parameter_sweep(
+    tool_name: str, params: dict, sweep_parameter: str, values: list[float]
+) -> dict:
+    """Trade study: run a tool across a series of values for one input.
+
+    Returns one row per value with the tool's numeric outputs, so you can see how
+    an output responds to a design variable (e.g. sweep `altitude_m` for
+    `isa_atmosphere`, or `mach` for `isentropic_flow`). A value that errors is
+    reported per-row without aborting the sweep. tool_name must be a computational
+    tool (see the tools list); sweep_parameter is one of its inputs.
+    """
+    from rocket_tools.workflows.engine import parameter_sweep as _sweep
+
+    try:
+        validated = ParameterSweepInput(
+            tool_name=tool_name,
+            params=params,
+            sweep_parameter=sweep_parameter,
+            values=values,
+        )
+        return _sweep(
+            validated.tool_name,
+            validated.params,
+            validated.sweep_parameter,
+            validated.values,
         )
     except Exception as e:
         return _format_error(e)

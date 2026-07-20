@@ -76,9 +76,11 @@ from .structural import (
 )
 from .utils import (
     CiteToolInput,
+    ParameterSweepInput,
     PropagateUncertaintyInput,
     UnitConvertInput,
     UnitConvertOutput,
+    ValidateResultInput,
 )
 
 __all__ = [
@@ -153,7 +155,9 @@ __all__ = [
     "OrbitalPeriodInput",
     # Utils
     "CiteToolInput",
+    "ParameterSweepInput",
     "PropagateUncertaintyInput",
+    "ValidateResultInput",
     "UnitConvertInput",
     "UnitConvertOutput",
 ]

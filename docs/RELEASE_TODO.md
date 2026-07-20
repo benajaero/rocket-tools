@@ -215,8 +215,11 @@ Make the MCP research-capable, one verified capability per iteration.
   server: `rocket-tools://references`, `://benchmarks`, `://provenance` (all 50 tools), `://materials`
   (full DB), and templated `://materials/{name}`. An agent can now pull authoritative context
   directly. 8 tests (listing, content, templated + unknown-material error); suite → 406.
-- [ ] **Research workflow tools** — trade studies / design-of-experiments sweeps and a
-  `validate_result` self-check tool (wrap the existing `validate_benchmark`).
+- [x] **Research workflow tools** *(Done 2026-07-21.)* Added `parameter_sweep` (trade study over
+  any input via the full tool dispatch; per-point errors reported, not fatal), plus
+  `list_validation_benchmarks` and `validate_result` (wrap `validate_benchmark`) so an agent can
+  self-verify a number against a curated reference. 8 tests; suite → 414; 56 tools. **All four
+  requested research-assist capabilities are now complete.**
 
 ## Discovered / notes (append as we go)
 

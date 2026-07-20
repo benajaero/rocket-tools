@@ -220,6 +220,46 @@ def list_callable_tools() -> list[str]:
     return sorted(_TOOL_DISPATCH)
 
 
+def parameter_sweep(
+    tool_name: str, params: dict, sweep_parameter: str, values: list[float]
+) -> dict:
+    """Run a tool across a series of values for one input (a trade study / DoE line).
+
+    Returns one row per swept value with the tool's numeric outputs, so an agent
+    can see how an output responds to a design variable. A value that makes the
+    tool error is recorded with its error rather than aborting the sweep.
+    """
+    if not values:
+        raise ToolError(
+            "values must be a non-empty list",
+            error_code="INVALID_PARAMETER",
+            parameter="values",
+            constraint="len(values) >= 1",
+        )
+
+    points = []
+    output_keys: list[str] = []
+    for value in values:
+        trial = dict(params)
+        trial[sweep_parameter] = value
+        try:
+            result = _call_tool(tool_name, trial)
+        except Exception as e:  # noqa: BLE001 - report per-point, keep sweeping
+            points.append({"value": value, "error": str(e)})
+            continue
+        numeric = {k: v for k, v in result.items() if isinstance(v, (int, float))}
+        if not output_keys:
+            output_keys = list(numeric)
+        points.append({"value": value, "outputs": numeric})
+
+    return {
+        "tool_name": tool_name,
+        "sweep_parameter": sweep_parameter,
+        "output_keys": output_keys,
+        "points": points,
+    }
+
+
 def _call_tool(tool_name: str, params: dict) -> Any:
     if not _TOOL_DISPATCH:
         _TOOL_DISPATCH.update(_build_dispatch())

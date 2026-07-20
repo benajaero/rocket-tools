@@ -44,6 +44,30 @@ class PropagateUncertaintyInput(BaseModel):
     )
 
 
+class ValidateResultInput(BaseModel):
+    """Input for validate_result self-check tool."""
+
+    benchmark_name: str = Field(
+        ...,
+        min_length=1,
+        description="Curated benchmark to check against (see list_validation_benchmarks)",
+    )
+    result: dict = Field(..., description="A tool's output dict to compare against the benchmark")
+
+
+class ParameterSweepInput(BaseModel):
+    """Input for parameter_sweep trade-study tool."""
+
+    tool_name: str = Field(..., min_length=1, description="Computational tool to sweep")
+    params: dict = Field(
+        ..., description="Base inputs for the tool (the swept param is overridden)"
+    )
+    sweep_parameter: str = Field(..., min_length=1, description="Name of the input to vary")
+    values: list[float] = Field(
+        ..., min_length=1, max_length=1000, description="Values of sweep_parameter to evaluate"
+    )
+
+
 class UnitConvertOutput(BaseModel):
     """Output from unit_convert tool."""
 

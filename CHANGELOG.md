@@ -5,6 +5,9 @@ All notable changes to rocket-tools.
 ## [Unreleased]
 
 ### Added
+- **Research workflow tools** — `parameter_sweep()`, `list_validation_benchmarks()`, `validate_result()`
+  - `parameter_sweep(tool, params, sweep_parameter, values)` runs a trade study over any input, one row per value (per-point errors don't abort the sweep)
+  - `list_validation_benchmarks()` + `validate_result(benchmark_name, result)` let an agent self-check a computed number against a curated, reference-backed benchmark. Tool count 53 → 56
 - **MCP Resources** — readable research datasets exposed via the MCP resources primitive
   - `rocket-tools://references` (bibliography), `://benchmarks` (curated validation dataset), `://provenance` (per-tool sources/formulas/assumptions), `://materials` (full database), and templated `://materials/{name}`
   - Lets an agent pull authoritative context directly instead of discovering it one tool call at a time
