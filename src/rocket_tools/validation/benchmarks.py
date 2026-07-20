@@ -50,6 +50,26 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "At 25 km: T=221.65 K, P=2511 Pa, rho=0.03947 kg/m^3"
         ),
     },
+    "isa_47000m": {
+        "tool_name": "isa_atmosphere",
+        "inputs": {"altitude_m": 47000.0},
+        "expected": {
+            "temperature_k": 270.65,
+            "pressure_pa": 110.91,
+        },
+        "tolerance": 0.01,
+        "reference": "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, Table 1 (47 km stratopause)",
+    },
+    "isa_71000m": {
+        "tool_name": "isa_atmosphere",
+        "inputs": {"altitude_m": 71000.0},
+        "expected": {
+            "temperature_k": 214.65,
+            "pressure_pa": 3.9564,
+        },
+        "tolerance": 0.01,
+        "reference": "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, Table 1 (71 km layer base)",
+    },
     # ---- Beam Deflection ----
     "beam_simply_supported_point": {
         "tool_name": "beam_analysis",

@@ -64,11 +64,28 @@ class TestISA:
         result = isa_atmosphere(1234.5)
         assert result["altitude_m"] == 1234.5
 
+    def test_stratopause_47km(self):
+        # US Std Atm 1976: T peaks at 270.65 K across the 47-51 km isothermal layer.
+        result = isa_atmosphere(47000.0)
+        assert pytest.approx(result["temperature_k"], abs=0.1) == 270.65
+        assert pytest.approx(result["pressure_pa"], rel=0.01) == 110.91
+
+    def test_mesosphere_71km(self):
+        result = isa_atmosphere(71000.0)
+        assert pytest.approx(result["temperature_k"], abs=0.1) == 214.65
+        assert pytest.approx(result["pressure_pa"], rel=0.01) == 3.9564
+
+    def test_model_ceiling_86km(self):
+        # Top of the homosphere, H = 84 852 m (86 km geometric).
+        result = isa_atmosphere(84852.0)
+        assert pytest.approx(result["pressure_pa"], rel=0.02) == 0.3734
+        assert result["density_kg_m3"] > 0  # not rounded away at ~7e-6 kg/m^3
+
     def test_out_of_range(self):
         with pytest.raises(ValueError):
             isa_atmosphere(-1.0)
         with pytest.raises(ValueError):
-            isa_atmosphere(30000.0)
+            isa_atmosphere(90000.0)
 
     def test_nonfinite_altitude(self):
         with pytest.raises(ValueError, match="Altitude must be finite"):

@@ -147,8 +147,12 @@ Build one fully-verified module per iteration, validated against authoritative s
   `vis_viva_velocity`, `plane_change_delta_v`, `orbital_period` (+4 MCP tools → 43 total).
   Validated vs Curtis Ex. 6.1 (LEO→GEO ΔV 2.426/1.467, total 3.893 km/s, 5.275 h) and Vallado;
   added `hohmann_leo_to_geo` regression benchmark. 10 new tests; suite → 321.
-- [ ] **Full ISA to 86 km** — extend `materials/isa.py` from 0–25 km to the complete US Std
-  Atm 1976 (7 geopotential layers to 86 km); validate layer boundaries vs NASA-TM-X-74335.
+- [x] **Full ISA to 86 km** *(Done 2026-07-20.)* Rewrote `materials/isa.py` as the complete
+  7-layer US Std Atm 1976 (analytic + `lru_cache`, dropped the fragile 1-m index interpolation).
+  Range 0–84,852 m geopotential (86 km geometric); matches NASA-TM-X-74335 Table 1 to <0.02% at
+  every layer boundary. Added sig-fig output (sub-Pa pressures survive), `isa_47000m`/`isa_71000m`
+  benchmarks, and stratopause/mesosphere/ceiling tests. Schema range 25 km → 84,852 m; suite → 327.
+  Note: input is **geopotential** altitude (ISO 2533 convention) — documented in tool + docstring.
 - [ ] **Aerothermodynamics** — stagnation/recovery temperature, Fay-Riddell & Sutton-Graves
   stagnation heat flux, ballistic re-entry deceleration. Cite Anderson *Hypersonic and High-
   Temperature Gas Dynamics*, Sutton-Graves (NASA).

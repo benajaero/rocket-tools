@@ -38,7 +38,12 @@ class MaterialLookupOutput(BaseModel):
 class ISAAtmosphereInput(BaseModel):
     """Input for isa_atmosphere tool."""
 
-    altitude_m: float = Field(..., ge=0, le=25_000, description="Altitude in meters (0–25,000 m)")
+    altitude_m: float = Field(
+        ...,
+        ge=0,
+        le=84_852,
+        description="Geopotential altitude in meters (0–84,852 m ≈ 0–86 km geometric)",
+    )
 
 
 class ISAAtmosphereOutput(BaseModel):

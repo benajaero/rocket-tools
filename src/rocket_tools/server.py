@@ -150,7 +150,11 @@ def list_materials() -> list[str]:
 
 @mcp.tool()
 def isa_atmosphere(altitude_m: float) -> dict:
-    """Get ISA atmosphere properties at a given altitude (0-25000 m)."""
+    """Get ISA atmosphere properties (temperature, pressure, density, speed of sound).
+
+    altitude_m is geopotential altitude, 0-84852 m (0-86 km geometric). Uses the
+    full 7-layer U.S. Standard Atmosphere 1976 model.
+    """
     from rocket_tools.materials import isa_atmosphere as _isa
 
     try:

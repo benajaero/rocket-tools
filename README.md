@@ -54,7 +54,7 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 | **Rocket Nozzle Design** | Thrust, Isp, thrust coefficient, expansion ratio optimization with under/over-expansion detection |
 | **Mission Design** | Tsiolkovsky ΔV, multi-stage staging, orbital velocity, payload fraction, thrust-to-weight, composite CG, propellant tank sizing |
 | **Natural Language Router** | Ask *"What's the Reynolds number at 250 m/s and 5 km?"* and get a validated tool call — no API memorization needed |
-| **ISA Atmosphere** | Standard atmosphere 0–25,000 m with ~54 ns cached lookups |
+| **ISA Atmosphere** | Full 7-layer U.S. Standard Atmosphere 1976, 0–86 km, with ~54 ns cached lookups |
 | **Workflow Engine** | Chain tools into reusable YAML workflows for design reviews |
 | **ASGI Server** | Production-ready SSE (Server-Sent Events) endpoint with `/health`, `/ready`, and Prometheus `/metrics` |
 | **Unit Conversions** | NIST-traceable SI ↔ imperial (psi, psf, ft, in, lbf, mph, knots, Fahrenheit, Rankine) |
@@ -429,7 +429,7 @@ This repository exposes 35 tools via FastMCP:
 | Tool | Schema | Description |
 |------|--------|-------------|
 | `material_lookup` | `MaterialLookupInput` | Look up 49+ aerospace materials by name |
-| `isa_atmosphere` | `ISAAtmosphereInput` | Standard atmosphere properties 0–25,000 m |
+| `isa_atmosphere` | `ISAAtmosphereInput` | Standard atmosphere properties 0–86 km (7-layer US Std Atm 1976) |
 | `unit_convert` | `UnitConvertInput` | NIST-traceable unit conversion |
 
 ### ASGI Deployment

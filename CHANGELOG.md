@@ -5,6 +5,9 @@ All notable changes to rocket-tools.
 ## [Unreleased]
 
 ### Added
+- **Full atmosphere to 86 km** — `isa_atmosphere()` now implements the complete 7-layer U.S. Standard Atmosphere 1976 (was 3-layer, 0–25 km)
+  - Valid range 0–84,852 m geopotential (86 km geometric); matches NASA-TM-X-74335 Table 1 to <0.02% at every layer boundary
+  - New `isa_47000m` (stratopause) and `isa_71000m` regression benchmarks; significant-figure output so sub-pascal pressures/densities aren't rounded away
 - **Orbital Mechanics** — `hohmann_transfer()`, `vis_viva_velocity()`, `plane_change_delta_v()`, `orbital_period()`
   - Two-impulse Hohmann transfer (delta-v + transfer time), vis-viva speed, simple plane change, Keplerian period
   - Validated against Curtis (LEO→GEO Example 6.1) and Vallado worked values; new `hohmann_leo_to_geo` regression benchmark
