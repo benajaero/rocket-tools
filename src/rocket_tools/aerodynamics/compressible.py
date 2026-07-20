@@ -100,13 +100,17 @@ def _normal_shock_t2_t1(m1: float, gamma: float = GAMMA):
 
 @njit(cache=True)
 def _normal_shock_p0_ratio(m1: float, gamma: float = GAMMA):
-    """Stagnation pressure ratio p02/p01 across normal shock."""
-    p2_p1 = _normal_shock_p2_p1(m1, gamma)
-    p02_p2 = (1.0 + (gamma - 1.0) / 2.0 * _normal_shock_m2(m1, gamma) ** 2) ** (
-        -gamma / (gamma - 1.0)
-    )
-    p01_p1 = (1.0 + (gamma - 1.0) / 2.0 * m1**2) ** (-gamma / (gamma - 1.0))
-    return p2_p1 * p02_p2 / p01_p1
+    """Stagnation pressure ratio p02/p01 across a normal shock (NACA 1135 Eq. 100).
+
+    p02/p01 = [ (g+1) M1^2 / ((g-1) M1^2 + 2) ]^(g/(g-1))
+              * [ (g+1) / (2 g M1^2 - (g-1)) ]^(1/(g-1))
+
+    Always <= 1: total pressure drops across a shock (entropy rises).
+    """
+    m1sq = m1 * m1
+    term1 = ((gamma + 1.0) * m1sq / ((gamma - 1.0) * m1sq + 2.0)) ** (gamma / (gamma - 1.0))
+    term2 = ((gamma + 1.0) / (2.0 * gamma * m1sq - (gamma - 1.0))) ** (1.0 / (gamma - 1.0))
+    return term1 * term2
 
 
 @njit(cache=True)

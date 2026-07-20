@@ -110,9 +110,17 @@ Do NOT publish without explicit approval — prep to that line and stop.
   input asserting the structured-error shape.
 - [ ] **P1 — `validation/benchmarks.py` and `validation/__init__.py` at 0%** — covered by the
   Testing P0 item; keep `--cov-fail-under` honest.
-- [ ] **P2 — Property-based tests (hypothesis)** for invariants: isentropic ratios ≤ 1 and
-  monotonic in M; shock entropy increases (p0₂≤p0₁); beam δ scales as L³ and 1/I; ΔV monotonic
-  in mass ratio; unit round-trips (x→other→x) within float tolerance.
+- [x] **P1 — NACA 1135 table-driven validation + invariant sweeps** *(Done 2026-07-20.)*
+  Added `tests/test_naca1135.py`: isentropic (T/T0, p/p0, ρ/ρ0, A/A*, μ), normal shock (M2,
+  p2/p1, ρ2/ρ1, T2/T1, p02/p01), and Prandtl-Meyer pinned to NACA Report 1135 at M=1.5–5 with
+  rel 2e-3 tolerance, plus invariant sweeps (ratios bounded/monotonic, shock entropy loss,
+  PM monotonic). **This caught a real bug**: `normal_shock` p02/p01 was inverted/sign-wrong
+  (returned >1 growing with M); fixed to the closed-form NACA 1135 Eq. 100, now <0.01% error.
+  Suite 353 → 371. Remaining: extend the same treatment to oblique shock (β–θ–M) and beam/ΔV
+  invariants (below).
+- [ ] **P2 — Property-based tests (hypothesis)** for remaining invariants: beam δ scales as L³
+  and 1/I; ΔV monotonic in mass ratio; unit round-trips (x→other→x) within float tolerance;
+  oblique-shock β–θ–M consistency. (Compressible-flow invariants now covered by test_naca1135.)
 - [ ] **P2 — Benchmarks as regression gates.** `tests/bench_*.py` exist; decide perf budgets and
   fail CI on regressions (or explicitly mark benches informational). README claims "<1 ms" and
   "~54 ns" — pin those with a benchmark assertion or soften the claim.

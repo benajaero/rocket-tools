@@ -35,6 +35,7 @@ This document catalogs the primary references and data sources used throughout r
 | Reference | Used In | Key Formulas |
 |-----------|---------|--------------|
 | **Anderson: Fundamentals of Aerodynamics** (6th Ed.) | `aerodynamics/fundamentals.py`, `aerodynamics/compressible.py` | Reynolds number, Mach number, dynamic pressure, isentropic flow relations (Ch. 4), normal shock (Ch. 4), oblique shock (Ch. 4), Prandtl-Meyer expansion (Ch. 4). |
+| **NACA Report 1135** (Ames Research Staff, 1953) | `aerodynamics/compressible.py` | *Equations, Tables, and Charts for Compressible Flow.* Authoritative γ=1.4 table values for isentropic ratios, normal shock (incl. p02/p01, Eq. 100), and Prandtl-Meyer; used as the primary regression validation (`tests/test_naca1135.py`). |
 | **Anderson: Aircraft Performance and Design** | `aerodynamics/aircraft.py` | Lift curve slope (lifting line theory), drag polar, Breguet range and endurance equations (Ch. 6). |
 | **Blasius (1908)** | `aerodynamics/fundamentals.py` | Skin friction coefficients: $c_f = 1.328 / \sqrt{Re}$ (laminar), $c_f = 0.0592 / Re^{0.2}$ (turbulent). |
 | **Anderson: Hypersonic and High-Temperature Gas Dynamics** (2nd Ed.) | `aerodynamics/aerothermo.py` | Stagnation and recovery (adiabatic-wall) temperature; recovery factor $r = Pr^{0.5}$ (laminar), $Pr^{1/3}$ (turbulent). |

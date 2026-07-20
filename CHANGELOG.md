@@ -20,6 +20,7 @@ All notable changes to rocket-tools.
   - Tool count: 39 → 43 MCP tools
 
 ### Fixed
+- **Normal-shock stagnation pressure ratio (p02/p01) was wrong** — returned values > 1 that grew with Mach (6.5, 28, 325, … at M=1.5, 2, 3) instead of the correct ≤ 1 decreasing loss. The isentropic total/static factors were inverted and combined with the wrong sign. Replaced with the closed-form NACA 1135 Eq. 100; now matches the table to < 0.01% across M = 1.5–5. Caught by new table-driven validation.
 - **Rust kernels now compile** — the experimental `src/rust_kernels/` PyO3 crate failed `cargo check` (10 visibility errors + deprecated API); made all `#[pyfunction]`s public, moved to the PyO3 0.21 `Bound` module API, and added macOS linker config so it builds standalone. Documented that it is not part of the published wheel (added a crate README). Native-wheel packaging remains future work.
 - **Structured-error contract** — all MCP tools now return one schema `{error, error_code, error_type, message, parameter, constraint, suggestion}`; invalid inputs are labelled `INVALID_PARAMETER` (not `INTERNAL_ERROR`) with the offending field surfaced
 - **Validation benchmarks** — corrected six reference values that contradicted their cited sources (beam deflection/stress, turbulent skin friction, rocket delta-v, ISA 25 km, LEO velocity) and wired all benchmarks into the test suite as a regression gate

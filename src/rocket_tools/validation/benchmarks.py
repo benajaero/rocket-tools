@@ -172,10 +172,11 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "pressure_ratio": 4.500,
             "density_ratio": 2.667,
             "temperature_ratio": 1.687,
+            "stagnation_pressure_ratio": 0.7209,
         },
         "tolerance": 0.005,
-        "reference": 'Anderson, "Fundamentals of Aerodynamics", 6th Ed., Table A.2. '
-        "For M1=2, gamma=1.4: M2=0.5774, P2/P1=4.50, rho2/rho1=2.667, T2/T1=1.687",
+        "reference": 'Anderson, "Fundamentals of Aerodynamics", 6th Ed., Table A.2 / NACA 1135. '
+        "For M1=2, gamma=1.4: M2=0.5774, P2/P1=4.50, rho2/rho1=2.667, T2/T1=1.687, p02/p01=0.7209",
     },
     # ---- Orbital Velocity ----
     "orbital_velocity_leo": {
