@@ -2,7 +2,7 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-398%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-406%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-77%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
@@ -58,6 +58,7 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 | **Propulsion Thermochemistry** | Characteristic velocity c*, ideal specific impulse from pressure ratio, choked throat mass flux (Sutton & Biblarz Ch. 3) |
 | **Research Provenance** | `cite_tool` returns the authoritative reference, formula, assumptions, and validation benchmark behind any tool; `list_references` gives the full bibliography — every number is traceable |
 | **Uncertainty & Sensitivity** | `propagate_uncertainty` runs Monte-Carlo over any tool with normal/uniform/lognormal/truncated-normal inputs, reporting mean/std/95% CI and a correlation-based ranking of which inputs drive each output |
+| **MCP Resources** | Readable datasets an agent can pull as context — `rocket-tools://references`, `://benchmarks`, `://provenance`, `://materials` (+ `://materials/{name}`) |
 | **Natural Language Router** | Ask *"What's the Reynolds number at 250 m/s and 5 km?"* and get a validated tool call — no API memorization needed |
 | **ISA Atmosphere** | Full 7-layer U.S. Standard Atmosphere 1976, 0–86 km, with ~54 ns cached lookups |
 | **Workflow Engine** | Chain tools into reusable YAML workflows for design reviews |

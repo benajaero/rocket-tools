@@ -5,6 +5,9 @@ All notable changes to rocket-tools.
 ## [Unreleased]
 
 ### Added
+- **MCP Resources** — readable research datasets exposed via the MCP resources primitive
+  - `rocket-tools://references` (bibliography), `://benchmarks` (curated validation dataset), `://provenance` (per-tool sources/formulas/assumptions), `://materials` (full database), and templated `://materials/{name}`
+  - Lets an agent pull authoritative context directly instead of discovering it one tool call at a time
 - **Uncertainty & sensitivity** — `propagate_uncertainty()` MCP tool
   - Monte-Carlo propagation over any computational tool: per-output mean, std, min, max, and 95% CI
   - Correlation-based sensitivity ranking of which inputs drive each output (one-pass, from the same samples)

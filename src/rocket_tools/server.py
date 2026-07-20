@@ -1413,6 +1413,83 @@ def propellant_tank_sizing(
         return _format_error(e)
 
 
+# ---- MCP Resources (readable datasets for research context) ----
+#
+# Resources let an agent pull the reference bibliography, the curated validation
+# dataset, the materials database, and per-tool provenance as context, rather
+# than discovering them one tool call at a time.
+
+
+@mcp.resource(
+    "rocket-tools://references",
+    mime_type="application/json",
+    description="Authoritative bibliography behind rocket-tools and the documented tool list.",
+)
+def references_resource() -> str:
+    import json
+
+    from rocket_tools.provenance import list_documented_tools, list_references
+
+    return json.dumps(
+        {"references": list_references(), "documented_tools": list_documented_tools()}, indent=2
+    )
+
+
+@mcp.resource(
+    "rocket-tools://benchmarks",
+    mime_type="application/json",
+    description="Curated validation benchmarks: inputs, expected values, tolerance, and source.",
+)
+def benchmarks_resource() -> str:
+    import json
+
+    from rocket_tools.validation.benchmarks import get_benchmark, list_benchmarks
+
+    return json.dumps({name: get_benchmark(name) for name in list_benchmarks()}, indent=2)
+
+
+@mcp.resource(
+    "rocket-tools://provenance",
+    mime_type="application/json",
+    description="Per-tool provenance: reference(s), governing formula, assumptions, validation.",
+)
+def provenance_resource() -> str:
+    import json
+
+    from rocket_tools.provenance import get_provenance, list_documented_tools
+
+    return json.dumps({t: get_provenance(t) for t in list_documented_tools()}, indent=2)
+
+
+@mcp.resource(
+    "rocket-tools://materials",
+    mime_type="application/json",
+    description="Full aerospace materials database with mechanical and thermal properties.",
+)
+def materials_resource() -> str:
+    import json
+
+    from rocket_tools.materials import list_materials, material_lookup
+
+    return json.dumps({name: material_lookup(name) for name in list_materials()}, indent=2)
+
+
+@mcp.resource(
+    "rocket-tools://materials/{name}",
+    mime_type="application/json",
+    description="Properties of a single material by name (e.g. rocket-tools://materials/6061-T6).",
+)
+def material_resource(name: str) -> str:
+    import json
+
+    from rocket_tools.materials import material_lookup
+
+    try:
+        return json.dumps(material_lookup(name), indent=2)
+    except Exception as e:
+        return json.dumps(_format_error(e), indent=2)
+
+
 # ---- Server Entry Point ----
 
 

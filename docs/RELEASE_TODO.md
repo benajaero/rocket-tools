@@ -211,8 +211,10 @@ Make the MCP research-capable, one verified capability per iteration.
   covering **all 50** computational tools — so uncertainty and workflows now reach every
   calculation. Validated physically: for `rocket_delta_v`, Isp ranks above initial mass; for
   `dynamic_pressure`, velocity dominates altitude. 7 tests; suite → 398; 53 tools.
-- [ ] **MCP Resources + datasets** — expose REFERENCES bibliography, the validation benchmark
-  dataset, and the materials database as readable MCP Resources (not just tools).
+- [x] **MCP Resources + datasets** *(Done 2026-07-21.)* Added the MCP resources primitive to the
+  server: `rocket-tools://references`, `://benchmarks`, `://provenance` (all 50 tools), `://materials`
+  (full DB), and templated `://materials/{name}`. An agent can now pull authoritative context
+  directly. 8 tests (listing, content, templated + unknown-material error); suite → 406.
 - [ ] **Research workflow tools** — trade studies / design-of-experiments sweeps and a
   `validate_result` self-check tool (wrap the existing `validate_benchmark`).
 

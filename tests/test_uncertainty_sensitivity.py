@@ -16,11 +16,14 @@ class TestToolDispatch:
             assert name in tools
 
     def test_dispatch_calls_previously_unsupported_tool(self):
-        out = _call_tool("rocket_delta_v", {
-            "specific_impulse_s": 320,
-            "initial_mass_kg": 10000,
-            "final_mass_kg": 2000,
-        })
+        out = _call_tool(
+            "rocket_delta_v",
+            {
+                "specific_impulse_s": 320,
+                "initial_mass_kg": 10000,
+                "final_mass_kg": 2000,
+            },
+        )
         assert out["delta_v_ms"] > 0
 
 
@@ -74,16 +77,18 @@ class TestPropagateUncertaintyViaMCP:
         return json.loads(result[0].text)
 
     def test_full_result(self):
-        data = self._call({
-            "tool_name": "rocket_delta_v",
-            "params": {
-                "specific_impulse_s": {"distribution": "normal", "mean": 320, "std": 5},
-                "initial_mass_kg": {"distribution": "normal", "mean": 10000, "std": 200},
-                "final_mass_kg": 2000,
-            },
-            "samples": 1500,
-            "seed": 1,
-        })
+        data = self._call(
+            {
+                "tool_name": "rocket_delta_v",
+                "params": {
+                    "specific_impulse_s": {"distribution": "normal", "mean": 320, "std": 5},
+                    "initial_mass_kg": {"distribution": "normal", "mean": 10000, "std": 200},
+                    "final_mass_kg": 2000,
+                },
+                "samples": 1500,
+                "seed": 1,
+            }
+        )
         dv = data["results"]["delta_v_ms"]
         assert 4900 < dv["mean"] < 5200  # near the deterministic 5050 m/s
         assert dv["ci_95"][0] < dv["mean"] < dv["ci_95"][1]
