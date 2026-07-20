@@ -262,3 +262,46 @@ class OptimalAreaRatioInput(BaseModel):
     chamber_pressure_pa: float = Field(..., gt=0)
     ambient_pressure_pa: float = Field(..., gt=0)
     gamma: float = Field(default=1.4, gt=1.0)
+
+
+# ---- Aerothermodynamics ----
+
+
+class StagnationTemperatureInput(BaseModel):
+    """Input for stagnation_temperature tool."""
+
+    static_temperature_k: float = Field(..., gt=0, description="Static (free-stream) temp in K")
+    mach: float = Field(..., ge=0, description="Mach number")
+    gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
+
+
+class RecoveryTemperatureInput(BaseModel):
+    """Input for recovery_temperature tool."""
+
+    static_temperature_k: float = Field(..., gt=0, description="Static (free-stream) temp in K")
+    mach: float = Field(..., ge=0, description="Mach number")
+    gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
+    prandtl: float = Field(default=0.71, gt=0, description="Prandtl number (air ~0.71)")
+    regime: Literal["laminar", "turbulent"] = Field(
+        default="laminar", description="Boundary-layer regime setting the recovery factor"
+    )
+
+
+class SuttonGravesInput(BaseModel):
+    """Input for sutton_graves_heat_flux tool."""
+
+    density_kg_m3: float = Field(..., gt=0, description="Free-stream density in kg/m^3")
+    velocity_ms: float = Field(..., gt=0, description="Free-stream velocity in m/s")
+    nose_radius_m: float = Field(..., gt=0, description="Effective nose radius in m")
+
+
+class BallisticEntryInput(BaseModel):
+    """Input for ballistic_entry_peak_deceleration tool."""
+
+    entry_velocity_ms: float = Field(..., gt=0, description="Atmospheric-interface velocity in m/s")
+    flight_path_angle_deg: float = Field(
+        ..., gt=0, le=90, description="Entry flight-path angle below horizontal, degrees"
+    )
+    scale_height_m: float = Field(
+        default=7160.0, gt=0, description="Atmospheric scale height in m (Earth ~7160)"
+    )

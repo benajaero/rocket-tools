@@ -153,9 +153,12 @@ Build one fully-verified module per iteration, validated against authoritative s
   every layer boundary. Added sig-fig output (sub-Pa pressures survive), `isa_47000m`/`isa_71000m`
   benchmarks, and stratopause/mesosphere/ceiling tests. Schema range 25 km → 84,852 m; suite → 327.
   Note: input is **geopotential** altitude (ISO 2533 convention) — documented in tool + docstring.
-- [ ] **Aerothermodynamics** — stagnation/recovery temperature, Fay-Riddell & Sutton-Graves
-  stagnation heat flux, ballistic re-entry deceleration. Cite Anderson *Hypersonic and High-
-  Temperature Gas Dynamics*, Sutton-Graves (NASA).
+- [x] **Aerothermodynamics** *(Done 2026-07-20.)* New `aerodynamics/aerothermo.py`:
+  `stagnation_temperature`, `recovery_temperature`, `sutton_graves_heat_flux`,
+  `ballistic_entry_peak_deceleration` (+4 MCP tools → 47). Validated vs Anderson (T0=616 K at
+  M=3), Sutton-Graves NASA TR R-376 (constant 1.7415e-4 → W/m², unit interpretation confirmed by
+  cross-check), Allen-Eggers NACA TR 1381 (a_max=79.7 g, V_peak=V_e/√e). 17 tests + 2 benchmarks;
+  suite → 343. Also refined README (badges 240→343 tests, 82%→77%, 35→47 tools; new capability rows).
 - [ ] **Propulsion depth** — combustion c*, real-gas nozzle corrections, throttling, staging
   optimizer. Cite Sutton & Biblarz, Hill & Peterson.
 

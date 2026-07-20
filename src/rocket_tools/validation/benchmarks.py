@@ -193,6 +193,28 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "period = 2*pi*sqrt(r^3/mu) = 92.41 min"
         ),
     },
+    # ---- Aerothermodynamics ----
+    "stagnation_temperature_mach3": {
+        "tool_name": "stagnation_temperature",
+        "inputs": {"static_temperature_k": 220.0, "mach": 3.0},
+        "expected": {"stagnation_temperature_k": 616.0},
+        "tolerance": 0.001,
+        "reference": (
+            'Anderson, "Hypersonic and High-Temperature Gas Dynamics", 2nd Ed. '
+            "T0 = T*(1 + (gamma-1)/2*M^2) = 220*(1 + 0.2*9) = 616 K"
+        ),
+    },
+    "ballistic_entry_allen_eggers": {
+        "tool_name": "ballistic_entry_peak_deceleration",
+        "inputs": {"entry_velocity_ms": 7800.0, "flight_path_angle_deg": 30.0},
+        "expected": {"peak_deceleration_g": 79.689, "velocity_at_peak_ms": 4730.94},
+        "tolerance": 0.001,
+        "reference": (
+            "Allen & Eggers, NACA TR 1381 (1958). "
+            "a_max = V^2*sin(gamma)/(2*e*H), V at peak = V/sqrt(e). "
+            "V=7800 m/s, gamma=30 deg, H=7160 m: a_max=79.69 g, V_peak=4730.9 m/s"
+        ),
+    },
     # ---- Hohmann Transfer ----
     "hohmann_leo_to_geo": {
         "tool_name": "hohmann_transfer",

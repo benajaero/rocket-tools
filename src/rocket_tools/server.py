@@ -5,6 +5,7 @@ from pydantic import ValidationError as PydanticValidationError
 
 from rocket_tools.schemas import (
     AeroAnalysisInput,
+    BallisticEntryInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
     ColumnBucklingInput,
@@ -35,9 +36,12 @@ from rocket_tools.schemas import (
     PrandtlMeyerFromAngleInput,
     PrandtlMeyerInput,
     PropellantTankSizingInput,
+    RecoveryTemperatureInput,
     ReynoldsNumberInput,
     RocketDeltaVInput,
     SkinFrictionInput,
+    StagnationTemperatureInput,
+    SuttonGravesInput,
     ThrustToWeightInput,
     TrussAnalysisInput,
     UnitConvertInput,
@@ -904,6 +908,106 @@ def optimal_area_ratio(
             validated.chamber_pressure_pa,
             validated.ambient_pressure_pa,
             validated.gamma,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Aerothermodynamics Tools ----
+
+
+@mcp.tool()
+def stagnation_temperature(static_temperature_k: float, mach: float, gamma: float = 1.4) -> dict:
+    """Total (stagnation) temperature of an adiabatic compressible flow.
+
+    T0 = T*(1 + (gamma-1)/2*M^2). The insulated-stagnation ceiling; a real wall
+    sees the lower recovery_temperature. static_temperature_k in K, mach >= 0.
+    """
+    from rocket_tools.aerodynamics import stagnation_temperature as _st
+
+    try:
+        validated = StagnationTemperatureInput(
+            static_temperature_k=static_temperature_k, mach=mach, gamma=gamma
+        )
+        return _st(validated.static_temperature_k, validated.mach, validated.gamma)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def recovery_temperature(
+    static_temperature_k: float,
+    mach: float,
+    gamma: float = 1.4,
+    prandtl: float = 0.71,
+    regime: str = "laminar",
+) -> dict:
+    """Adiabatic-wall (recovery) temperature: Tr = T*(1 + r*(gamma-1)/2*M^2).
+
+    Recovery factor r = Pr^0.5 (laminar) or Pr^(1/3) (turbulent); air Pr ~ 0.71.
+    regime is "laminar" or "turbulent".
+    """
+    from rocket_tools.aerodynamics import recovery_temperature as _rt
+
+    try:
+        validated = RecoveryTemperatureInput(
+            static_temperature_k=static_temperature_k,
+            mach=mach,
+            gamma=gamma,
+            prandtl=prandtl,
+            regime=regime,  # type: ignore[arg-type]
+        )
+        return _rt(
+            validated.static_temperature_k,
+            validated.mach,
+            validated.gamma,
+            validated.prandtl,
+            validated.regime,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def sutton_graves_heat_flux(density_kg_m3: float, velocity_ms: float, nose_radius_m: float) -> dict:
+    """Stagnation-point convective heat flux for Earth entry (Sutton-Graves).
+
+    q = 1.7415e-4*sqrt(rho/Rn)*V^3, result in W/m^2 (also returned as W/cm^2 and
+    MW/m^2). Cold-wall convective estimate for a blunt body; excludes radiation.
+    """
+    from rocket_tools.aerodynamics import sutton_graves_heat_flux as _sg
+
+    try:
+        validated = SuttonGravesInput(
+            density_kg_m3=density_kg_m3, velocity_ms=velocity_ms, nose_radius_m=nose_radius_m
+        )
+        return _sg(validated.density_kg_m3, validated.velocity_ms, validated.nose_radius_m)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def ballistic_entry_peak_deceleration(
+    entry_velocity_ms: float, flight_path_angle_deg: float, scale_height_m: float = 7160.0
+) -> dict:
+    """Peak deceleration of a steep non-lifting entry (Allen-Eggers, NACA TR 1381).
+
+    a_max = V_e^2*sin(gamma)/(2*e*H), independent of ballistic coefficient; peak
+    always occurs at V = V_e/sqrt(e). flight_path_angle_deg is below horizontal,
+    (0, 90]; scale_height_m defaults to Earth ~7160 m.
+    """
+    from rocket_tools.aerodynamics import ballistic_entry_peak_deceleration as _be
+
+    try:
+        validated = BallisticEntryInput(
+            entry_velocity_ms=entry_velocity_ms,
+            flight_path_angle_deg=flight_path_angle_deg,
+            scale_height_m=scale_height_m,
+        )
+        return _be(
+            validated.entry_velocity_ms,
+            validated.flight_path_angle_deg,
+            validated.scale_height_m,
         )
     except Exception as e:
         return _format_error(e)

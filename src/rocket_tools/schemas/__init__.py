@@ -9,6 +9,7 @@ These models provide:
 from .aerodynamics import (
     AeroAnalysisInput,
     AeroAnalysisOutput,
+    BallisticEntryInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
     DragCoefficientInput,
@@ -28,10 +29,13 @@ from .aerodynamics import (
     OptimalAreaRatioInput,
     PrandtlMeyerFromAngleInput,
     PrandtlMeyerInput,
+    RecoveryTemperatureInput,
     ReynoldsNumberInput,
     ReynoldsNumberOutput,
     SkinFrictionInput,
     SkinFrictionOutput,
+    StagnationTemperatureInput,
+    SuttonGravesInput,
     WingLoadingInput,
 )
 from .design import (
@@ -118,6 +122,11 @@ __all__ = [
     # Aerodynamics - Nozzle
     "NozzlePerformanceInput",
     "OptimalAreaRatioInput",
+    # Aerodynamics - Aerothermodynamics
+    "StagnationTemperatureInput",
+    "RecoveryTemperatureInput",
+    "SuttonGravesInput",
+    "BallisticEntryInput",
     # Design
     "RocketDeltaVInput",
     "MultiStageDeltaVInput",

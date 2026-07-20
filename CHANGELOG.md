@@ -5,6 +5,9 @@ All notable changes to rocket-tools.
 ## [Unreleased]
 
 ### Added
+- **Aerothermodynamics** — `stagnation_temperature()`, `recovery_temperature()`, `sutton_graves_heat_flux()`, `ballistic_entry_peak_deceleration()`
+  - Stagnation/recovery temperature (Anderson), Sutton-Graves stagnation-point heat flux (NASA TR R-376), Allen-Eggers ballistic-entry peak deceleration (NACA TR 1381)
+  - New `stagnation_temperature_mach3` and `ballistic_entry_allen_eggers` regression benchmarks; tool count 43 → 47
 - **Full atmosphere to 86 km** — `isa_atmosphere()` now implements the complete 7-layer U.S. Standard Atmosphere 1976 (was 3-layer, 0–25 km)
   - Valid range 0–84,852 m geopotential (86 km geometric); matches NASA-TM-X-74335 Table 1 to <0.02% at every layer boundary
   - New `isa_47000m` (stratopause) and `isa_71000m` regression benchmarks; significant-figure output so sub-pascal pressures/densities aren't rounded away

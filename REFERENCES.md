@@ -37,6 +37,9 @@ This document catalogs the primary references and data sources used throughout r
 | **Anderson: Fundamentals of Aerodynamics** (6th Ed.) | `aerodynamics/fundamentals.py`, `aerodynamics/compressible.py` | Reynolds number, Mach number, dynamic pressure, isentropic flow relations (Ch. 4), normal shock (Ch. 4), oblique shock (Ch. 4), Prandtl-Meyer expansion (Ch. 4). |
 | **Anderson: Aircraft Performance and Design** | `aerodynamics/aircraft.py` | Lift curve slope (lifting line theory), drag polar, Breguet range and endurance equations (Ch. 6). |
 | **Blasius (1908)** | `aerodynamics/fundamentals.py` | Skin friction coefficients: $c_f = 1.328 / \sqrt{Re}$ (laminar), $c_f = 0.0592 / Re^{0.2}$ (turbulent). |
+| **Anderson: Hypersonic and High-Temperature Gas Dynamics** (2nd Ed.) | `aerodynamics/aerothermo.py` | Stagnation and recovery (adiabatic-wall) temperature; recovery factor $r = Pr^{0.5}$ (laminar), $Pr^{1/3}$ (turbulent). |
+| **Sutton, K. & Graves, R. A., NASA TR R-376 (1971)** | `aerodynamics/aerothermo.py` | Stagnation-point convective heating $q = C\sqrt{\rho/R_n}\,V^3$, $C = 1.7415\times10^{-4}$ for Earth air (W/m²). |
+| **Allen, H. J. & Eggers, A. J., NACA TR 1381 (1958)** | `aerodynamics/aerothermo.py` | Ballistic entry: peak deceleration $a_{max} = V_e^2\sin\gamma/(2eH)$ and velocity at peak $V_e/\sqrt{e}$. |
 
 ### Propulsion & Nozzle Design
 

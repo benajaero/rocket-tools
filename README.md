@@ -2,8 +2,8 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-240%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-82%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-343%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-77%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
@@ -46,13 +46,15 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 
 | Capability | What You Get |
 |------------|--------------|
-| **35 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
+| **47 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
 | **49+ Materials** | Aluminum, titanium, steel, nickel superalloys, composites, refractory metals — with thermal & mechanical properties, filterable by application (rocket, drone, aircraft, spacecraft, engine) |
 | **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types, Euler-Johnson column buckling, plate buckling coefficients, margin of safety (stress/load/deflection), von Mises combined stress, 2D/3D truss analysis |
 | **Compressible Flow** | Isentropic relations, normal & oblique shocks, Prandtl-Meyer expansions — all Numba JIT-compiled |
 | **Aircraft Performance** | Lift curve slope, drag polar with compressibility, Breguet range & endurance, wing loading & stall speed |
 | **Rocket Nozzle Design** | Thrust, Isp, thrust coefficient, expansion ratio optimization with under/over-expansion detection |
 | **Mission Design** | Tsiolkovsky ΔV, multi-stage staging, orbital velocity, payload fraction, thrust-to-weight, composite CG, propellant tank sizing |
+| **Orbital Mechanics** | Hohmann transfers, vis-viva speed, plane-change ΔV, Keplerian period — validated vs Curtis/Vallado |
+| **Aerothermodynamics** | Stagnation & recovery temperature, Sutton-Graves stagnation heat flux, Allen-Eggers ballistic-entry peak deceleration |
 | **Natural Language Router** | Ask *"What's the Reynolds number at 250 m/s and 5 km?"* and get a validated tool call — no API memorization needed |
 | **ISA Atmosphere** | Full 7-layer U.S. Standard Atmosphere 1976, 0–86 km, with ~54 ns cached lookups |
 | **Workflow Engine** | Chain tools into reusable YAML workflows for design reviews |
