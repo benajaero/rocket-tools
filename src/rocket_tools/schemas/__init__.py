@@ -74,7 +74,7 @@ from .structural import (
     TrussAnalysisInput,
     VonMisesInput,
 )
-from .utils import UnitConvertInput, UnitConvertOutput
+from .utils import CiteToolInput, UnitConvertInput, UnitConvertOutput
 
 __all__ = [
     # Structural
@@ -147,6 +147,7 @@ __all__ = [
     "PlaneChangeInput",
     "OrbitalPeriodInput",
     # Utils
+    "CiteToolInput",
     "UnitConvertInput",
     "UnitConvertOutput",
 ]

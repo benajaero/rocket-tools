@@ -5,6 +5,10 @@ All notable changes to rocket-tools.
 ## [Unreleased]
 
 ### Added
+- **Research provenance tools** — `cite_tool()` and `list_references()`
+  - `cite_tool(tool_name)` returns the authoritative reference(s), governing formula, modelling assumptions, and any curated validation benchmark backing a tool (with a `validated` flag) — so any computed number is traceable and citable
+  - `list_references()` returns the de-duplicated bibliography and the documented tool list
+  - New `rocket_tools.provenance` registry covering all 50 computational tools; a completeness test keeps it in sync as tools are added. Tool count 50 → 52
 - **Propulsion thermochemistry** — `characteristic_velocity()`, `ideal_specific_impulse()`, `throat_mass_flux()`
   - Geometry-free propellant figures of merit (Sutton & Biblarz Ch. 3): c* via the Vandenkerckhove function, ideal exhaust velocity/Isp from the pressure ratio, choked throat mass flux
   - New `characteristic_velocity_lox_rp1` regression benchmark; tool count 47 → 50

@@ -9,6 +9,7 @@ from rocket_tools.schemas import (
     BreguetEnduranceInput,
     BreguetRangeInput,
     CharacteristicVelocityInput,
+    CiteToolInput,
     ColumnBucklingInput,
     CombinedMarginInput,
     CompositeCGInput,
@@ -109,6 +110,47 @@ def _format_error(e: Exception) -> dict:
             "Please check your inputs and try again. If the problem persists, report an issue."
         ),
     }
+
+
+# ---- Research / Provenance Tools ----
+
+
+@mcp.tool()
+def cite_tool(tool_name: str) -> dict:
+    """Provenance for a rocket-tools computation, for citing or auditing a result.
+
+    Given a tool name (e.g. "normal_shock"), returns its authoritative reference(s),
+    governing formula, modelling assumptions, and any curated validation benchmark(s)
+    that pin it to published values (with a `validated` flag). Use this to defend or
+    trace any number the server produces. Call `list_references` for the full bibliography.
+    """
+    from rocket_tools.provenance import get_provenance
+
+    try:
+        validated = CiteToolInput(tool_name=tool_name)
+        return get_provenance(validated.tool_name)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def list_references() -> dict:
+    """List the authoritative sources behind rocket-tools and which tools are documented.
+
+    Returns the de-duplicated bibliography (textbooks, NACA/NASA reports, standards)
+    and the tool names that have provenance available via `cite_tool`.
+    """
+    from rocket_tools.provenance import list_documented_tools
+    from rocket_tools.provenance import list_references as _lr
+
+    try:
+        return {
+            "references": _lr(),
+            "documented_tools": list_documented_tools(),
+            "documented_tool_count": len(list_documented_tools()),
+        }
+    except Exception as e:
+        return _format_error(e)
 
 
 # ---- Utility Tools ----

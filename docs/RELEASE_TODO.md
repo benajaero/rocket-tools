@@ -195,6 +195,22 @@ Build one fully-verified module per iteration, validated against authoritative s
   ship until a real number matches a reference. Also: real-gas/frozen-vs-equilibrium nozzle
   corrections, throttling.
 
+## Research assistance (user-requested)
+
+Make the MCP research-capable, one verified capability per iteration.
+
+- [x] **Provenance & citations** *(Done 2026-07-21.)* New `rocket_tools/provenance.py` registry
+  maps all 50 computational tools to their reference(s), formula, and assumptions, cross-linked
+  to the curated validation benchmarks. Exposed via `cite_tool(tool_name)` and `list_references()`
+  MCP tools (52 tools total). A completeness test asserts every registered tool (minus meta tools)
+  is documented, so the registry can't drift. 11 tests; suite → 391.
+- [ ] **Uncertainty & sensitivity** — expose the existing `uncertainty` module via MCP: propagate
+  input uncertainty to outputs (Monte-Carlo + linear), parameter sweeps, sensitivity ranking.
+- [ ] **MCP Resources + datasets** — expose REFERENCES bibliography, the validation benchmark
+  dataset, and the materials database as readable MCP Resources (not just tools).
+- [ ] **Research workflow tools** — trade studies / design-of-experiments sweeps and a
+  `validate_result` self-check tool (wrap the existing `validate_benchmark`).
+
 ## Discovered / notes (append as we go)
 
 - `srv` tool for skin friction is not named `skin_friction` at module scope — confirm the

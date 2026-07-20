@@ -11,6 +11,16 @@ class UnitConvertInput(BaseModel):
     to_unit: str = Field(..., min_length=1, description="Target unit")
 
 
+class CiteToolInput(BaseModel):
+    """Input for cite_tool provenance lookup."""
+
+    tool_name: str = Field(
+        ...,
+        min_length=1,
+        description="Name of the rocket-tools MCP tool to cite (e.g. 'normal_shock')",
+    )
+
+
 class UnitConvertOutput(BaseModel):
     """Output from unit_convert tool."""
 
