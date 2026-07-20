@@ -11,7 +11,13 @@ import math
 
 import pytest
 
-from rocket_tools.aerodynamics import isentropic_flow, normal_shock, prandtl_meyer
+from rocket_tools.aerodynamics import (
+    isentropic_flow,
+    normal_shock,
+    oblique_shock,
+    prandtl_meyer,
+)
+from rocket_tools.utils.validation import ToolError
 
 # --- NACA 1135 tables, gamma = 1.4 ---------------------------------------------
 
@@ -35,6 +41,18 @@ NORMAL_SHOCK = {
 
 # Mach -> Prandtl-Meyer angle nu (degrees)
 PRANDTL_MEYER = {1.5: 11.905, 2.0: 26.380, 3.0: 49.757, 4.0: 65.785, 5.0: 76.920}
+
+# Weak-solution oblique shock (Anderson, Fundamentals of Aerodynamics, Ch. 9;
+# theta-beta-M chart): (M1, theta_deg) -> (beta_weak_deg, M2, p2/p1).
+OBLIQUE_WEAK = {
+    (2.0, 15.0): (45.34, 1.4457, 2.1947),
+    (2.0, 10.0): (39.31, 1.6405, 1.7066),
+    (3.0, 20.0): (37.76, 1.9941, 3.7713),
+    (5.0, 30.0): (42.34, 2.1357, 13.0666),
+}
+
+# Maximum deflection for an attached shock (Anderson Fig. 9.9): M1 -> theta_max_deg.
+THETA_MAX = {2.0: 22.97, 3.0: 34.07, 5.0: 41.12}
 
 
 @pytest.mark.parametrize("mach", sorted(ISENTROPIC))
@@ -64,6 +82,30 @@ def test_normal_shock_matches_naca1135(mach1: float) -> None:
 def test_prandtl_meyer_matches_naca1135(mach: float) -> None:
     out = prandtl_meyer(mach=mach, gamma=1.4)
     assert out["prandtl_meyer_angle_deg"] == pytest.approx(PRANDTL_MEYER[mach], abs=0.02)
+
+
+@pytest.mark.parametrize(("mach1", "theta"), sorted(OBLIQUE_WEAK))
+def test_oblique_shock_weak_solution(mach1: float, theta: float) -> None:
+    beta, m2, p = OBLIQUE_WEAK[(mach1, theta)]
+    out = oblique_shock(mach1=mach1, deflection_deg=theta, gamma=1.4)
+    assert out["solution"] == "weak"
+    assert out["wave_angle_deg"] == pytest.approx(beta, abs=0.05)  # NOT the strong root
+    assert out["mach_downstream"] == pytest.approx(m2, rel=2e-3)
+    assert out["pressure_ratio"] == pytest.approx(p, rel=2e-3)
+
+
+@pytest.mark.parametrize("mach1", sorted(THETA_MAX))
+def test_oblique_shock_theta_max(mach1: float) -> None:
+    out = oblique_shock(mach1=mach1, deflection_deg=1.0, gamma=1.4)
+    assert out["max_deflection_deg"] == pytest.approx(THETA_MAX[mach1], abs=0.05)
+
+
+def test_oblique_shock_detaches_above_theta_max() -> None:
+    # M1=2 detaches beyond ~22.97 deg; 25 deg must be a structured INVALID_PARAMETER.
+    with pytest.raises(ToolError) as exc:
+        oblique_shock(mach1=2.0, deflection_deg=25.0, gamma=1.4)
+    assert exc.value.error_code == "INVALID_PARAMETER"
+    assert exc.value.parameter == "deflection_deg"
 
 
 class TestCompressibleInvariants:

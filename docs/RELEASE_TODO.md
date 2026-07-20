@@ -33,8 +33,15 @@ Do NOT publish without explicit approval — prep to that line and stop.
   module per iteration, with the reference value pinned in a test. Priority order by coverage
   gap: `compressible.py` (51%), `sections.py` (53%), `nozzle.py` (66%), `buckling.py` (68%),
   `beams.py` (71%), `aircraft.py` (75%), `fundamentals.py` (77%).
-- [ ] **P2 — Verify oblique-shock (β–θ–M) and Prandtl-Meyer** against Anderson Appendix tables
-  at 2–3 Mach/angle points each; pin as benchmarks.
+- [x] **P1 — Oblique shock validated & two bugs fixed** *(Done 2026-07-20.)* Table-driven
+  validation against Anderson Ch. 9 exposed that `oblique_shock` returned the **strong** root
+  (β=79.8° instead of the physical weak 45.3° at M1=2/θ=15°) and silently returned garbage for
+  detached cases (θ>θ_max). Fixed: θ_max computed and the weak branch bisected; detachment now
+  raises a structured `INVALID_PARAMETER` (via ToolError) naming θ_max; added
+  `solution`/`max_deflection_deg`/`normal_mach_upstream` keys. Validated θ_max=22.97°/34.07° at
+  M=2/3 vs Anderson Fig. 9.9. Added weak-solution + θ_max + detachment tests and the
+  `oblique_shock_m2_theta15` benchmark. Suite 371 → 379. Prandtl-Meyer already covered by
+  `test_naca1135.py`.
 - [ ] **P2 — Verify normal-shock p0₂/p0₁, ρ₂/ρ₁, T₂/T₁** at M=2,3,5 against Anderson App. A.
 - [ ] **P2 — Verify ISA at 0/11/20/25 km** density & speed-of-sound to full table precision
   (current tolerance 0.01–0.02 is loose enough to hide small errors).

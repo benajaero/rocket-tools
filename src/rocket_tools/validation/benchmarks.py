@@ -178,6 +178,21 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "reference": 'Anderson, "Fundamentals of Aerodynamics", 6th Ed., Table A.2 / NACA 1135. '
         "For M1=2, gamma=1.4: M2=0.5774, P2/P1=4.50, rho2/rho1=2.667, T2/T1=1.687, p02/p01=0.7209",
     },
+    # ---- Oblique Shock (weak solution) ----
+    "oblique_shock_m2_theta15": {
+        "tool_name": "oblique_shock",
+        "inputs": {"mach1": 2.0, "deflection_deg": 15.0},
+        "expected": {
+            "wave_angle_deg": 45.34,
+            "mach_downstream": 1.4457,
+            "pressure_ratio": 2.1947,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            'Anderson, "Fundamentals of Aerodynamics", 6th Ed., Ch. 9 (theta-beta-M). '
+            "M1=2, theta=15 deg, gamma=1.4, WEAK solution: beta=45.34 deg, M2=1.446, p2/p1=2.195"
+        ),
+    },
     # ---- Orbital Velocity ----
     "orbital_velocity_leo": {
         "tool_name": "orbital_velocity",
