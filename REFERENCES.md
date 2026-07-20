@@ -49,7 +49,9 @@ This document catalogs the primary references and data sources used throughout r
 
 | Reference | Used In | Key Formulas |
 |-----------|---------|--------------|
-| **Vallado: Fundamentals of Astrodynamics and Applications** (4th Ed.) | `design/performance.py` | Circular orbital velocity, escape velocity, orbital period (Ch. 1). |
+| **Vallado: Fundamentals of Astrodynamics and Applications** (4th Ed.) | `design/performance.py`, `design/orbital.py` | Circular orbital velocity, escape velocity, orbital period (Ch. 1); vis-viva equation (Eq. 2-70), simple plane change (Eq. 6-19), Earth mu=3.986004418e14 m³/s² (App. D). |
+| **Curtis: Orbital Mechanics for Engineering Students** (3rd Ed.) | `design/orbital.py` | Hohmann transfer delta-v and transfer time (Ch. 6, Example 6.1). |
+| **Bate, Mueller & White: Fundamentals of Astrodynamics** | `design/orbital.py` | Two-body energy and the vis-viva relation (Ch. 3). |
 
 ---
 

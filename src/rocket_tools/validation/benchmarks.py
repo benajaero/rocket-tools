@@ -173,6 +173,23 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "period = 2*pi*sqrt(r^3/mu) = 92.41 min"
         ),
     },
+    # ---- Hohmann Transfer ----
+    "hohmann_leo_to_geo": {
+        "tool_name": "hohmann_transfer",
+        "inputs": {"radius1_m": 6678137.0, "radius2_m": 42164137.0},
+        "expected": {
+            "delta_v1_ms": 2425.7,
+            "delta_v2_ms": 1466.8,
+            "total_delta_v_ms": 3892.5,
+            "transfer_time_hr": 5.275,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            'Curtis, "Orbital Mechanics for Engineering Students", 3rd Ed., Ch. 6. '
+            "300 km LEO (r=6678.137 km) to GEO (r=42164.137 km), mu=3.986004418e14: "
+            "dv1=2.4257, dv2=1.4668, total=3.8925 km/s, transfer time 5.275 h"
+        ),
+    },
     # ---- Section Properties ----
     "section_rectangle": {
         "tool_name": "section_properties",

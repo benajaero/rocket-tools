@@ -2,6 +2,18 @@
 
 All notable changes to rocket-tools.
 
+## [Unreleased]
+
+### Added
+- **Orbital Mechanics** — `hohmann_transfer()`, `vis_viva_velocity()`, `plane_change_delta_v()`, `orbital_period()`
+  - Two-impulse Hohmann transfer (delta-v + transfer time), vis-viva speed, simple plane change, Keplerian period
+  - Validated against Curtis (LEO→GEO Example 6.1) and Vallado worked values; new `hohmann_leo_to_geo` regression benchmark
+  - Tool count: 39 → 43 MCP tools
+
+### Fixed
+- **Structured-error contract** — all MCP tools now return one schema `{error, error_code, error_type, message, parameter, constraint, suggestion}`; invalid inputs are labelled `INVALID_PARAMETER` (not `INTERNAL_ERROR`) with the offending field surfaced
+- **Validation benchmarks** — corrected six reference values that contradicted their cited sources (beam deflection/stress, turbulent skin friction, rocket delta-v, ISA 25 km, LEO velocity) and wired all benchmarks into the test suite as a regression gate
+
 ## [0.3.3] — 2026-06-10
 
 ### Added

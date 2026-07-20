@@ -14,6 +14,7 @@ from rocket_tools.schemas import (
     DragCoefficientInput,
     DragPolarInput,
     DynamicPressureInput,
+    HohmannTransferInput,
     ISAAtmosphereInput,
     IsentropicFlowInput,
     LiftCoefficientInput,
@@ -26,8 +27,10 @@ from rocket_tools.schemas import (
     NozzlePerformanceInput,
     ObliqueShockInput,
     OptimalAreaRatioInput,
+    OrbitalPeriodInput,
     OrbitalVelocityInput,
     PayloadFractionInput,
+    PlaneChangeInput,
     PlateBucklingInput,
     PrandtlMeyerFromAngleInput,
     PrandtlMeyerInput,
@@ -38,6 +41,7 @@ from rocket_tools.schemas import (
     ThrustToWeightInput,
     TrussAnalysisInput,
     UnitConvertInput,
+    VisVivaInput,
     VonMisesInput,
     WingLoadingInput,
 )
@@ -966,6 +970,76 @@ def orbital_velocity(
             validated.body_mass_kg,
             validated.gravity_constant,
         )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def hohmann_transfer(radius1_m: float, radius2_m: float, mu: float = 3.986004418e14) -> dict:
+    """Two-impulse Hohmann transfer between coplanar circular orbits.
+
+    radius1_m/radius2_m: orbital radii (body center to orbit) in meters, NOT altitude.
+    mu: gravitational parameter GM in m^3/s^2 (default Earth 3.986004418e14).
+    Returns delta_v1_ms, delta_v2_ms, total_delta_v_ms/_kms, and transfer_time_s/_hr.
+    """
+    from rocket_tools.design import hohmann_transfer as _ht
+
+    try:
+        validated = HohmannTransferInput(radius1_m=radius1_m, radius2_m=radius2_m, mu=mu)
+        return _ht(validated.radius1_m, validated.radius2_m, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def vis_viva_velocity(
+    radius_m: float, semi_major_axis_m: float, mu: float = 3.986004418e14
+) -> dict:
+    """Orbital speed at a radius via the vis-viva equation v = sqrt(mu*(2/r - 1/a)).
+
+    radius_m: distance from the body center in meters. semi_major_axis_m: orbit
+    semi-major axis in meters (equals radius_m for a circular orbit). Returns
+    velocity_ms and velocity_kms.
+    """
+    from rocket_tools.design import vis_viva_velocity as _vv
+
+    try:
+        validated = VisVivaInput(radius_m=radius_m, semi_major_axis_m=semi_major_axis_m, mu=mu)
+        return _vv(validated.radius_m, validated.semi_major_axis_m, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def plane_change_delta_v(velocity_ms: float, inclination_change_deg: float) -> dict:
+    """Delta-v for a simple plane change: delta_v = 2*v*sin(delta_i/2).
+
+    velocity_ms: orbital speed at the maneuver point. inclination_change_deg in
+    [0, 180]. Cheapest where orbital speed is lowest (near apoapsis).
+    """
+    from rocket_tools.design import plane_change_delta_v as _pc
+
+    try:
+        validated = PlaneChangeInput(
+            velocity_ms=velocity_ms, inclination_change_deg=inclination_change_deg
+        )
+        return _pc(validated.velocity_ms, validated.inclination_change_deg)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def orbital_period(semi_major_axis_m: float, mu: float = 3.986004418e14) -> dict:
+    """Keplerian orbital period T = 2*pi*sqrt(a^3/mu).
+
+    semi_major_axis_m in meters; mu in m^3/s^2 (default Earth). Returns
+    period_s, period_min, period_hr.
+    """
+    from rocket_tools.design import orbital_period as _op
+
+    try:
+        validated = OrbitalPeriodInput(semi_major_axis_m=semi_major_axis_m, mu=mu)
+        return _op(validated.semi_major_axis_m, validated.mu)
     except Exception as e:
         return _format_error(e)
 

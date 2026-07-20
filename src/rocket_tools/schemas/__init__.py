@@ -36,12 +36,16 @@ from .aerodynamics import (
 )
 from .design import (
     CompositeCGInput,
+    HohmannTransferInput,
     MultiStageDeltaVInput,
+    OrbitalPeriodInput,
     OrbitalVelocityInput,
     PayloadFractionInput,
+    PlaneChangeInput,
     PropellantTankSizingInput,
     RocketDeltaVInput,
     ThrustToWeightInput,
+    VisVivaInput,
 )
 from .materials import (
     ISAAtmosphereInput,
@@ -122,6 +126,10 @@ __all__ = [
     "ThrustToWeightInput",
     "CompositeCGInput",
     "PropellantTankSizingInput",
+    "HohmannTransferInput",
+    "VisVivaInput",
+    "PlaneChangeInput",
+    "OrbitalPeriodInput",
     # Utils
     "UnitConvertInput",
     "UnitConvertOutput",

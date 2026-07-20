@@ -139,6 +139,22 @@ Do NOT publish without explicit approval — prep to that line and stop.
 
 ---
 
+## Feature expansion (user-requested: "add features, make it comprehensive")
+
+Build one fully-verified module per iteration, validated against authoritative sources.
+
+- [x] **Orbital mechanics** *(Done 2026-07-20.)* `design/orbital.py`: `hohmann_transfer`,
+  `vis_viva_velocity`, `plane_change_delta_v`, `orbital_period` (+4 MCP tools → 43 total).
+  Validated vs Curtis Ex. 6.1 (LEO→GEO ΔV 2.426/1.467, total 3.893 km/s, 5.275 h) and Vallado;
+  added `hohmann_leo_to_geo` regression benchmark. 10 new tests; suite → 321.
+- [ ] **Full ISA to 86 km** — extend `materials/isa.py` from 0–25 km to the complete US Std
+  Atm 1976 (7 geopotential layers to 86 km); validate layer boundaries vs NASA-TM-X-74335.
+- [ ] **Aerothermodynamics** — stagnation/recovery temperature, Fay-Riddell & Sutton-Graves
+  stagnation heat flux, ballistic re-entry deceleration. Cite Anderson *Hypersonic and High-
+  Temperature Gas Dynamics*, Sutton-Graves (NASA).
+- [ ] **Propulsion depth** — combustion c*, real-gas nozzle corrections, throttling, staging
+  optimizer. Cite Sutton & Biblarz, Hill & Peterson.
+
 ## Discovered / notes (append as we go)
 
 - `srv` tool for skin friction is not named `skin_friction` at module scope — confirm the
