@@ -194,11 +194,20 @@ Do NOT publish without explicit approval — prep to that line and stop.
 
 ## Security / Robustness
 
-- [ ] **P1 — Audit `utils/safe_eval.py`** (used by the router / workflow expressions). Confirm
-  the AST allow-list rejects attribute access, dunders, calls to arbitrary builtins, and
-  resource-exhaustion inputs; add adversarial tests.
-- [ ] **P2 — Input hardening at tool boundary:** NaN/inf, negative/zero where physical,
-  extreme magnitudes → structured errors, never crashes or silent NaNs. Systematic test.
+- [x] **P1 — Audit `utils/safe_eval.py`** *(Done 2026-07-21.)* Found a real sandbox-escape hole:
+  attribute access was unrestricted, so `x.__class__.__bases__[0].__subclasses__`, `__globals__`,
+  and the `_DotDict._data` internals were all reachable (calls were already blocked, but dunder
+  reads are the escalation vector). Now rejects any attribute whose name starts with `_`; legit
+  public tool-output attributes still resolve. Added adversarial tests (dunder + private).
+  Confirmed already-blocked: function calls, imports, lambdas/comprehensions. Suite → 478.
+- [ ] **P1 — Reject non-finite inputs at the schema boundary.** Discovered 2026-07-21: `inf`
+  passes Pydantic `gt=0` (inf > 0 is True), so e.g. `rocket_delta_v(specific_impulse_s=inf,...)`
+  returns `delta_v_ms: inf` instead of an error. NaN is caught (nan>0 is False) but inconsistently.
+  Fix: a shared input base with `model_config = ConfigDict(allow_inf_nan=False)` so every float
+  field rejects NaN/inf uniformly as `INVALID_PARAMETER`. Also unify the ad-hoc "must be finite"
+  ValueErrors (currently surface as INTERNAL_ERROR). Systematic test across all tools.
+- [ ] **P2 — Input hardening at tool boundary:** negative/zero where physical, extreme
+  magnitudes → structured errors, never crashes or silent NaNs. (NaN/inf covered above.)
 - [ ] **P2 — ASGI server hardening:** request size limits, error handling on `/`, `/health`,
   `/ready`, `/metrics`; confirm no stack traces leak to clients.
 - [ ] **P3 — Dependency/security scan** (`pip-audit`) in CI; document the security policy vs

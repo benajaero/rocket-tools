@@ -60,3 +60,22 @@ class TestSafeEval:
 
     def test_subscript(self):
         assert safe_eval("data['key']", {"data": {"key": 42}}) == 42
+
+    def test_dunder_attribute_blocked(self):
+        # Classic sandbox-escape vector: reach type/globals/subclasses via dunders.
+        for expr in (
+            "x.__class__",
+            "x.__class__.__bases__",
+            "x.__class__.__mro__",
+            "x.__globals__",
+            "x.__dict__",
+        ):
+            with pytest.raises(ToolError, match="private attribute"):
+                safe_eval(expr, {"x": 1})
+
+    def test_private_attribute_blocked(self):
+        from rocket_tools.workflows.engine import _DotDict
+
+        # The DotDict wrapper stores the raw dict on `_data`; it must stay sealed.
+        with pytest.raises(ToolError, match="private attribute"):
+            safe_eval("s._data", {"s": _DotDict({"a": 5})})

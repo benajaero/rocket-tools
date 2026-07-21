@@ -37,6 +37,9 @@ All notable changes to rocket-tools.
 - **Coverage gate now passes** — added a happy-path smoke test for all 50 computational MCP tools; `server.py` coverage 44% → 79%, total 77% → **82%**, so the `--cov-fail-under=80` CI gate is met (was failing)
 - CI workflow improvements (matrix aligned to 3.11/3.12, lint/format over `tests/`, a build+clean-install `package` job) are prepared and pending a `workflow`-scoped push — see `docs/RELEASE_TODO.md`
 
+### Security
+- **Hardened the workflow expression evaluator (`safe_eval`)** — it allowed unrestricted attribute access, leaving the classic sandbox-escape surface open (`x.__class__.__bases__[0].__subclasses__`, `__globals__`, and reaching the `_DotDict` internals). Now rejects any private/dunder attribute (name starting with `_`); public tool-output attributes still work. Added adversarial tests.
+
 ### Fixed
 - **Oblique shock returned the strong (non-physical) solution and mishandled detachment** — the θ–β–M bisection assumed monotonicity and converged on the strong root (e.g. β=79.8° instead of the physical weak β=45.3° at M1=2, θ=15°), and deflections beyond θ_max silently returned a no-shock result. Now returns the **weak** solution, computes θ_max, adds `solution`/`max_deflection_deg`/`normal_mach_upstream` keys, and raises a structured `INVALID_PARAMETER` error naming θ_max when the shock detaches. Validated vs Anderson Ch. 9 (θ_max = 22.97°/34.07° at M=2/3).
 - **Normal-shock stagnation pressure ratio (p02/p01) was wrong** — returned values > 1 that grew with Mach (6.5, 28, 325, … at M=1.5, 2, 3) instead of the correct ≤ 1 decreasing loss. The isentropic total/static factors were inverted and combined with the wrong sign. Replaced with the closed-form NACA 1135 Eq. 100; now matches the table to < 0.01% across M = 1.5–5. Caught by new table-driven validation.

@@ -52,6 +52,14 @@ class SafeEvaluator(ast.NodeVisitor):
                 f"Unknown variable '{node.id}'", "interpolation", "valid variable name"
             )
         if isinstance(node, ast.Attribute):
+            # Block private/dunder access so expressions cannot walk out of the
+            # sandbox via __class__ / __globals__ / __subclasses__ / internals.
+            if node.attr.startswith("_"):
+                raise ValidationError(
+                    f"Access to private attribute '{node.attr}' is not allowed",
+                    "interpolation",
+                    "public attribute names only",
+                )
             obj = self.visit(node.value)
             return getattr(obj, node.attr)
         if isinstance(node, ast.BinOp):
