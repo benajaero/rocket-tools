@@ -332,6 +332,46 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "reference": "Roark's Formulas, 8th Ed., Table A.1: Rectangular section. "
         "A=bh=0.02, I=bh^3/12=6.667e-5, S=bh^2/6=6.667e-4",
     },
+    "section_ibeam": {
+        "tool_name": "section_properties",
+        "inputs": {
+            "shape": "ibeam",
+            "flange_width": 0.1,
+            "height": 0.2,
+            "flange_thickness": 0.01,
+            "web_thickness": 0.008,
+        },
+        "expected": {
+            "area_m2": 0.00344,
+            "i_xx_m4": 2.1954667e-5,
+            "s_xx_m3": 2.1954667e-4,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Roark's Formulas, 8th Ed., Table A.1 (symmetric I-section via parallel-axis). "
+            "b_f=0.1, h=0.2, t_f=0.01, t_w=0.008: A=3.44e-3, I=2.1955e-5, S=I/(h/2)=2.1955e-4."
+        ),
+    },
+    "section_tsection": {
+        "tool_name": "section_properties",
+        "inputs": {
+            "shape": "tsection",
+            "flange_width": 0.1,
+            "height": 0.15,
+            "flange_thickness": 0.02,
+            "web_thickness": 0.01,
+        },
+        "expected": {
+            "area_m2": 0.0033,
+            "i_xx_m4": 6.3293182e-6,
+            "s_xx_m3": 5.7302469e-5,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Roark's Formulas, 8th Ed., Table A.1 (T-section; centroid + parallel-axis). "
+            "b_f=0.1, h=0.15, t_f=0.02, t_w=0.01: A=3.3e-3, I about centroid=6.329e-6."
+        ),
+    },
     # ---- NACA Airfoil Drag Polar (Validation against wind tunnel) ----
     "naca_0012_drag_polar": {
         "tool_name": "aero_analysis",

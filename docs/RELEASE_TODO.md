@@ -33,8 +33,10 @@ Do NOT publish without explicit approval — prep to that line and stop.
   module per iteration, with the reference value pinned in a test. Done so far: `compressible.py`
   (NACA 1135 tables + invariants), `nozzle.py` (ideal 1-D cross-check + consistency + monotonicity),
   `buckling.py` (Euler-Johnson cross-check both regimes + tangency invariant σcr=Sy/2 at Cc +
-  monotonicity + `column_buckling_euler`/`_johnson` benchmarks) — **all verified correct**.
-  Remaining: `sections.py`, `aircraft.py` (lift-curve slope, drag polar, Breguet).
+  monotonicity + `column_buckling_euler`/`_johnson` benchmarks), `sections.py` (all 7 shapes vs
+  Roark closed forms incl. composite I-beam/C-channel/T-section parallel-axis; `section_ibeam`/
+  `section_tsection` benchmarks) — **all verified correct**. Remaining: `aircraft.py` (lift-curve
+  slope, drag polar, Breguet), `fundamentals.py`.
 - [x] **P1 — Oblique shock validated & two bugs fixed** *(Done 2026-07-20.)* Table-driven
   validation against Anderson Ch. 9 exposed that `oblique_shock` returned the **strong** root
   (β=79.8° instead of the physical weak 45.3° at M1=2/θ=15°) and silently returned garbage for

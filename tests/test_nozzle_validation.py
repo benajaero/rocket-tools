@@ -61,9 +61,9 @@ class TestNozzleInternalConsistency:
 
     def test_thrust_equals_momentum_plus_pressure(self):
         o = self.out
-        expected = o["mass_flow_rate_kg_s"] * o["exit_velocity_ms"] + (
-            o["exit_pressure_pa"] - PA
-        ) * AE
+        expected = (
+            o["mass_flow_rate_kg_s"] * o["exit_velocity_ms"] + (o["exit_pressure_pa"] - PA) * AE
+        )
         assert o["thrust_n"] == pytest.approx(expected, rel=1e-4)
 
     def test_cf_isp_cstar_relations(self):
