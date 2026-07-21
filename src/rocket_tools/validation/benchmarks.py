@@ -283,6 +283,42 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "dv1=2.4257, dv2=1.4668, total=3.8925 km/s, transfer time 5.275 h"
         ),
     },
+    # ---- Column Buckling (Euler-Johnson) ----
+    "column_buckling_euler": {
+        "tool_name": "column_buckling",
+        "inputs": {
+            "youngs_modulus": 200e9,
+            "area_moment": 1e-8,
+            "area": 1e-3,
+            "length": 2.0,
+            "yield_strength": 250e6,
+            "end_condition": "pinned_pinned",
+        },
+        "expected": {"critical_load_n": 4934.80, "slenderness_ratio": 632.456},
+        "tolerance": 0.005,
+        "reference": (
+            "Timoshenko & Gere, Theory of Elastic Stability, 2nd Ed. Euler regime "
+            "(slenderness 632 > Cc 126): Pcr = pi^2*E*I/(KL)^2 = 4934.8 N."
+        ),
+    },
+    "column_buckling_johnson": {
+        "tool_name": "column_buckling",
+        "inputs": {
+            "youngs_modulus": 69e9,
+            "area_moment": 5e-8,
+            "area": 2e-3,
+            "length": 0.3,
+            "yield_strength": 276e6,
+            "end_condition": "pinned_pinned",
+        },
+        "expected": {"critical_load_n": 350654.54, "critical_stress_mpa": 175.327},
+        "tolerance": 0.005,
+        "reference": (
+            "Shigley's Mechanical Engineering Design, 11th Ed., Eq. 4-46 (J.B. Johnson). "
+            "Inelastic regime (slenderness 60 < Cc 70): "
+            "sigma_cr = Sy - (Sy^2/(4 pi^2 E)) (L/r)^2 = 175.3 MPa; Pcr = 350.65 kN."
+        ),
+    },
     # ---- Section Properties ----
     "section_rectangle": {
         "tool_name": "section_properties",

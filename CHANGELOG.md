@@ -34,6 +34,7 @@ All notable changes to rocket-tools.
   - Tool count: 39 → 43 MCP tools
 
 ### Changed
+- **`column_buckling` validated against Euler-Johnson theory** — cross-checked both regimes vs independent formulas (Timoshenko; Shigley Eq. 4-46), plus the defining tangency invariant (Euler and Johnson meet at σcr=Sy/2 at the transition slenderness) and monotonicity/end-condition checks; added `column_buckling_euler` and `column_buckling_johnson` benchmarks. No discrepancy found.
 - **`nozzle_performance` validated end-to-end** — cross-checked the composite tool (exit Mach, exit conditions, thrust, Cf, Isp, c*, choked mass flow) against an independent ideal 1-D implementation; added consistency/monotonicity/expansion-state tests and a `nozzle_ideal_expansion` regression benchmark. No discrepancy found.
 - **Coverage gate now passes** — added a happy-path smoke test for all 50 computational MCP tools; `server.py` coverage 44% → 79%, total 77% → **82%**, so the `--cov-fail-under=80` CI gate is met (was failing)
 - CI workflow improvements (matrix aligned to 3.11/3.12, lint/format over `tests/`, a build+clean-install `package` job) are prepared and pending a `workflow`-scoped push — see `docs/RELEASE_TODO.md`

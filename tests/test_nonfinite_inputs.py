@@ -15,9 +15,10 @@ from rocket_tools.server import mcp
 INF = float("inf")
 NAN = float("nan")
 
+_DV = {"initial_mass_kg": 10000, "final_mass_kg": 2000}
 CASES = [
-    ("rocket_delta_v", {"specific_impulse_s": INF, "initial_mass_kg": 10000, "final_mass_kg": 2000}),
-    ("rocket_delta_v", {"specific_impulse_s": NAN, "initial_mass_kg": 10000, "final_mass_kg": 2000}),
+    ("rocket_delta_v", {"specific_impulse_s": INF, **_DV}),
+    ("rocket_delta_v", {"specific_impulse_s": NAN, **_DV}),
     ("mach_number", {"velocity": INF, "altitude_m": 0}),
     ("mach_number", {"velocity": -INF, "altitude_m": 0}),
     ("dynamic_pressure", {"velocity": NAN, "altitude_m": 0}),
