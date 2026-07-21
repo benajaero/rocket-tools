@@ -38,6 +38,7 @@ All notable changes to rocket-tools.
 - CI workflow improvements (matrix aligned to 3.11/3.12, lint/format over `tests/`, a build+clean-install `package` job) are prepared and pending a `workflow`-scoped push — see `docs/RELEASE_TODO.md`
 
 ### Security
+- **Non-finite inputs are now rejected everywhere** — a shared `StrictModel` schema base sets `allow_inf_nan=False`, so NaN and ±inf fail validation on every tool with a structured `INVALID_PARAMETER` error naming the field (incl. nested fields like `cross_section.width`). Previously `inf` passed `gt=0` and propagated to an `inf` output (e.g. `rocket_delta_v`).
 - **Hardened the workflow expression evaluator (`safe_eval`)** — it allowed unrestricted attribute access, leaving the classic sandbox-escape surface open (`x.__class__.__bases__[0].__subclasses__`, `__globals__`, and reaching the `_DotDict` internals). Now rejects any private/dunder attribute (name starting with `_`); public tool-output attributes still work. Added adversarial tests.
 
 ### Fixed

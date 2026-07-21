@@ -200,12 +200,13 @@ Do NOT publish without explicit approval — prep to that line and stop.
   reads are the escalation vector). Now rejects any attribute whose name starts with `_`; legit
   public tool-output attributes still resolve. Added adversarial tests (dunder + private).
   Confirmed already-blocked: function calls, imports, lambdas/comprehensions. Suite → 478.
-- [ ] **P1 — Reject non-finite inputs at the schema boundary.** Discovered 2026-07-21: `inf`
-  passes Pydantic `gt=0` (inf > 0 is True), so e.g. `rocket_delta_v(specific_impulse_s=inf,...)`
-  returns `delta_v_ms: inf` instead of an error. NaN is caught (nan>0 is False) but inconsistently.
-  Fix: a shared input base with `model_config = ConfigDict(allow_inf_nan=False)` so every float
-  field rejects NaN/inf uniformly as `INVALID_PARAMETER`. Also unify the ad-hoc "must be finite"
-  ValueErrors (currently surface as INTERNAL_ERROR). Systematic test across all tools.
+- [x] **P1 — Reject non-finite inputs at the schema boundary.** *(Done 2026-07-21.)* Added
+  `schemas/base.py::StrictModel` (`allow_inf_nan=False`) and reparented all 69 schema models to it.
+  NaN/±inf now fail validation on every tool as `INVALID_PARAMETER` with the field named, including
+  nested fields (`cross_section.width`). Verified across rocket_delta_v, mach_number, beam_analysis
+  (nested), hohmann_transfer, etc.; valid finite inputs unaffected. 10-case regression test; suite
+  → 488. (The library's ad-hoc "must be finite" ValueErrors are now redundant for the MCP path —
+  the schema catches first — but kept as defense-in-depth for direct Python-API callers.)
 - [ ] **P2 — Input hardening at tool boundary:** negative/zero where physical, extreme
   magnitudes → structured errors, never crashes or silent NaNs. (NaN/inf covered above.)
 - [ ] **P2 — ASGI server hardening:** request size limits, error handling on `/`, `/health`,

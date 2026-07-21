@@ -1,9 +1,11 @@
 """Pydantic schemas for materials and atmosphere tools."""
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from rocket_tools.schemas.base import StrictModel
 
 
-class MaterialLookupInput(BaseModel):
+class MaterialLookupInput(StrictModel):
     """Input for material_lookup tool."""
 
     name: str = Field(..., min_length=1, description="Material name, e.g. 6061-T6")
@@ -16,7 +18,7 @@ class MaterialLookupInput(BaseModel):
     )
 
 
-class MaterialLookupOutput(BaseModel):
+class MaterialLookupOutput(StrictModel):
     """Output from material_lookup tool."""
 
     material_name: str
@@ -35,7 +37,7 @@ class MaterialLookupOutput(BaseModel):
     warning: str | None = None
 
 
-class ISAAtmosphereInput(BaseModel):
+class ISAAtmosphereInput(StrictModel):
     """Input for isa_atmosphere tool."""
 
     altitude_m: float = Field(
@@ -46,7 +48,7 @@ class ISAAtmosphereInput(BaseModel):
     )
 
 
-class ISAAtmosphereOutput(BaseModel):
+class ISAAtmosphereOutput(StrictModel):
     """Output from isa_atmosphere tool."""
 
     altitude_m: float

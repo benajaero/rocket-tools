@@ -1,9 +1,11 @@
 """Pydantic schemas for utility tools."""
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from rocket_tools.schemas.base import StrictModel
 
 
-class UnitConvertInput(BaseModel):
+class UnitConvertInput(StrictModel):
     """Input for unit_convert tool."""
 
     value: float = Field(..., description="Value to convert")
@@ -11,7 +13,7 @@ class UnitConvertInput(BaseModel):
     to_unit: str = Field(..., min_length=1, description="Target unit")
 
 
-class CiteToolInput(BaseModel):
+class CiteToolInput(StrictModel):
     """Input for cite_tool provenance lookup."""
 
     tool_name: str = Field(
@@ -21,7 +23,7 @@ class CiteToolInput(BaseModel):
     )
 
 
-class PropagateUncertaintyInput(BaseModel):
+class PropagateUncertaintyInput(StrictModel):
     """Input for propagate_uncertainty tool."""
 
     tool_name: str = Field(
@@ -44,7 +46,7 @@ class PropagateUncertaintyInput(BaseModel):
     )
 
 
-class ValidateResultInput(BaseModel):
+class ValidateResultInput(StrictModel):
     """Input for validate_result self-check tool."""
 
     benchmark_name: str = Field(
@@ -55,7 +57,7 @@ class ValidateResultInput(BaseModel):
     result: dict = Field(..., description="A tool's output dict to compare against the benchmark")
 
 
-class ParameterSweepInput(BaseModel):
+class ParameterSweepInput(StrictModel):
     """Input for parameter_sweep trade-study tool."""
 
     tool_name: str = Field(..., min_length=1, description="Computational tool to sweep")
@@ -68,7 +70,7 @@ class ParameterSweepInput(BaseModel):
     )
 
 
-class UnitConvertOutput(BaseModel):
+class UnitConvertOutput(StrictModel):
     """Output from unit_convert tool."""
 
     original_value: float
