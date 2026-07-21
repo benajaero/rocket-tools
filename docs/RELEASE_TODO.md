@@ -30,9 +30,11 @@ Do NOT publish without explicit approval — prep to that line and stop.
   All reference strings corrected to show the true arithmetic. Verified: `mypy` clean, tool
   outputs now match every corrected value.
 - [ ] **P1 — Independent re-derivation of every physics tool** against its cited source, one
-  module per iteration, with the reference value pinned in a test. Priority order by coverage
-  gap: `compressible.py` (51%), `sections.py` (53%), `nozzle.py` (66%), `buckling.py` (68%),
-  `beams.py` (71%), `aircraft.py` (75%), `fundamentals.py` (77%).
+  module per iteration, with the reference value pinned in a test. Done so far: `compressible.py`
+  (NACA 1135 tables + invariants), `nozzle.py` (ideal 1-D cross-check + consistency + monotonicity
+  + `nozzle_ideal_expansion` benchmark — **verified correct**). Remaining: `sections.py`,
+  `buckling.py` (Euler-Johnson vs Timoshenko), `aircraft.py` (lift-curve slope, drag polar,
+  Breguet).
 - [x] **P1 — Oblique shock validated & two bugs fixed** *(Done 2026-07-20.)* Table-driven
   validation against Anderson Ch. 9 exposed that `oblique_shock` returned the **strong** root
   (β=79.8° instead of the physical weak 45.3° at M1=2/θ=15°) and silently returned garbage for

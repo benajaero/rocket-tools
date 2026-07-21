@@ -220,6 +220,30 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "c* = sqrt(R*Tc)/Gamma; Tc=3500 K, gamma=1.22, M=23.3 kg/kmol -> 1713.0 m/s"
         ),
     },
+    # ---- Nozzle (ideal 1-D) ----
+    "nozzle_ideal_expansion": {
+        "tool_name": "nozzle_performance",
+        "inputs": {
+            "chamber_pressure_pa": 7.0e6,
+            "chamber_temperature_k": 3500.0,
+            "ambient_pressure_pa": 101325.0,
+            "throat_area_m2": 0.01,
+            "exit_area_m2": 0.08,
+            "gamma": 1.22,
+            "molecular_weight": 23.3,
+        },
+        "expected": {
+            "exit_mach": 3.1725,
+            "thrust_coefficient_cf": 1.5873,
+            "exit_pressure_pa": 112223.83,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Ideal 1-D compressible nozzle flow (Sutton & Biblarz Ch. 3; Anderson Ch. 4). "
+            "Area ratio Ae/At=8, gamma=1.22: area-Mach relation gives Me=3.1725; the "
+            "thrust coefficient Cf=1.587 and exit pressure ratio follow (both independent of R)."
+        ),
+    },
     # ---- Aerothermodynamics ----
     "stagnation_temperature_mach3": {
         "tool_name": "stagnation_temperature",
