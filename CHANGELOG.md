@@ -4,6 +4,20 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-07-25
+
+### Fixed
+- **Python 3.13 support** — widened `requires-python` from `<3.13` to `<3.14` and added the 3.13 classifier and CI leg. `pip install rocket-tools` previously failed outright on Python 3.13; the full suite now passes on 3.13 (numba 0.66, numpy 2.4).
+- **Correct MCP launch command in the docs** — the README said to run `rocket-tools` to start the server, but the server is `rocket-tools serve`; bare `rocket-tools` only prints help. Fixed, and added a copy-paste `claude_desktop_config.json` block (pip and `uvx` variants) so adding it to Claude Desktop is a paste, not a puzzle.
+- **The README quickstart actually runs now** — the headline Python example had drifted from the real API in nine places (`ns['mach2']`→`mach_downstream`, `import convert`→`unit_convert` returning a dict, the `m_s`→`m/s` unit, `section_properties("ibeam", width=...)`→`flange_width`, `buckling['failure_mode']`→`regime`, the oblique-shock angle key, and wrong kwargs on `rocket_delta_v`/`orbital_velocity`/`propellant_tank_sizing`). Every runnable code block now executes.
+
+### Added
+- **`examples/`** — runnable `quickstart.py` and `ascent_and_sizing.py` scripts.
+- **`tests/test_readme_examples.py`** — executes every self-contained README code block and the example scripts in CI, so the docs cannot silently rot again.
+
+### Changed
+- Updated the agent-facing MCP tool manifest (was "35 tools", now 68) with the trajectory, optimization, visualization, and standards tools.
+
 ## [0.4.0] — 2026-07-24
 
 ### Added

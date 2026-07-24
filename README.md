@@ -2,7 +2,7 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-603%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-609%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
@@ -90,7 +90,7 @@ from rocket_tools.design import (
     rocket_delta_v, multi_stage_delta_v, orbital_velocity,
     payload_fraction, propellant_tank_sizing
 )
-from rocket_tools.utils.units import convert
+from rocket_tools.utils.units import unit_convert
 
 # --- Structural: design a beam ---
 mat = material_lookup("6061-T6")
@@ -106,7 +106,7 @@ print(f"Deflection: {beam['max_deflection_m']*1000:.2f} mm")
 print(f"Bending stress: {beam['bending_stress_pa']/1e6:.1f} MPa")
 
 # --- Cross-section properties ---
-section = section_properties("ibeam", width=0.1, height=0.2, flange_thickness=0.01, web_thickness=0.008)
+section = section_properties("ibeam", flange_width=0.1, height=0.2, flange_thickness=0.01, web_thickness=0.008)
 print(f"Ixx = {section['i_xx_m4']:.2e} m⁴")
 
 # --- Column buckling ---
@@ -118,7 +118,7 @@ buckling = column_buckling(
     yield_strength=mat["yield_strength_mpa"] * 1e6,
     end_condition="pinned-pinned",
 )
-print(f"Critical load: {buckling['critical_load_n']:.0f} N ({buckling['failure_mode']})")
+print(f"Critical load: {buckling['critical_load_n']:.0f} N ({buckling['regime']})")
 
 # --- Materials: compare alloys for a rocket tank ---
 comparison = compare_materials(["2219-T87", "Ti-6Al-4V", "2195"])
@@ -143,30 +143,29 @@ iso = isentropic_flow(mach=2.5, gamma=1.4)
 print(f"P/P0 = {iso['pressure_ratio']:.4f}, T/T0 = {iso['temperature_ratio']:.4f}")
 
 ns = normal_shock(mach1=2.5, gamma=1.4)
-print(f"Downstream Mach = {ns['mach2']:.3f}, P2/P1 = {ns['pressure_ratio']:.3f}")
+print(f"Downstream Mach = {ns['mach_downstream']:.3f}, P2/P1 = {ns['pressure_ratio']:.3f}")
 
 os = oblique_shock(mach1=2.5, deflection_deg=10, gamma=1.4)
-print(f"Weak shock angle = {os['weak_shock_wave_angle_deg']:.1f}°")
+print(f"Weak shock angle = {os['wave_angle_deg']:.1f}°")
 
 # --- Rocket mission design ---
-dv = rocket_delta_v(isp_s=320, mass_fraction=0.85)
-print(f"Single-stage ΔV = {dv:.0f} m/s")
+dv = rocket_delta_v(specific_impulse_s=320, initial_mass_kg=10000, final_mass_kg=2000)
+print(f"Single-stage ΔV = {dv['delta_v_ms']:.0f} m/s")
 
-orb = orbital_velocity(altitude_m=400e3, planet="earth")
-print(f"Circular orbit at 400 km: {orb['circular_velocity_m_s']:.0f} m/s")
+orb = orbital_velocity(altitude_m=400e3)  # Earth by default
+print(f"Circular orbit at 400 km: {orb['circular_velocity_ms']:.0f} m/s")
 
 tank = propellant_tank_sizing(
     propellant_volume_m3=5.0,
     tank_shape="cylinder",
-    material="Ti-6Al-4V",
-    safety_factor=1.5,
+    material_density_kg_m3=4430.0,  # Ti-6Al-4V
 )
 print(f"Tank mass: {tank['tank_mass_kg']:.1f} kg")
 
-# --- Units: convert anything ---
-convert(14.7, "psi", "Pa")      # 101352.9...
-convert(68, "F", "C")           # 20.0
-convert(100, "mph", "m_s")      # 44.704
+# --- Units: convert anything (returns a dict; take converted_value) ---
+unit_convert(14.7, "psi", "Pa")["converted_value"]    # 101352.9...
+unit_convert(68, "F", "C")["converted_value"]         # 20.0
+unit_convert(100, "mph", "m/s")["converted_value"]    # 44.704
 ```
 
 **Key concepts:**
@@ -258,12 +257,40 @@ Interpolation supports arithmetic (`${re.reynolds_number / 1000}`) and cross-ste
 Expose all tools to AI agents via the [Model Context Protocol](https://modelcontextprotocol.io/):
 
 ```bash
-# Stdio transport (for Claude Desktop, etc.)
-rocket-tools
+# Start the MCP server over stdio (for Claude Desktop, Claude Code, etc.)
+rocket-tools serve
 
-# SSE transport (for web clients)
+# Or serve over SSE for web clients
 uvicorn rocket_tools.asgi:app --host 0.0.0.0 --port 8000
 ```
+
+**Add it to Claude Desktop.** Put this in `claude_desktop_config.json`, then restart Claude:
+
+```json
+{
+  "mcpServers": {
+    "rocket-tools": {
+      "command": "rocket-tools",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Prefer a zero-install setup? Use [uv](https://docs.astral.sh/uv/) and skip the `pip install`:
+
+```json
+{
+  "mcpServers": {
+    "rocket-tools": {
+      "command": "uvx",
+      "args": ["rocket-tools", "serve"]
+    }
+  }
+}
+```
+
+The config file lives at `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows).
 
 The ASGI app exposes:
 - `GET /sse` — MCP Server-Sent Events endpoint
@@ -286,7 +313,7 @@ docker run -p 8000:8000 rocket-tools
 
 ```
 rocket_tools/
-├── schemas/        # Pydantic models for all 30 tool inputs/outputs
+├── schemas/        # Pydantic models for every tool's inputs/outputs
 ├── utils/          # Units, validation, caching, safe_eval
 ├── materials/      # 49+ materials + ISA atmosphere
 ├── structural/     # Beam mechanics, section properties, buckling (Numba JIT)
@@ -377,7 +404,8 @@ Apache-2.0 — See [LICENSE](LICENSE)
 
 ### MCP Tool Manifest
 
-This repository exposes 35 tools via FastMCP:
+This repository exposes 68 tools via FastMCP. The key ones by domain are below; for the
+complete, always-current list run `rocket-tools tools`.
 
 #### Structural Analysis
 | Tool | Schema | Description |
@@ -437,6 +465,34 @@ This repository exposes 35 tools via FastMCP:
 | `thrust_to_weight` | `ThrustToWeightInput` | Thrust-to-weight ratio with hover/climb capability |
 | `composite_cg` | `CompositeCGInput` | Center of gravity and mass moments for composite bodies |
 | `propellant_tank_sizing` | `PropellantTankSizingInput` | Tank mass, wall thickness, and dimensions for cylinder/sphere/ellipsoid |
+
+#### Trajectory & Vehicle Sizing
+| Tool | Schema | Description |
+|------|--------|-------------|
+| `simulate_ascent` | `AscentSimInput` | RK4 ascent through the ISA atmosphere; burnout, apogee, max-q, g-load, time-series |
+| `size_vehicle` | `VehicleSizingInput` | Preliminary mass sizing from a ΔV budget (chains rocket equation, T/W, tank sizing) |
+
+#### Optimization
+| Tool | Schema | Description |
+|------|--------|-------------|
+| `optimize_staging` | `StagingOptimizerInput` | Payload-maximizing ΔV split across stages (Lagrange multiplier) |
+| `optimize_design` | `DesignOptimizerInput` | Golden-section optimize any output of any tool over one variable |
+
+#### Visualization (optional `viz` extra)
+| Tool | Schema | Description |
+|------|--------|-------------|
+| `plot_beam_diagrams` | `BeamDiagramInput` | Shear/moment/deflection diagrams (base64 PNG + data, or native MCP image) |
+| `plot_drag_polar` | `DragPolarPlotInput` | Drag polar and L/D curve |
+| `plot_nozzle_contour` | `NozzleContourInput` | Convergent-divergent nozzle wall contour |
+| `plot_isa_profile` | `ISAProfileInput` | Temperature, pressure, and density vs altitude |
+| `plot_trajectory` | `TrajectoryPlotInput` | Altitude, velocity, dynamic pressure, and g-load vs time |
+
+#### Standards & Reliability
+| Tool | Schema | Description |
+|------|--------|-------------|
+| `design_review_report` | `DesignReviewInput` | Margin-of-safety rollup with the governing margin and a PASS/FAIL verdict |
+| `fmea_report` | `FMEAInput` | Rank failure modes by RPN = Severity × Occurrence × Detection |
+| `list_standards` | — | Catalog of referenced aerospace design standards |
 
 #### Materials & Utilities
 | Tool | Schema | Description |

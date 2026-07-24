@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rocket-tools"
-version = "0.4.0"
+version = "0.4.1"
 description = "Aerospace engineering calculations for Python, CLI, and MCP agents"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 keywords = ["aerospace", "engineering", "mcp", "aerodynamics", "structural-analysis"]
 authors = [
     {name = "Human Engine Labs", email = "engineering@humanengine.dev"}
@@ -21,6 +21,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering",
     "Typing :: Typed",
