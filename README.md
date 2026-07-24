@@ -2,7 +2,7 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-575%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-603%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
@@ -32,13 +32,13 @@ print(f"Inconel-718 yield strength: {mat['yield_strength_mpa']:.0f} MPa")
 
 ## What is This?
 
-**rocket-tools** is a Python library that gives you fast, precise aerospace engineering calculations — from beam deflection to atmospheric properties to material trade studies. It is built for three kinds of people:
+**rocket-tools** is a Python library of fast aerospace engineering calculations, covering areas like beam deflection, atmospheric properties, material trade studies, and ascent trajectories. It is built for three kinds of people:
 
-- **Hobbyists & students** designing rockets, drones, or aircraft in Python
-- **Propulsion & structures engineers** who need reliable numbers without opening a full FEM suite
-- **AI-agent builders** who want engineering tools exposed through the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP)
+- Hobbyists and students designing rockets, drones, or aircraft in Python
+- Propulsion and structures engineers who need reliable numbers without opening a full FEM suite
+- AI-agent builders who want engineering tools exposed through the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP)
 
-Unlike monolithic engineering suites, rocket-tools is **composable**: each tool is self-contained, validated, and fast enough to call thousands of times per second. Use one function or chain them into full design reviews.
+Each tool is self-contained and validated against a published reference, and fast enough to call thousands of times per second. You can use one function on its own or chain several into a design review.
 
 ---
 
@@ -323,12 +323,14 @@ Each skill includes formulas, MCP tool cross-references, worked Python examples,
 
 ## Roadmap
 
-| Phase | Status | Features |
-|-------|--------|----------|
-| **Phase 1** | ✅ Complete | Core tools, tests, benchmarks, skills |
-| **Phase 2** | ✅ Mostly Complete | Router (11 intents), workflows, session memory, uncertainty propagation, structural & aerodynamic expansion |
-| **Phase 3** | 📋 Planned | Visual intelligence (plots/diagrams), design optimization, standards compliance |
-| **Phase 4** | 📋 Planned | Knowledge graph, FMEA, multi-agent sessions, plugin architecture |
+Done through 0.4.0: the core tool set with tests and benchmarks, the natural-language router, YAML workflows, uncertainty propagation, and provenance. Version 0.4.0 added ascent trajectory simulation and vehicle sizing, the visualization tools, optimal staging and a general design optimizer, and the standards and reliability reports (design review, FMEA).
+
+Planned next:
+
+- Native acceleration wheels (Rust/PyO3 via maturin) with a pure-Python fallback, so the fast path installs without a build step.
+- Adaptive-step and multi-stage trajectory integration, plus a 3-DOF option.
+- Finish the reference re-derivation of the remaining aircraft-aerodynamics tools and tighten the ISA tolerance bands.
+- An optional LLM-backed router as an alternative to the current regex intent classifier.
 
 ---
 
