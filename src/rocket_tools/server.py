@@ -1467,13 +1467,21 @@ def thrust_to_weight(thrust_n: float, mass_kg: float, gravity: float = 9.80665) 
 
 
 @mcp.tool()
-def composite_cg(masses: list[float], positions: list[list[float]]) -> dict:
-    """Compute center of gravity and mass moments for composite body."""
+def composite_cg(
+    masses: list[float],
+    positions: list[list[float]],
+    inertias: list[list[float]] | None = None,
+) -> dict:
+    """Compute center of gravity and mass moments of inertia for a composite body.
+
+    Pass `inertias` (each component's own [Ixx,Iyy,Izz,Ixy,Ixz,Iyz] about its CG) for a
+    correct roll/pitch inertia of slender bodies; omit it to treat components as point masses.
+    """
     from rocket_tools.design import composite_cg as _ccg
 
     try:
-        validated = CompositeCGInput(masses=masses, positions=positions)
-        return _ccg(validated.masses, validated.positions)
+        validated = CompositeCGInput(masses=masses, positions=positions, inertias=inertias)
+        return _ccg(validated.masses, validated.positions, validated.inertias)
     except Exception as e:
         return _format_error(e)
 
@@ -1486,26 +1494,39 @@ def propellant_tank_sizing(
     aspect_ratio: float = 2.0,
     wall_thickness_m: float = 0.003,
     material_density_kg_m3: float = 2700.0,
+    design_pressure_pa: float | None = None,
+    material_yield_pa: float | None = None,
+    safety_factor: float = 1.5,
 ) -> dict:
-    """Size propellant tank and estimate mass."""
+    """Size a propellant tank and estimate mass (hemispherical domes; hoop-stress wall sizing).
+
+    Provide design_pressure_pa (MEOP) and material_yield_pa to size the wall from hoop stress
+    (t = P*r*SF/sigma_y); otherwise wall_thickness_m is used as given.
+    """
     from rocket_tools.design import propellant_tank_sizing as _pts
 
     try:
-        validated = PropellantTankSizingInput(
+        v = PropellantTankSizingInput(
             propellant_volume_m3=propellant_volume_m3,
             ullage_fraction=ullage_fraction,
             tank_shape=tank_shape,
             aspect_ratio=aspect_ratio,
             wall_thickness_m=wall_thickness_m,
             material_density_kg_m3=material_density_kg_m3,
+            design_pressure_pa=design_pressure_pa,
+            material_yield_pa=material_yield_pa,
+            safety_factor=safety_factor,
         )
         return _pts(
-            validated.propellant_volume_m3,
-            validated.ullage_fraction,
-            validated.tank_shape,
-            validated.aspect_ratio,
-            validated.wall_thickness_m,
-            validated.material_density_kg_m3,
+            v.propellant_volume_m3,
+            v.ullage_fraction,
+            v.tank_shape,
+            v.aspect_ratio,
+            v.wall_thickness_m,
+            v.material_density_kg_m3,
+            v.design_pressure_pa,
+            v.material_yield_pa,
+            v.safety_factor,
         )
     except Exception as e:
         return _format_error(e)

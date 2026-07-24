@@ -117,6 +117,10 @@ def simulate_ascent(
 
     # --- Apogee: peak altitude ---
     ap_i = int(np.argmax(h))
+    # If the peak is the last sample, the vehicle never came back down within max_time
+    # (still ascending, e.g. it reached orbital energy). Then apogee_m is only a lower
+    # bound, not the true apogee, so flag it instead of silently reporting the cutoff.
+    apogee_reached = ap_i < len(h) - 1
     ideal_dv = specific_impulse_s * G0 * math.log(initial_mass_kg / dry_mass_kg)
     max_q_i = int(np.argmax(q))
     max_a_i = int(np.argmax(a))
@@ -137,6 +141,7 @@ def simulate_ascent(
         },
         "apogee_m": round(float(h[ap_i]), 2),
         "apogee_km": round(float(h[ap_i]) / 1000.0, 4),
+        "apogee_reached": apogee_reached,
         "burnout_velocity_ms": round(float(bo_v), 2),
         "burnout_altitude_m": round(float(bo_h), 2),
         "burnout_time_s": round(float(bo_t), 3),

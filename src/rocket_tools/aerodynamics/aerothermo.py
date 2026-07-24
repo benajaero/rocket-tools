@@ -38,12 +38,22 @@ def stagnation_temperature(static_temperature_k: float, mach: float, gamma: floa
 
     ratio = 1.0 + 0.5 * (gamma - 1.0) * mach**2
     t0 = static_temperature_k * ratio
-    return {
+    # Above ~M5 the calorically-perfect-gas assumption breaks down: real air dissociates
+    # and ionizes, so the true stagnation temperature is well below this ideal value.
+    perfect_gas_valid = mach <= 5.0
+    result: dict = {
         "stagnation_temperature_k": round(float(t0), 3),
         "static_temperature_k": static_temperature_k,
         "temperature_ratio": round(float(ratio), 5),
         "mach": mach,
+        "perfect_gas_valid": perfect_gas_valid,
     }
+    if not perfect_gas_valid:
+        result["note"] = (
+            "M > 5: calorically-perfect-gas T0 overestimates the real (dissociating) "
+            "stagnation temperature; use a real-gas/equilibrium model."
+        )
+    return result
 
 
 def recovery_temperature(

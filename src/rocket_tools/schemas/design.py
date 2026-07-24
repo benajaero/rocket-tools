@@ -100,6 +100,10 @@ class CompositeCGInput(StrictModel):
 
     masses: list[float] = Field(..., description="Component masses in kg")
     positions: list[list[float]] = Field(..., description="Component positions [x, y, z] in m")
+    inertias: list[list[float]] | None = Field(
+        default=None,
+        description="Optional per-component own inertia [Ixx,Iyy,Izz,Ixy,Ixz,Iyz] in kg.m^2",
+    )
 
 
 class PropellantTankSizingInput(StrictModel):
@@ -111,3 +115,12 @@ class PropellantTankSizingInput(StrictModel):
     aspect_ratio: float = Field(default=2.0, gt=0)
     wall_thickness_m: float = Field(default=0.003, gt=0)
     material_density_kg_m3: float = Field(default=2700.0, gt=0)
+    design_pressure_pa: float | None = Field(
+        default=None,
+        gt=0,
+        description="Max expected operating pressure; enables hoop-stress sizing",
+    )
+    material_yield_pa: float | None = Field(
+        default=None, gt=0, description="Material yield strength for hoop-stress sizing"
+    )
+    safety_factor: float = Field(default=1.5, gt=0, description="Factor of safety on pressure")

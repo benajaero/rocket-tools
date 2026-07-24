@@ -96,7 +96,7 @@ def nozzle_performance(
     if exit_area_m2 < throat_area_m2:
         raise ValueError("exit_area must be >= throat_area")
 
-    r_specific = 8314.0 / molecular_weight  # J/(kg·K)
+    r_specific = 8314.462 / molecular_weight  # J/(kg.K), universal R unified across modules
     g1 = (gamma + 1.0) / 2.0
 
     # Throat conditions (sonic)
