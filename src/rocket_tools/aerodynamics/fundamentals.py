@@ -218,7 +218,6 @@ def drag_coefficient(
     }
 
 
-
 def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "laminar") -> dict:
     _require_finite(reynolds_number, "Reynolds number")
     normalized_regime = flow_regime.lower()

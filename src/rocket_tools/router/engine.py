@@ -29,9 +29,7 @@ def classify_intent(query: str) -> list[tuple[str, float]]:
     scores = []
     query_lower = query.lower()
     for tool_name, config in INTENT_REGISTRY.items():
-        matched_patterns = [
-            p for p in config.patterns if re.search(p, query_lower, re.IGNORECASE)
-        ]
+        matched_patterns = [p for p in config.patterns if re.search(p, query_lower, re.IGNORECASE)]
         score = 1.0 if matched_patterns else 0.0
         # Reward queries that contain multiple relevant keywords for the tool.
         if len(matched_patterns) > 1:
