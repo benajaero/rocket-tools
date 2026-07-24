@@ -111,7 +111,7 @@ class SkinFrictionInput(StrictModel):
     """Input for skin_friction_coefficient tool."""
 
     reynolds_number: float = Field(..., gt=0, description="Reynolds number")
-    flow_regime: Literal["laminar", "turbulent"] = Field(
+    flow_regime: Literal["laminar", "transitional", "turbulent"] = Field(
         default="laminar", description="Flow regime for correlation selection"
     )
 
@@ -215,6 +215,13 @@ class DragPolarInput(StrictModel):
     aspect_ratio: float = Field(..., gt=0, description="Wing aspect ratio")
     oswald_efficiency: float = Field(default=0.85, gt=0, le=1.0)
     mach: float = Field(default=0.0, ge=0, description="Mach number")
+    thickness_to_chord: float = Field(
+        default=0.12, gt=0, lt=1.0, description="Airfoil thickness-to-chord ratio (for wave drag)"
+    )
+    sweep_deg: float = Field(default=0.0, ge=0, lt=90, description="Quarter-chord sweep in degrees")
+    technology_factor: float = Field(
+        default=0.87, gt=0, le=1.0, description="Korn kappa (0.87 conventional, 0.95 supercritical)"
+    )
 
 
 class BreguetRangeInput(StrictModel):

@@ -937,24 +937,33 @@ def drag_polar(
     aspect_ratio: float,
     oswald_efficiency: float = 0.85,
     mach: float = 0.0,
+    thickness_to_chord: float = 0.12,
+    sweep_deg: float = 0.0,
+    technology_factor: float = 0.87,
 ) -> dict:
-    """Compute drag coefficient from drag polar equation CD = CD0 + K*CL^2."""
+    """Drag coefficient CD = CD0 + K*CL^2 + wave drag (Korn drag-divergence)."""
     from rocket_tools.aerodynamics import drag_polar as _dp
 
     try:
-        validated = DragPolarInput(
+        v = DragPolarInput(
             cl=cl,
             cd0=cd0,
             aspect_ratio=aspect_ratio,
             oswald_efficiency=oswald_efficiency,
             mach=mach,
+            thickness_to_chord=thickness_to_chord,
+            sweep_deg=sweep_deg,
+            technology_factor=technology_factor,
         )
         return _dp(
-            validated.cl,
-            validated.cd0,
-            validated.aspect_ratio,
-            validated.oswald_efficiency,
-            validated.mach,
+            v.cl,
+            v.cd0,
+            v.aspect_ratio,
+            v.oswald_efficiency,
+            v.mach,
+            v.thickness_to_chord,
+            v.sweep_deg,
+            v.technology_factor,
         )
     except Exception as e:
         return _format_error(e)

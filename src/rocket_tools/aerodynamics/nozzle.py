@@ -65,13 +65,15 @@ def nozzle_performance(
     ambient_pressure_pa: float,
     throat_area_m2: float,
     exit_area_m2: float,
-    gamma: float = GAMMA,
-    molecular_weight: float = 28.97,
+    gamma: float = 1.2,
+    molecular_weight: float = 22.0,
 ) -> dict:
     """Analyze rocket nozzle performance.
 
     Computes thrust, thrust coefficient, specific impulse, and exit conditions
-    for a convergent-divergent (De Laval) nozzle.
+    for a convergent-divergent (De Laval) nozzle. Overexpanded flow separation is
+    modeled with the Summerfield criterion so sea-level firing of a vacuum-optimized
+    nozzle no longer reports unphysical attached supersonic flow.
 
     Args:
         chamber_pressure_pa: Combustion chamber total pressure (Pa)
@@ -79,8 +81,9 @@ def nozzle_performance(
         ambient_pressure_pa: Ambient/back pressure (Pa)
         throat_area_m2: Nozzle throat area (m²)
         exit_area_m2: Nozzle exit area (m²)
-        gamma: Ratio of specific heats (default 1.4 for air)
-        molecular_weight: Exhaust gas molecular weight (kg/kmol, default 28.97 for air)
+        gamma: Ratio of specific heats (default 1.2, typical combustion gas; use 1.4 for air)
+        molecular_weight: Exhaust gas molecular weight (kg/kmol, default 22 for rocket
+            exhaust; use 28.97 for air)
 
     Returns:
         dict with thrust_n, thrust_coefficient, specific_impulse_s,
@@ -133,13 +136,49 @@ def nozzle_performance(
         chamber_pressure_pa / ambient_pressure_pa if ambient_pressure_pa > 0.0 else np.inf
     )
 
-    # Over/under-expanded check
-    if abs(exit_pressure - ambient_pressure_pa) / ambient_pressure_pa < 0.05:
+    # Choked-flow check: the sonic-throat analysis requires choked flow, i.e. the
+    # chamber/ambient pressure ratio above the critical ratio.
+    critical_pr = g1 ** (gamma / (gamma - 1.0))
+    choked = ambient_pressure_pa <= 0.0 or pressure_ratio >= critical_pr
+
+    # Over/under-expanded state (guards the vacuum case, which previously divided by zero).
+    if ambient_pressure_pa <= 0.0:
+        expansion_state = "vacuum"
+    elif abs(exit_pressure - ambient_pressure_pa) / ambient_pressure_pa < 0.05:
         expansion_state = "optimal"
     elif exit_pressure > ambient_pressure_pa:
         expansion_state = "underexpanded"
     else:
         expansion_state = "overexpanded"
+
+    # Overexpansion separation (Summerfield criterion): if the ideal exit pressure drops
+    # below ~40% of ambient, the flow separates in the divergent section and the nozzle
+    # effectively exits at the separation point (p ~ p_sep, smaller area). Reporting the
+    # attached-flow result would give a large, wrong negative pressure thrust, so recompute
+    # exit conditions and thrust at the separation point.
+    flow_separated = False
+    separation_ratio = 0.4
+    if ambient_pressure_pa > 0.0 and exit_pressure < separation_ratio * ambient_pressure_pa:
+        p_sep = separation_ratio * ambient_pressure_pa
+        m_sep = np.sqrt(
+            (2.0 / (gamma - 1.0)) * ((chamber_pressure_pa / p_sep) ** ((gamma - 1.0) / gamma) - 1.0)
+        )
+        a_sep_ratio = (1.0 / m_sep) * (
+            (2.0 / (gamma + 1.0)) * (1.0 + (gamma - 1.0) / 2.0 * m_sep**2)
+        ) ** ((gamma + 1.0) / (2.0 * (gamma - 1.0)))
+        a_eff = a_sep_ratio * throat_area_m2
+        if a_eff < exit_area_m2:
+            flow_separated = True
+            expansion_state = "overexpanded_separated"
+            exit_mach = m_sep
+            exit_pressure = p_sep
+            exit_temperature = chamber_temperature_k * _isentropic_t_ratio(m_sep, gamma)
+            exit_velocity = m_sep * np.sqrt(gamma * r_specific * exit_temperature)
+            momentum_thrust = mass_flow * exit_velocity
+            pressure_thrust = (p_sep - ambient_pressure_pa) * a_eff
+            total_thrust = momentum_thrust + pressure_thrust
+            cf = total_thrust / (chamber_pressure_pa * throat_area_m2)
+            isp = total_thrust / (mass_flow * 9.80665) if mass_flow > 0.0 else 0.0
 
     return {
         "thrust_n": round(total_thrust, 2),
@@ -160,6 +199,8 @@ def nozzle_performance(
         "area_ratio": round(area_ratio, 4),
         "pressure_ratio": round(pressure_ratio, 2) if pressure_ratio != np.inf else None,
         "expansion_state": expansion_state,
+        "flow_separated": flow_separated,
+        "choked": choked,
         "gamma": gamma,
         "molecular_weight": molecular_weight,
     }

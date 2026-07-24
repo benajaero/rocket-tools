@@ -44,7 +44,9 @@ class TestNozzlePerformance:
             gamma=1.2,
             molecular_weight=20.0,
         )
-        assert result["expansion_state"] == "overexpanded"
+        # Heavily overexpanded (AR=20 at sea level) -> the flow separates.
+        assert result["expansion_state"].startswith("overexpanded")
+        assert result["flow_separated"] is True
 
     def test_invalid(self):
         with pytest.raises(ValueError):

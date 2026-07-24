@@ -221,8 +221,10 @@ def drag_coefficient(
 def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "laminar") -> dict:
     _require_finite(reynolds_number, "Reynolds number")
     normalized_regime = flow_regime.lower()
-    if normalized_regime not in ("laminar", "turbulent"):
-        raise ValueError("Flow regime must be one of: laminar, turbulent")
+    if normalized_regime not in ("laminar", "transitional", "turbulent"):
+        raise ValueError("Flow regime must be one of: laminar, transitional, turbulent")
+    # Transitional flow uses the (higher, conservative) turbulent correlation, so the
+    # `transitional` label that aero_analysis emits no longer crashes this call.
     laminar = normalized_regime == "laminar"
     cf = _skin_friction_coefficient(reynolds_number, laminar)
     return {
