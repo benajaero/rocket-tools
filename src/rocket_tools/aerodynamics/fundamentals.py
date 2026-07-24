@@ -40,7 +40,7 @@ def _lift_coefficient(lift: float, rho: float, v: float, s: float) -> float:
     q = _dynamic_pressure(rho, v)
     if q <= 0.0 or s <= 0.0:
         raise ValueError("Dynamic pressure and area must be > 0")
-    return lift / (q * s)  # type: ignore[no-any-return]
+    return float(lift / (q * s))
 
 
 @njit(cache=True)
@@ -48,7 +48,7 @@ def _drag_coefficient(drag: float, rho: float, v: float, s: float) -> float:
     q = _dynamic_pressure(rho, v)
     if q <= 0.0 or s <= 0.0:
         raise ValueError("Dynamic pressure and area must be > 0")
-    return drag / (q * s)  # type: ignore[no-any-return]
+    return float(drag / (q * s))
 
 
 @njit(cache=True)
