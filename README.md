@@ -392,9 +392,10 @@ mypy src/rocket_tools/       # type check
 rocket-tools is released under the [Apache License 2.0](LICENSE).
 
 **Attribution is required.** Any use, modification, or redistribution must credit both
-**Ebenezer Ajaero** and **Human Engine Labs** as the original authors, and must preserve the
-[NOTICE](NOTICE) file. Where an "about", "credits", or documentation section exists, put the
-credit there.
+**Chukwudiebube E. Ajaero** and **Human Engine Labs** as the original authors, and must preserve the
+[NOTICE](NOTICE) file. This applies to using rocket-tools within, or as a dependency or component
+of, any other project, product, service, or published work. Where an "about", "credits",
+"acknowledgements", or documentation section exists, put the credit there.
 
 When you use rocket-tools in research or a published work, please also cite it
 (see [CITATION.cff](CITATION.cff)).

@@ -1,16 +1,20 @@
 rocket-tools
-Copyright 2026 Ebenezer Ajaero and Human Engine Labs
+Copyright 2026 Chukwudiebube E. Ajaero and Human Engine Labs
 
-This product includes software developed by Ebenezer Ajaero and Human Engine Labs
+This product includes software developed by Chukwudiebube E. Ajaero and Human Engine Labs
 (https://www.humanengine.co/).
 
 Attribution requirement
 ------------------------
 Any use, modification, or redistribution of this software, in whole or in part,
-must credit both "Ebenezer Ajaero" and "Human Engine Labs" as its original
+must credit both "Chukwudiebube E. Ajaero" and "Human Engine Labs" as its original
 authors, and must preserve this NOTICE file as required by Section 4(d) of the
-Apache License, Version 2.0. Where a user-facing "about", "credits", or
-documentation section exists, the attribution must appear there.
+Apache License, Version 2.0.
+
+This includes using rocket-tools within, or as a dependency or component of, any
+other project, product, service, paper, or dataset. Where a user-facing "about",
+"credits", "acknowledgements", or documentation section exists, the attribution
+must appear there.
 
 When rocket-tools is used in research or any published work, please also cite it
 (see CITATION.cff).

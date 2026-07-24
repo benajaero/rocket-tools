@@ -12,7 +12,7 @@ license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11,<3.14"
 keywords = ["aerospace", "engineering", "mcp", "aerodynamics", "structural-analysis"]
 authors = [
-    {name = "Ebenezer Ajaero"},
+    {name = "Chukwudiebube E. Ajaero"},
     {name = "Human Engine Labs", email = "engineering@humanengine.dev"}
 ]
 classifiers = [
