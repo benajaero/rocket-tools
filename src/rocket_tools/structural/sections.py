@@ -214,6 +214,10 @@ def section_properties(
         t_w = kwargs["web_thickness"]
         if b_f <= 0 or h <= 0 or t_f <= 0 or t_w <= 0:
             raise ValueError("all dimensions must be > 0")
+        if 2.0 * t_f >= h:
+            raise ValueError("flange_thickness must be < height/2 (web height would be <= 0)")
+        if t_w >= b_f:
+            raise ValueError("web_thickness must be < flange_width")
         area, i_xx, s_xx, r_xx = _ibeam_properties(b_f, h, t_f, t_w)
 
     elif shape_key == "cchannel":
@@ -223,6 +227,10 @@ def section_properties(
         t_w = kwargs["web_thickness"]
         if b <= 0 or h <= 0 or t_f <= 0 or t_w <= 0:
             raise ValueError("all dimensions must be > 0")
+        if 2.0 * t_f >= h:
+            raise ValueError("flange_thickness must be < height/2 (web height would be <= 0)")
+        if t_w >= b:
+            raise ValueError("web_thickness must be < flange_width")
         area, i_xx, s_xx, r_xx = _cchannel_properties(b, h, t_f, t_w)
 
     elif shape_key == "tsection":
@@ -232,6 +240,10 @@ def section_properties(
         t_w = kwargs["web_thickness"]
         if b_f <= 0 or h <= 0 or t_f <= 0 or t_w <= 0:
             raise ValueError("all dimensions must be > 0")
+        if t_f >= h:
+            raise ValueError("flange_thickness must be < height (web height would be <= 0)")
+        if t_w >= b_f:
+            raise ValueError("web_thickness must be < flange_width")
         area, i_xx, s_xx, r_xx = _tsection_properties(b_f, h, t_f, t_w)
 
     else:

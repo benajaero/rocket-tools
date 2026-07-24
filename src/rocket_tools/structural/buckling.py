@@ -134,33 +134,38 @@ def plate_buckling_coefficient(
     if aspect_ratio <= 0:
         raise ValueError("aspect_ratio must be > 0")
 
-    # Approximate coefficients from aircraft structural analysis references
+    # Approximate coefficients from plate-buckling theory (Timoshenko & Gere;
+    # Bruhn, "Analysis and Design of Flight Vehicle Structures").
+    r = aspect_ratio
     if load_type == "compression":
+        # Simply-supported uniaxial compression: exact minimum over the integer number
+        # of buckle half-waves m, k = min_m (m/r + r/m)^2. This is 4.0 at a/b = 1, 2, 3,...
+        # and rises toward (1/r + r)^2 (e.g. 6.25 at a/b = 0.5) for short plates. The old
+        # min(4*r^2, 4) branch was ~6x unconservative for a/b < 1.
+        m_hi = int(r) + 2
+        k_ss = min((m / r + r / m) ** 2 for m in range(1, m_hi + 1))
         if boundary_condition == "simply_supported":
-            # For a/b >= 1, k converges to ~4.0
-            k = min(4.0 * aspect_ratio**2, 4.0) if aspect_ratio < 1.0 else 4.0
+            k = k_ss
         elif boundary_condition == "clamped":
-            k = min(6.97 * aspect_ratio**2, 6.97) if aspect_ratio < 1.0 else 6.97
+            # Clamped unloaded edges: about 1.745x the SS value (long-plate 6.98 vs 4.0).
+            k = 1.745 * k_ss
         elif boundary_condition == "free_edge":
-            # One free edge (column buckling analogy)
+            # One unloaded edge free (outstanding flange); long-plate asymptotic value.
             k = 0.425
         else:
-            k = 4.0
+            k = k_ss
 
     elif load_type == "shear":
-        # Shear buckling coefficient (approximate)
-        if aspect_ratio >= 1.0:
-            k = 5.34 + 4.0 / aspect_ratio**2
+        # Simply-supported shear buckling.
+        if r >= 1.0:
+            k = 5.34 + 4.0 / r**2
         else:
-            k = 5.34 / aspect_ratio**2 + 4.0
+            k = 4.0 + 5.34 / r**2
 
     elif load_type == "bending":
-        if boundary_condition == "simply_supported":
-            k = 23.9 if aspect_ratio >= 1.0 else 15.1 + 8.8 * aspect_ratio**2
-        elif boundary_condition == "clamped":
-            k = 41.8 if aspect_ratio >= 1.0 else 24.1 + 17.7 * aspect_ratio**2
-        else:
-            k = 23.9
+        # Governing (minimum) in-plane-bending buckling coefficient; conservative across
+        # aspect ratios (the true k is >= this for short plates).
+        k = 41.8 if boundary_condition == "clamped" else 23.9
 
     else:
         raise ValueError(f"Unknown load_type: {load_type}")

@@ -31,7 +31,7 @@ class BeamAnalysisInput(StrictModel):
     cross_section: RectangleSection | CircleSection = Field(
         ..., description="Cross-section geometry"
     )
-    load_type: Literal["point_midspan", "distributed", "axial"] = Field(
+    load_type: Literal["point_midspan", "point_tip", "distributed", "axial"] = Field(
         default="point_midspan",
         description="Type of loading applied to the beam",
     )

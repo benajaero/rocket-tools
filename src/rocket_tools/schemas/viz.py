@@ -22,7 +22,7 @@ class BeamDiagramInput(StrictModel):
     cross_section: dict = Field(
         ..., description="Cross-section dict, e.g. {'type':'rectangle',...}"
     )
-    load_type: Literal["point_midspan", "distributed"] = Field(default="point_midspan")
+    load_type: Literal["point_midspan", "point_tip", "distributed"] = Field(default="point_midspan")
     support_type: Literal["simply_supported", "cantilever", "fixed_ends"] = Field(
         default="simply_supported"
     )

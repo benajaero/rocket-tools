@@ -95,6 +95,11 @@ def truss_analysis(
             dx, dy, dz = xj - xi, yj - yi, zj - zi
             # noqa: N806
             L = np.sqrt(dx**2 + dy**2 + dz**2)  # noqa: N806
+            if L < 1e-12:
+                raise ValueError(
+                    f"Element {e_idx}: nodes {i_node} and {j_node} are coincident "
+                    "(zero-length member)"
+                )
             cx, cy, cz = dx / L, dy / L, dz / L
             # 3D transformation
             k_local = (E * A / L) * np.array(
@@ -122,6 +127,11 @@ def truss_analysis(
             dx, dy = xj - xi, yj - yi
             # noqa: N806
             L = np.sqrt(dx**2 + dy**2)  # noqa: N806
+            if L < 1e-12:
+                raise ValueError(
+                    f"Element {e_idx}: nodes {i_node} and {j_node} are coincident "
+                    "(zero-length member)"
+                )
             cx, cy = dx / L, dy / L
             # 2D transformation
             k_local = (E * A / L) * np.array(
@@ -172,6 +182,11 @@ def truss_analysis(
         for d in range(dim):
             F[node * dim + d] += force[d]
 
+    # Keep the assembled (unpenalized) stiffness so support reactions can be recovered
+    # correctly as R = K_orig @ U - F at the constrained DOFs. Computing reactions from
+    # the penalty-augmented K instead only returns the solver residual (~0).
+    K_orig = K.copy()  # noqa: N806
+
     # Apply constraints (penalty method)
     penalty = 1e12
     constrained_dofs = []
@@ -195,9 +210,9 @@ def truss_analysis(
             "Stiffness matrix is singular. Check that constraints prevent rigid body motion."
         ) from exc
 
-    # Compute reactions at constrained DOFs
+    # Compute reactions at constrained DOFs from the unpenalized stiffness.
     reactions = []
-    reaction_forces = K @ U - F
+    reaction_forces = K_orig @ U - F
     for constraint in constraints:
         node = constraint["node"]
         fixed_dof = constraint["fixed_dof"]

@@ -100,7 +100,7 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "length": 1.5,
             "youngs_modulus": 69e9,
             "cross_section": {"type": "rectangle", "width": 0.04, "height": 0.008},
-            "load_type": "point_midspan",
+            "load_type": "point_tip",
             "support_type": "cantilever",
         },
         "expected": {

@@ -1754,7 +1754,7 @@ def plot_beam_diagrams(
     length: float,
     youngs_modulus: float,
     cross_section: dict,
-    load_type: Literal["point_midspan", "distributed"] = "point_midspan",
+    load_type: Literal["point_midspan", "point_tip", "distributed"] = "point_midspan",
     support_type: Literal["simply_supported", "cantilever", "fixed_ends"] = "simply_supported",
     render: Literal["data", "image"] = "data",
     output_path: str | None = None,

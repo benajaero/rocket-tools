@@ -110,11 +110,21 @@ def _beam_stations(
             p * x * (3.0 * ll**2 - 4.0 * x**2) / (48.0 * e_i),
             p * (ll - x) * (3.0 * ll**2 - 4.0 * (ll - x) ** 2) / (48.0 * e_i),
         )
-    elif load_type == "point_midspan" and support_type == "cantilever":
-        # Tip point load (matches beam_analysis PL^3/3EI convention), fixed at x=0.
+    elif load_type == "point_tip" and support_type == "cantilever":
+        # Point load P at the free tip, fixed at x=0.
         v = np.full_like(x, p)
         m = -p * (ll - x)
         d = p * x**2 * (3.0 * ll - x) / (6.0 * e_i)
+    elif load_type == "point_midspan" and support_type == "cantilever":
+        # Point load P at mid-span (a = L/2) of a cantilever fixed at x=0.
+        a = ll / 2.0
+        v = np.where(x < a, p, 0.0)
+        m = np.where(x <= a, -p * (a - x), 0.0)
+        d = np.where(
+            x <= a,
+            p * x**2 * (3.0 * a - x) / (6.0 * e_i),
+            p * a**2 * (3.0 * x - a) / (6.0 * e_i),
+        )
     elif load_type == "point_midspan" and support_type == "fixed_ends":
         v = np.where(x < ll / 2.0, p / 2.0, -p / 2.0)
         m = np.where(
@@ -153,7 +163,7 @@ def beam_analysis(
     length: float,
     youngs_modulus: float,
     cross_section: dict,
-    load_type: Literal["point_midspan", "distributed", "axial"] = "point_midspan",
+    load_type: Literal["point_midspan", "point_tip", "distributed", "axial"] = "point_midspan",
     support_type: Literal["simply_supported", "cantilever", "fixed_ends"] = "simply_supported",
     yield_strength: float | None = None,
 ) -> dict:
@@ -214,26 +224,44 @@ def beam_analysis(
     else:
         raise ValueError(f"Unsupported cross-section type: {cs_type}")
 
-    # Compute based on load type and support
-    if load_type == "point_midspan":
+    # Compute max moment, max deflection, and max shear force V_max by load/support.
+    # v_max is the true peak transverse shear force (needed for a correct shear stress);
+    # the previous code used `load` directly, which was dimensionally wrong for
+    # distributed loads and 2x too large for a simply-supported point load.
+    if load_type in ("point_midspan", "point_tip"):
+        if load_type == "point_tip" and support_type != "cantilever":
+            raise ValueError("point_tip load is only defined for a cantilever (fixed-free) beam")
         if support_type == "simply_supported":
             max_moment = load * length / 4.0
             max_deflection = _deflection_point_load(load, length, youngs_modulus, i_val)
+            v_max = load / 2.0
         elif support_type == "cantilever":
-            max_moment = load * length
-            max_deflection = (load * length**3) / (3.0 * youngs_modulus * i_val)
+            if load_type == "point_tip":
+                # Load P at the free tip: M_root = P*L, tip deflection = P*L^3/(3EI).
+                max_moment = load * length
+                max_deflection = (load * length**3) / (3.0 * youngs_modulus * i_val)
+            else:
+                # point_midspan: load P at mid-span (a = L/2), not the tip.
+                # M_root = P*a; tip deflection = P*a^2*(3L - a)/(6EI) = 5PL^3/(48EI).
+                a = length / 2.0
+                max_moment = load * a
+                max_deflection = load * a**2 * (3.0 * length - a) / (6.0 * youngs_modulus * i_val)
+            v_max = load
         elif support_type == "fixed_ends":
             max_moment = load * length / 8.0
             max_deflection = (load * length**3) / (192.0 * youngs_modulus * i_val)
+            v_max = load / 2.0
         else:
             raise ValueError(f"Unsupported support type: {support_type}")
     elif load_type == "distributed":
         if support_type == "simply_supported":
             max_moment = load * length**2 / 8.0
             max_deflection = (5 * load * length**4) / (384.0 * youngs_modulus * i_val)
+            v_max = load * length / 2.0
         elif support_type == "cantilever":
             max_moment = load * length**2 / 2.0
             max_deflection = (load * length**4) / (8.0 * youngs_modulus * i_val)
+            v_max = load * length
         else:
             raise ValueError(f"Unsupported support type for distributed load: {support_type}")
     elif load_type == "axial":
@@ -242,12 +270,16 @@ def beam_analysis(
         max_deflection = load * length / (youngs_modulus * area)
         sigma = load / area
         tau = 0.0
+        v_max = 0.0
     else:
         raise ValueError(f"Unsupported load type: {load_type}")
 
     if load_type != "axial":
         sigma = _bending_stress(max_moment, s)
-        tau = _shear_stress_average(abs(load), area)
+        # Peak transverse shear stress tau_max = k * V_max / A, with the section shape
+        # factor k (1.5 for a rectangle, 4/3 for a solid circle).
+        shear_factor = 1.5 if cs_type == "rectangle" else 4.0 / 3.0 if cs_type == "circle" else 1.5
+        tau = shear_factor * v_max / area
 
     k_factor = _effective_length_factor(support_type)
 
@@ -270,6 +302,7 @@ def beam_analysis(
         "max_bending_moment_n_m": round(float(max_moment), 4),
         "max_deflection_m": round(float(max_deflection), 8),
         "bending_stress_pa": round(float(sigma), 2),
+        "max_shear_force_n": round(float(v_max), 4),
         "shear_stress_pa": round(float(tau), 2),
         "max_normal_stress_pa": round(float(sigma), 2),  # for uniaxial bending
         "section_modulus_m3": float(s),
