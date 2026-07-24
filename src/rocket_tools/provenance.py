@@ -338,6 +338,86 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
         "formula": "T = 2*pi*sqrt(a^3/mu) (Kepler's third law)",
         "assumptions": ["two-body Keplerian orbit"],
     },
+    # ---- Trajectory & vehicle sizing ----
+    "simulate_ascent": {
+        "domain": "trajectory",
+        "references": [
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed. (Ch. 11)",
+            "Sutton & Biblarz, Rocket Propulsion Elements, 9th Ed. (Ch. 4)",
+            "NASA-TM-X-74335: U.S. Standard Atmosphere 1976",
+        ],
+        "formula": (
+            "Planar point-mass gravity turn: dv/dt=(T-D)/m - g*sin(gamma), "
+            "dgamma/dt=-(g/v - v/(R+h))*cos(gamma); T=mdot*Isp*g0, D=0.5*rho*V^2*Cd*A; "
+            "fixed-step RK4"
+        ),
+        "assumptions": [
+            "point mass, no lift, thrust along velocity vector",
+            "ISA 1976 density; inverse-square (or constant) gravity",
+            "constant Cd and mass flow rate during burn",
+        ],
+    },
+    "size_vehicle": {
+        "domain": "trajectory",
+        "references": [
+            "Sutton & Biblarz, Rocket Propulsion Elements, 9th Ed. (Ch. 4)",
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed. (Ch. 11)",
+        ],
+        "formula": (
+            "MR=exp(dv/(Isp*g0)); m0=ml*(eps-1)/(eps-1/MR) with structural fraction "
+            "eps=inert/(inert+propellant)"
+        ),
+        "assumptions": [
+            "single stage",
+            "structural fraction epsilon fixed",
+            "feasible only when epsilon < 1/MR",
+        ],
+    },
+    # ---- Optimization ----
+    "optimize_staging": {
+        "domain": "optimization",
+        "references": [
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed. (Ch. 11, optimal staging)",
+            "Hill & Peterson, Mechanics and Thermodynamics of Propulsion, 2nd Ed.",
+        ],
+        "formula": (
+            "Maximize payload fraction s.t. sum c_i ln(n_i)=dv; Lagrange: "
+            "n_i=(c_i*lambda-1)/(c_i*lambda*eps_i), single scalar lambda by bisection"
+        ),
+        "assumptions": [
+            "restricted staging problem",
+            "fixed per-stage Isp and structural ratio",
+            "serial staging with instantaneous separation",
+        ],
+    },
+    "optimize_design": {
+        "domain": "optimization",
+        "references": ["Kiefer (1953), golden-section search; Press et al., Numerical Recipes"],
+        "formula": "golden-section search over one input variable of any dispatch tool",
+        "assumptions": ["objective unimodal on the interval", "single continuous variable"],
+    },
+    # ---- Standards & reliability ----
+    "design_review_report": {
+        "domain": "standards",
+        "references": [
+            "FAR 25.303 (factor of safety); MIL-HDBK-5J / MMPDS-15 (allowables)",
+            "NASA-STD-5001B (spaceflight factors of safety)",
+        ],
+        "formula": "MS = allowable/(FoS*actual) - 1; governing margin = min over items",
+        "assumptions": ["linear margins", "items independent", "worst-case governs"],
+    },
+    "fmea_report": {
+        "domain": "reliability",
+        "references": [
+            "MIL-STD-1629A (FMECA)",
+            "SAE J1739 (FMEA, RPN convention)",
+        ],
+        "formula": "RPN = Severity x Occurrence x Detection (each 1-10)",
+        "assumptions": [
+            "ordinal 1-10 severity/occurrence/detection scales",
+            "RPN used only for relative ranking",
+        ],
+    },
     # ---- Units ----
     "unit_convert": {
         "domain": "units",

@@ -2,8 +2,8 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-476%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-82%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-575%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
@@ -46,7 +46,7 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 
 | Capability | What You Get |
 |------------|--------------|
-| **56 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
+| **68 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
 | **49+ Materials** | Aluminum, titanium, steel, nickel superalloys, composites, refractory metals — with thermal & mechanical properties, filterable by application (rocket, drone, aircraft, spacecraft, engine) |
 | **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types, Euler-Johnson column buckling, plate buckling coefficients, margin of safety (stress/load/deflection), von Mises combined stress, 2D/3D truss analysis |
 | **Compressible Flow** | Isentropic relations, normal & oblique shocks, Prandtl-Meyer expansions — all Numba JIT-compiled |
@@ -56,9 +56,13 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 | **Orbital Mechanics** | Hohmann transfers, vis-viva speed, plane-change ΔV, Keplerian period — validated vs Curtis/Vallado |
 | **Aerothermodynamics** | Stagnation & recovery temperature, Sutton-Graves stagnation heat flux, Allen-Eggers ballistic-entry peak deceleration |
 | **Propulsion Thermochemistry** | Characteristic velocity c*, ideal specific impulse from pressure ratio, choked throat mass flux (Sutton & Biblarz Ch. 3) |
+| **Ascent & Vehicle Sizing** | `simulate_ascent` — fixed-step RK4 ascent through the ISA atmosphere (thrust/drag/gravity) reporting burnout, apogee, max-q, and g-load with time-series; `size_vehicle` chains the rocket equation, thrust-to-weight, and tank sizing. Pinned to the analytic vacuum trajectory (Curtis Ch. 11) |
+| **Optimization** | `optimize_staging` — optimal ΔV split across stages (Lagrange multiplier, robust bisection) validated against an independent brute-force optimum; `optimize_design` golden-section optimizes any output of any tool over one variable |
+| **Visualization** | `plot_beam_diagrams` (shear/moment/deflection), `plot_drag_polar`, `plot_nozzle_contour`, `plot_isa_profile`, `plot_trajectory` — return a base64 PNG **and** the underlying data series, or a native MCP image (`render="image"`). Optional `viz` extra |
+| **Standards & Reliability** | `design_review_report` rolls up margins of safety into a PASS/FAIL verdict with the governing item; `fmea_report` ranks failure modes by RPN (MIL-STD-1629A); `list_standards` + `rocket-tools://standards` catalog the referenced standards |
 | **Research Provenance** | `cite_tool` returns the authoritative reference, formula, assumptions, and validation benchmark behind any tool; `list_references` gives the full bibliography — every number is traceable |
 | **Uncertainty & Sensitivity** | `propagate_uncertainty` runs Monte-Carlo over any tool with normal/uniform/lognormal/truncated-normal inputs, reporting mean/std/95% CI and a correlation-based ranking of which inputs drive each output |
-| **MCP Resources** | Readable datasets an agent can pull as context — `rocket-tools://references`, `://benchmarks`, `://provenance`, `://materials` (+ `://materials/{name}`) |
+| **MCP Resources** | Readable datasets an agent can pull as context — `rocket-tools://references`, `://benchmarks`, `://provenance`, `://standards`, `://materials` (+ `://materials/{name}`) |
 | **Research Workflows** | `parameter_sweep` trade studies over any input, `list_validation_benchmarks` + `validate_result` so an agent can self-check its numbers against a cited reference |
 | **Natural Language Router** | Ask *"What's the Reynolds number at 250 m/s and 5 km?"* and get a validated tool call — no API memorization needed |
 | **ISA Atmosphere** | Full 7-layer U.S. Standard Atmosphere 1976, 0–86 km, with ~54 ns cached lookups |

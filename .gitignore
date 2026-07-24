@@ -5,6 +5,10 @@ __pycache__/
 *.so
 .Python
 build/
+
+# MkDocs build output
+site/
+
 develop-eggs/
 dist/
 downloads/

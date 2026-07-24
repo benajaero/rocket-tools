@@ -60,6 +60,16 @@ from .materials import (
     MaterialLookupInput,
     MaterialLookupOutput,
 )
+from .optimization import (
+    DesignOptimizerInput,
+    StagingOptimizerInput,
+)
+from .standards import (
+    DesignReviewInput,
+    DesignReviewItem,
+    FMEAInput,
+    FMEAItem,
+)
 from .structural import (
     BeamAnalysisInput,
     BeamAnalysisOutput,
@@ -74,6 +84,10 @@ from .structural import (
     TrussAnalysisInput,
     VonMisesInput,
 )
+from .trajectory import (
+    AscentSimInput,
+    VehicleSizingInput,
+)
 from .utils import (
     CiteToolInput,
     ParameterSweepInput,
@@ -81,6 +95,13 @@ from .utils import (
     UnitConvertInput,
     UnitConvertOutput,
     ValidateResultInput,
+)
+from .viz import (
+    BeamDiagramInput,
+    DragPolarPlotInput,
+    ISAProfileInput,
+    NozzleContourInput,
+    TrajectoryPlotInput,
 )
 
 __all__ = [
@@ -153,6 +174,23 @@ __all__ = [
     "VisVivaInput",
     "PlaneChangeInput",
     "OrbitalPeriodInput",
+    # Trajectory
+    "AscentSimInput",
+    "VehicleSizingInput",
+    # Optimization
+    "StagingOptimizerInput",
+    "DesignOptimizerInput",
+    # Standards & reliability
+    "DesignReviewInput",
+    "DesignReviewItem",
+    "FMEAInput",
+    "FMEAItem",
+    # Visualization
+    "BeamDiagramInput",
+    "DragPolarPlotInput",
+    "NozzleContourInput",
+    "ISAProfileInput",
+    "TrajectoryPlotInput",
     # Utils
     "CiteToolInput",
     "ParameterSweepInput",

@@ -13,7 +13,8 @@ from rocket_tools.provenance import (
 )
 from rocket_tools.server import mcp
 
-# Meta/research tools that describe or orchestrate rather than compute a physical result.
+# Meta/research tools that describe or orchestrate rather than compute a physical result,
+# plus visualization tools (presentation, not composable physics — see viz/).
 META_TOOLS = {
     "cite_tool",
     "list_references",
@@ -21,6 +22,12 @@ META_TOOLS = {
     "list_validation_benchmarks",
     "validate_result",
     "parameter_sweep",
+    "list_standards",
+    "plot_beam_diagrams",
+    "plot_drag_polar",
+    "plot_nozzle_contour",
+    "plot_isa_profile",
+    "plot_trajectory",
 }
 
 

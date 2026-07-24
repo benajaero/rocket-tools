@@ -393,6 +393,56 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "Note: This benchmark validates Re and Mach computation only; "
         "actual drag polar requires airfoil-specific data not in the generic tool.",
     },
+    # ---- Trajectory (analytic vacuum reference) ----
+    "ascent_vacuum_vertical": {
+        "tool_name": "simulate_ascent",
+        "inputs": {
+            "initial_mass_kg": 1000.0,
+            "dry_mass_kg": 400.0,
+            "specific_impulse_s": 250.0,
+            "mass_flow_rate_kg_s": 20.0,
+            "reference_area_m2": 1.0,
+            "include_drag": False,
+            "gravity_model": "constant",
+            "dt": 0.01,
+            "launch_angle_deg": 90.0,
+        },
+        "expected": {
+            "burnout_velocity_ms": 1952.2361,
+            "burnout_altitude_m": 24208.17,
+            "apogee_m": 218526.61,
+        },
+        "tolerance": 0.002,
+        "reference": (
+            "Closed-form vertical vacuum ascent (constant gravity, no drag): "
+            "v_bo = Isp*g0*ln(m0/mf) - g0*t_burn; h_apogee = h_bo + v_bo^2/(2*g0). "
+            "Sutton & Biblarz, Rocket Propulsion Elements 9th Ed. Ch. 4; "
+            "Curtis, Orbital Mechanics for Engineering Students 3rd Ed. Ch. 11. "
+            "Isolates RK4 integrator error from the atmospheric/gravity model."
+        ),
+    },
+    # ---- Optimal staging (analytic symmetric optimum) ----
+    "staging_optimum_symmetric": {
+        "tool_name": "optimize_staging",
+        "inputs": {
+            "delta_v_target_ms": 9000.0,
+            "stages": [
+                {"specific_impulse_s": 300.0, "structural_ratio": 0.1},
+                {"specific_impulse_s": 300.0, "structural_ratio": 0.1},
+            ],
+        },
+        "expected": {
+            "total_delta_v_ms": 9000.0,
+            "optimal_payload_fraction": 0.016793,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Optimal staging, identical stages: by symmetry the optimum splits delta-v "
+            "equally (4500 m/s each). With c=Isp*g0=2942 m/s, eps=0.1: n=exp(dv/c), "
+            "stage payload ratio pi=(1/n-eps)/(1-eps), overall PF=pi^2=0.016793. "
+            "Curtis, Orbital Mechanics for Engineering Students 3rd Ed. Ch. 11."
+        ),
+    },
 }
 
 

@@ -50,8 +50,8 @@ def test_tool_and_resource_inventory():
     tools = asyncio.run(mcp.list_tools())
     resources = asyncio.run(mcp.list_resources())
     templates = asyncio.run(mcp.list_resource_templates())
-    assert len(tools) >= 56
-    assert len(resources) >= 4
+    assert len(tools) >= 68
+    assert len(resources) >= 5  # concrete resources; templated materials/{name} listed separately
     assert len(templates) >= 1
     # Tool names are unique.
     names = [t.name for t in tools]

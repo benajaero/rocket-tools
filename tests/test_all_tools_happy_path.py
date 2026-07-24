@@ -171,6 +171,50 @@ VALID_CALLS: dict[str, dict] = {
     "vis_viva_velocity": {"radius_m": 6778137.0, "semi_major_axis_m": 6778137.0},
     "plane_change_delta_v": {"velocity_ms": 7700.0, "inclination_change_deg": 28.5},
     "orbital_period": {"semi_major_axis_m": 6778137.0},
+    # trajectory & vehicle sizing
+    "simulate_ascent": {
+        "initial_mass_kg": 1000.0,
+        "dry_mass_kg": 400.0,
+        "specific_impulse_s": 250.0,
+        "mass_flow_rate_kg_s": 20.0,
+        "reference_area_m2": 0.2,
+        "dt": 0.1,
+    },
+    "size_vehicle": {
+        "payload_mass_kg": 500.0,
+        "delta_v_target_ms": 3000.0,
+        "specific_impulse_s": 320.0,
+        "inert_mass_fraction": 0.1,
+    },
+    # optimization
+    "optimize_staging": {
+        "delta_v_target_ms": 9000.0,
+        "stages": [
+            {"specific_impulse_s": 300.0, "structural_ratio": 0.1},
+            {"specific_impulse_s": 340.0, "structural_ratio": 0.08},
+        ],
+    },
+    "optimize_design": {
+        "tool_name": "rocket_delta_v",
+        "fixed_params": {"initial_mass_kg": 1000.0, "final_mass_kg": 400.0},
+        "variable": "specific_impulse_s",
+        "bounds": [200.0, 400.0],
+        "objective_key": "delta_v_ms",
+        "sense": "max",
+    },
+    # standards & reliability
+    "design_review_report": {
+        "items": [
+            {"name": "spar", "allowable_stress_pa": 276e6, "actual_stress_pa": 150e6},
+            {"name": "skin", "margin_of_safety": 0.2},
+        ]
+    },
+    "fmea_report": {
+        "items": [
+            {"failure_mode": "seal leak", "severity": 8, "occurrence": 3, "detection": 4},
+            {"failure_mode": "valve stuck", "severity": 9, "occurrence": 2, "detection": 6},
+        ]
+    },
 }
 
 
@@ -189,6 +233,13 @@ def test_valid_calls_cover_every_computational_tool():
         "parameter_sweep",
         "propagate_uncertainty",
         "list_materials",
+        "list_standards",
+        # visualization tools are covered by tests/test_viz.py (image/data outputs)
+        "plot_beam_diagrams",
+        "plot_drag_polar",
+        "plot_nozzle_contour",
+        "plot_isa_profile",
+        "plot_trajectory",
     }
     missing = sorted(registered - meta - set(VALID_CALLS))
     assert not missing, f"tools without a happy-path call: {missing}"

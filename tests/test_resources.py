@@ -40,9 +40,15 @@ class TestResourceContent:
 
     def test_provenance(self):
         data = json.loads(_read("rocket-tools://provenance"))
-        assert len(data) == 50  # every computational tool documented
+        assert len(data) >= 52  # every computational tool documented (grows as tools are added)
         assert data["hohmann_transfer"]["validated"] in (True, False)
         assert data["normal_shock"]["references"]
+
+    def test_standards(self):
+        data = json.loads(_read("rocket-tools://standards"))
+        ids = {s["id"] for s in data["standards"]}
+        assert "MIL-STD-1629A" in ids
+        assert data["count"] == len(data["standards"])
 
     def test_materials(self):
         data = json.loads(_read("rocket-tools://materials"))

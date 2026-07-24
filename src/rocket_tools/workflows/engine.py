@@ -203,11 +203,11 @@ def _build_dispatch() -> dict[str, Any]:
     Used by both the workflow engine and the uncertainty engine so any tool can
     be composed or have its uncertainty propagated, not just a hand-picked few.
     """
-    from rocket_tools import aerodynamics, design, materials, structural
+    from rocket_tools import aerodynamics, design, materials, structural, trajectory
     from rocket_tools.utils import unit_convert
 
     dispatch: dict[str, Any] = {"unit_convert": unit_convert}
-    for module in (aerodynamics, structural, design, materials):
+    for module in (aerodynamics, structural, design, materials, trajectory):
         for name in getattr(module, "__all__", []):
             dispatch[name] = getattr(module, name)
     return dispatch

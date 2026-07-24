@@ -4,8 +4,8 @@ title: "rocket-tools"
 type: software
 authors:
   - name: "Human Engine Labs"
-version: "0.2.0"
-date-released: "2026-06-12"
+version: "0.4.0"
+date-released: "2026-07-24"
 license: "Apache-2.0"
 url: "https://github.com/benajaero/rocket-tools"
 repository-code: "https://github.com/benajaero/rocket-tools"
