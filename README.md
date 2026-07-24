@@ -2,8 +2,8 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-265%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-74%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-575%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
 
@@ -46,15 +46,26 @@ Unlike monolithic engineering suites, rocket-tools is **composable**: each tool 
 
 | Capability | What You Get |
 |------------|--------------|
-| **35 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
+| **68 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
 | **49+ Materials** | Aluminum, titanium, steel, nickel superalloys, composites, refractory metals — with thermal & mechanical properties, filterable by application (rocket, drone, aircraft, spacecraft, engine) |
 | **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types, Euler-Johnson column buckling, plate buckling coefficients, margin of safety (stress/load/deflection), von Mises combined stress, 2D/3D truss analysis |
 | **Compressible Flow** | Isentropic relations, normal & oblique shocks, Prandtl-Meyer expansions — all Numba JIT-compiled |
 | **Aircraft Performance** | Lift curve slope, drag polar with compressibility, Breguet range & endurance, wing loading & stall speed |
 | **Rocket Nozzle Design** | Thrust, Isp, thrust coefficient, expansion ratio optimization with under/over-expansion detection |
 | **Mission Design** | Tsiolkovsky ΔV, multi-stage staging, orbital velocity, payload fraction, thrust-to-weight, composite CG, propellant tank sizing |
+| **Orbital Mechanics** | Hohmann transfers, vis-viva speed, plane-change ΔV, Keplerian period — validated vs Curtis/Vallado |
+| **Aerothermodynamics** | Stagnation & recovery temperature, Sutton-Graves stagnation heat flux, Allen-Eggers ballistic-entry peak deceleration |
+| **Propulsion Thermochemistry** | Characteristic velocity c*, ideal specific impulse from pressure ratio, choked throat mass flux (Sutton & Biblarz Ch. 3) |
+| **Ascent & Vehicle Sizing** | `simulate_ascent` — fixed-step RK4 ascent through the ISA atmosphere (thrust/drag/gravity) reporting burnout, apogee, max-q, and g-load with time-series; `size_vehicle` chains the rocket equation, thrust-to-weight, and tank sizing. Pinned to the analytic vacuum trajectory (Curtis Ch. 11) |
+| **Optimization** | `optimize_staging` — optimal ΔV split across stages (Lagrange multiplier, robust bisection) validated against an independent brute-force optimum; `optimize_design` golden-section optimizes any output of any tool over one variable |
+| **Visualization** | `plot_beam_diagrams` (shear/moment/deflection), `plot_drag_polar`, `plot_nozzle_contour`, `plot_isa_profile`, `plot_trajectory` — return a base64 PNG **and** the underlying data series, or a native MCP image (`render="image"`). Optional `viz` extra |
+| **Standards & Reliability** | `design_review_report` rolls up margins of safety into a PASS/FAIL verdict with the governing item; `fmea_report` ranks failure modes by RPN (MIL-STD-1629A); `list_standards` + `rocket-tools://standards` catalog the referenced standards |
+| **Research Provenance** | `cite_tool` returns the authoritative reference, formula, assumptions, and validation benchmark behind any tool; `list_references` gives the full bibliography — every number is traceable |
+| **Uncertainty & Sensitivity** | `propagate_uncertainty` runs Monte-Carlo over any tool with normal/uniform/lognormal/truncated-normal inputs, reporting mean/std/95% CI and a correlation-based ranking of which inputs drive each output |
+| **MCP Resources** | Readable datasets an agent can pull as context — `rocket-tools://references`, `://benchmarks`, `://provenance`, `://standards`, `://materials` (+ `://materials/{name}`) |
+| **Research Workflows** | `parameter_sweep` trade studies over any input, `list_validation_benchmarks` + `validate_result` so an agent can self-check its numbers against a cited reference |
 | **Natural Language Router** | Ask *"What's the Reynolds number at 250 m/s and 5 km?"* and get a validated tool call — no API memorization needed |
-| **ISA Atmosphere** | Standard atmosphere 0–25,000 m with ~54 ns cached lookups |
+| **ISA Atmosphere** | Full 7-layer U.S. Standard Atmosphere 1976, 0–86 km, with ~54 ns cached lookups |
 | **Workflow Engine** | Chain tools into reusable YAML workflows for design reviews |
 | **ASGI Server** | Production-ready SSE (Server-Sent Events) endpoint with `/health`, `/ready`, and Prometheus `/metrics` |
 | **Unit Conversions** | NIST-traceable SI ↔ imperial (psi, psf, ft, in, lbf, mph, knots, Fahrenheit, Rankine) |
@@ -95,7 +106,7 @@ print(f"Deflection: {beam['max_deflection_m']*1000:.2f} mm")
 print(f"Bending stress: {beam['bending_stress_pa']/1e6:.1f} MPa")
 
 # --- Cross-section properties ---
-section = section_properties("ibeam", flange_width=0.1, height=0.2, flange_thickness=0.01, web_thickness=0.008)
+section = section_properties("ibeam", width=0.1, height=0.2, flange_thickness=0.01, web_thickness=0.008)
 print(f"Ixx = {section['i_xx_m4']:.2e} m⁴")
 
 # --- Column buckling ---
@@ -138,17 +149,17 @@ os = oblique_shock(mach1=2.5, deflection_deg=10, gamma=1.4)
 print(f"Weak shock angle = {os['weak_shock_wave_angle_deg']:.1f}°")
 
 # --- Rocket mission design ---
-dv = rocket_delta_v(specific_impulse_s=320, initial_mass_kg=10000, final_mass_kg=2000)
-print(f"Single-stage ΔV = {dv['delta_v_ms']:.0f} m/s")
+dv = rocket_delta_v(isp_s=320, mass_fraction=0.85)
+print(f"Single-stage ΔV = {dv:.0f} m/s")
 
-orb = orbital_velocity(altitude_m=400e3)
-print(f"Circular orbit at 400 km: {orb['circular_velocity_ms']:.0f} m/s")
+orb = orbital_velocity(altitude_m=400e3, planet="earth")
+print(f"Circular orbit at 400 km: {orb['circular_velocity_m_s']:.0f} m/s")
 
 tank = propellant_tank_sizing(
     propellant_volume_m3=5.0,
     tank_shape="cylinder",
-    wall_thickness_m=0.004,
-    material_density_kg_m3=4430,
+    material="Ti-6Al-4V",
+    safety_factor=1.5,
 )
 print(f"Tank mass: {tank['tank_mass_kg']:.1f} kg")
 
@@ -287,7 +298,7 @@ rocket_tools/
 ├── config.py       # pydantic-settings configuration (ROCKET_* env vars)
 ├── server.py       # FastMCP tool definitions with schema validation
 ├── asgi.py         # Production SSE + health/metrics endpoints
-└── rust_kernels/   # Rust PyO3 extension (scaffolded, deferred)
+└── rust_kernels/   # Experimental Rust/PyO3 kernels — compiles; NOT in the wheel (see its README)
 ```
 
 **Numba JIT** accelerates all hot paths.
@@ -429,7 +440,7 @@ This repository exposes 35 tools via FastMCP:
 | Tool | Schema | Description |
 |------|--------|-------------|
 | `material_lookup` | `MaterialLookupInput` | Look up 49+ aerospace materials by name |
-| `isa_atmosphere` | `ISAAtmosphereInput` | Standard atmosphere properties 0–25,000 m |
+| `isa_atmosphere` | `ISAAtmosphereInput` | Standard atmosphere properties 0–86 km (7-layer US Std Atm 1976) |
 | `unit_convert` | `UnitConvertInput` | NIST-traceable unit conversion |
 
 ### ASGI Deployment

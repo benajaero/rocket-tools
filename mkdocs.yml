@@ -1,0 +1,43 @@
+site_name: rocket-tools
+site_description: Engineering-grade aerospace computation with an AI-native (MCP) interface.
+site_url: https://benajaero.github.io/rocket-tools/
+repo_url: https://github.com/benajaero/rocket-tools
+repo_name: benajaero/rocket-tools
+docs_dir: docs
+
+# Internal maintainer docs — kept in the repo but excluded from the published site.
+exclude_docs: |
+  RELEASE_TODO.md
+  release-checklist.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Scientific Validity: scientific-validity.md

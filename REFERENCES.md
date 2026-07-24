@@ -12,7 +12,7 @@ This document catalogs the primary references and data sources used throughout r
 | **MMPDS-15** | `materials/database.py` | Metallic Materials Properties Development and Standardization (successor to MIL-HDBK-5). Updated allowables for modern alloys. |
 | **MIL-HDBK-17** | `materials/database.py` | Composite Materials Handbook. Source for carbon/epoxy, glass/epoxy, and Kevlar properties. |
 | **ISO 2533:1975** | `materials/isa.py` | Standard Atmosphere. Defines the International Standard Atmosphere (ISA) temperature, pressure, and density profiles. |
-| **NASA-TM-X-74335** | `materials/isa.py` | U.S. Standard Atmosphere, 1976. Implementation reference for atmosphere tables 0–25 km. |
+| **NASA-TM-X-74335** | `materials/isa.py` | U.S. Standard Atmosphere, 1976. Implementation reference for the full 7-layer atmosphere model, 0–86 km (84,852 m geopotential). |
 | **FAA AC 25.571-1D** | `structural/margin.py` | Damage Tolerance and Fatigue Evaluation of Structure. Defines margin of safety methodology and factors of safety for aircraft. |
 | **ASME Y14.5** | `utils/units.py` | Dimensioning and Tolerancing. Basis for SI/imperial unit conversion constants. |
 
@@ -35,21 +35,27 @@ This document catalogs the primary references and data sources used throughout r
 | Reference | Used In | Key Formulas |
 |-----------|---------|--------------|
 | **Anderson: Fundamentals of Aerodynamics** (6th Ed.) | `aerodynamics/fundamentals.py`, `aerodynamics/compressible.py` | Reynolds number, Mach number, dynamic pressure, isentropic flow relations (Ch. 4), normal shock (Ch. 4), oblique shock (Ch. 4), Prandtl-Meyer expansion (Ch. 4). |
+| **NACA Report 1135** (Ames Research Staff, 1953) | `aerodynamics/compressible.py` | *Equations, Tables, and Charts for Compressible Flow.* Authoritative γ=1.4 table values for isentropic ratios, normal shock (incl. p02/p01, Eq. 100), and Prandtl-Meyer; used as the primary regression validation (`tests/test_naca1135.py`). |
 | **Anderson: Aircraft Performance and Design** | `aerodynamics/aircraft.py` | Lift curve slope (lifting line theory), drag polar, Breguet range and endurance equations (Ch. 6). |
 | **Blasius (1908)** | `aerodynamics/fundamentals.py` | Skin friction coefficients: $c_f = 1.328 / \sqrt{Re}$ (laminar), $c_f = 0.0592 / Re^{0.2}$ (turbulent). |
+| **Anderson: Hypersonic and High-Temperature Gas Dynamics** (2nd Ed.) | `aerodynamics/aerothermo.py` | Stagnation and recovery (adiabatic-wall) temperature; recovery factor $r = Pr^{0.5}$ (laminar), $Pr^{1/3}$ (turbulent). |
+| **Sutton, K. & Graves, R. A., NASA TR R-376 (1971)** | `aerodynamics/aerothermo.py` | Stagnation-point convective heating $q = C\sqrt{\rho/R_n}\,V^3$, $C = 1.7415\times10^{-4}$ for Earth air (W/m²). |
+| **Allen, H. J. & Eggers, A. J., NACA TR 1381 (1958)** | `aerodynamics/aerothermo.py` | Ballistic entry: peak deceleration $a_{max} = V_e^2\sin\gamma/(2eH)$ and velocity at peak $V_e/\sqrt{e}$. |
 
 ### Propulsion & Nozzle Design
 
 | Reference | Used In | Key Formulas |
 |-----------|---------|--------------|
-| **Sutton & Biblarz: Rocket Propulsion Elements** (9th Ed.) | `aerodynamics/nozzle.py`, `design/performance.py` | Tsiolkovsky rocket equation, thrust coefficient, specific impulse, characteristic velocity $c^*$, optimal expansion ratio (Ch. 3). |
-| **Hill & Peterson: Mechanics and Thermodynamics of Propulsion** (2nd Ed.) | `aerodynamics/nozzle.py` | Isentropic nozzle flow relations, choked flow conditions, area-Mach relation. |
+| **Sutton & Biblarz: Rocket Propulsion Elements** (9th Ed.) | `aerodynamics/nozzle.py`, `aerodynamics/propulsion.py`, `design/performance.py` | Tsiolkovsky rocket equation, thrust coefficient, specific impulse, characteristic velocity $c^*$ (Eq. 3-32), ideal exhaust velocity (Eq. 3-16), choked mass flow (Eq. 3-24), Vandenkerckhove function, optimal expansion ratio (Ch. 3). |
+| **Hill & Peterson: Mechanics and Thermodynamics of Propulsion** (2nd Ed.) | `aerodynamics/nozzle.py`, `aerodynamics/propulsion.py` | Isentropic nozzle flow relations, choked flow conditions, area-Mach relation. |
 
 ### Orbital Mechanics
 
 | Reference | Used In | Key Formulas |
 |-----------|---------|--------------|
-| **Vallado: Fundamentals of Astrodynamics and Applications** (4th Ed.) | `design/performance.py` | Circular orbital velocity, escape velocity, orbital period (Ch. 1). |
+| **Vallado: Fundamentals of Astrodynamics and Applications** (4th Ed.) | `design/performance.py`, `design/orbital.py` | Circular orbital velocity, escape velocity, orbital period (Ch. 1); vis-viva equation (Eq. 2-70), simple plane change (Eq. 6-19), Earth mu=3.986004418e14 m³/s² (App. D). |
+| **Curtis: Orbital Mechanics for Engineering Students** (3rd Ed.) | `design/orbital.py` | Hohmann transfer delta-v and transfer time (Ch. 6, Example 6.1). |
+| **Bate, Mueller & White: Fundamentals of Astrodynamics** | `design/orbital.py` | Two-body energy and the vis-viva relation (Ch. 3). |
 
 ---
 

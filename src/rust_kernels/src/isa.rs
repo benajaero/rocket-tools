@@ -6,8 +6,8 @@ const T0: f64 = 288.15;
 const P0: f64 = 101325.0;
 
 #[pyfunction]
-fn isa_atmosphere_lookup(altitude_m: f64) -> PyResult<(f64, f64, f64, f64)> {
-    if altitude_m < 0.0 || altitude_m > 25000.0 {
+pub fn isa_atmosphere_lookup(altitude_m: f64) -> PyResult<(f64, f64, f64, f64)> {
+    if !(0.0..=25000.0).contains(&altitude_m) {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "Altitude must be 0-25000 m"
         ));

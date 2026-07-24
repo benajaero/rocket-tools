@@ -1,55 +1,36 @@
-"""Run curated validation benchmarks against published reference values.
+"""Regression gate: every curated benchmark must match its cited reference value.
 
-References include NASA-TM-X-74335 (US Standard Atmosphere 1976),
-Roark's Formulas, Sutton & Biblarz (Rocket Propulsion Elements),
-Anderson (Fundamentals of Aerodynamics), and Vallado
-(Fundamentals of Astrodynamics and Applications).
+Each case in ``rocket_tools.validation`` pairs a tool call with an expected value
+drawn from an authoritative source (NASA-TM-X-74335, Roark, Anderson, Sutton &
+Biblarz, Vallado, Blasius). This test runs every benchmark through the actual MCP
+server tool and asserts the output is within tolerance, so a numerical regression
+against a published reference fails CI immediately.
 """
 
 import pytest
 
-from rocket_tools.server import (
-    aero_analysis,
-    beam_analysis,
-    isa_atmosphere,
-    isentropic_flow,
-    normal_shock,
-    orbital_velocity,
-    rocket_delta_v,
-    section_properties,
-    skin_friction_coefficient,
-)
-from rocket_tools.validation import list_benchmarks, validate_benchmark
-
-# Map benchmark tool_name to the callable exposed by the package.
-_TOOL_MAP = {
-    "isa_atmosphere": isa_atmosphere,
-    "beam_analysis": beam_analysis,
-    "skin_friction_coefficient": skin_friction_coefficient,
-    "rocket_delta_v": rocket_delta_v,
-    "isentropic_flow": isentropic_flow,
-    "normal_shock": normal_shock,
-    "orbital_velocity": orbital_velocity,
-    "section_properties": section_properties,
-    "aero_analysis": aero_analysis,
-}
+import rocket_tools.server as server
+from rocket_tools.validation import get_benchmark, list_benchmarks
+from rocket_tools.validation.benchmarks import validate_benchmark
 
 
-@pytest.mark.parametrize("benchmark_name", list_benchmarks())
-def test_validation_benchmark(benchmark_name: str) -> None:
-    """Each curated benchmark must match its reference within tolerance."""
-    from rocket_tools.validation import get_benchmark
-
-    benchmark = get_benchmark(benchmark_name)
+@pytest.mark.parametrize("name", list_benchmarks())
+def test_benchmark_matches_reference(name: str) -> None:
+    benchmark = get_benchmark(name)
     tool_name = benchmark["tool_name"]
-    tool_fn = _TOOL_MAP[tool_name]
+    tool = getattr(server, tool_name, None)
+    assert tool is not None, f"benchmark {name!r} references unknown tool {tool_name!r}"
 
-    result = tool_fn(**benchmark["inputs"])
+    result = tool(**benchmark["inputs"])
+    assert not result.get("error"), f"tool {benchmark['tool_name']} returned an error: {result}"
 
-    # Benchmark tools return error dicts on failure, not exceptions.
-    assert not isinstance(result, dict) or not result.get(
-        "error"
-    ), f"Tool {tool_name} returned an error for benchmark {benchmark_name}: {result}"
+    verdict = validate_benchmark(name, result)
+    assert verdict["passed"], f"{name} disagrees with {benchmark['reference']}: {verdict['errors']}"
 
-    validation = validate_benchmark(benchmark_name, result)
-    assert validation["passed"], "; ".join(validation["errors"])
+
+def test_all_benchmarks_have_a_reference() -> None:
+    """Every benchmark must cite a non-empty source so the gate is auditable."""
+    for name in list_benchmarks():
+        benchmark = get_benchmark(name)
+        assert benchmark["reference"].strip(), f"benchmark {name!r} has no reference"
+        assert benchmark["tolerance"] > 0, f"benchmark {name!r} has non-positive tolerance"

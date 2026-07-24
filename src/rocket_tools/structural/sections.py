@@ -13,6 +13,41 @@ from typing import Literal
 import numpy as np
 from numba import njit
 
+from rocket_tools.utils.validation import ToolError
+
+# Required parameters per shape, so a missing one yields a clear, actionable error
+# (an agent must be able to call each shape correctly from the schema alone).
+_SHAPE_PARAMS: dict[str, tuple[str, ...]] = {
+    "rectangle": ("width", "height"),
+    "hollow_rectangle": ("width", "height", "wall_thickness"),
+    "circle": ("diameter",),
+    "hollow_circle": ("outer_diameter", "inner_diameter"),
+    "ibeam": ("flange_width", "height", "flange_thickness", "web_thickness"),
+    "cchannel": ("flange_width", "height", "flange_thickness", "web_thickness"),
+    "tsection": ("flange_width", "height", "flange_thickness", "web_thickness"),
+}
+
+
+def _require_shape_params(shape_key: str, kwargs: dict) -> None:
+    """Raise a structured error if the shape is unknown or a parameter is missing."""
+    required = _SHAPE_PARAMS.get(shape_key)
+    if required is None:
+        raise ToolError(
+            f"Unknown shape: {shape_key}",
+            error_code="INVALID_PARAMETER",
+            parameter="shape",
+            constraint=f"one of: {', '.join(_SHAPE_PARAMS)}",
+        )
+    missing = [p for p in required if kwargs.get(p) is None]
+    if missing:
+        raise ToolError(
+            f"Shape '{shape_key}' requires {', '.join(required)}; missing: {', '.join(missing)}",
+            error_code="INVALID_PARAMETER",
+            parameter=missing[0],
+            constraint=f"required for shape '{shape_key}'",
+            suggestion=f"Provide {', '.join(missing)} for a {shape_key} section.",
+        )
+
 
 @njit(cache=True)
 def _rectangle_properties(b: float, h: float):
@@ -138,6 +173,7 @@ def section_properties(
         s_xx_m3 (section modulus), r_xx_m (radius of gyration)
     """
     shape_key = shape.lower()
+    _require_shape_params(shape_key, kwargs)
 
     if shape_key == "rectangle":
         b = kwargs["width"]

@@ -39,12 +39,36 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "tool_name": "isa_atmosphere",
         "inputs": {"altitude_m": 25000.0},
         "expected": {
-            "temperature_k": 221.55,
-            "pressure_pa": 2481.0,
+            "temperature_k": 221.65,
+            "pressure_pa": 2511.0,
             "density_kg_m3": 0.0395,
         },
-        "tolerance": 0.02,
-        "reference": "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, Table 1 (25 km)",
+        "tolerance": 0.01,
+        "reference": (
+            "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, 20-32 km layer "
+            "(base 20 km: T=216.65 K, P=5474.89 Pa, lapse +0.001 K/m). "
+            "At 25 km: T=221.65 K, P=2511 Pa, rho=0.03947 kg/m^3"
+        ),
+    },
+    "isa_47000m": {
+        "tool_name": "isa_atmosphere",
+        "inputs": {"altitude_m": 47000.0},
+        "expected": {
+            "temperature_k": 270.65,
+            "pressure_pa": 110.91,
+        },
+        "tolerance": 0.01,
+        "reference": "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, Table 1 (47 km stratopause)",
+    },
+    "isa_71000m": {
+        "tool_name": "isa_atmosphere",
+        "inputs": {"altitude_m": 71000.0},
+        "expected": {
+            "temperature_k": 214.65,
+            "pressure_pa": 3.9564,
+        },
+        "tolerance": 0.01,
+        "reference": "NASA-TM-X-74335: U.S. Standard Atmosphere 1976, Table 1 (71 km layer base)",
     },
     # ---- Beam Deflection ----
     "beam_simply_supported_point": {
@@ -61,10 +85,12 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "max_deflection_m": 0.2,
             "bending_stress_pa": 600000000.0,
         },
-        "tolerance": 0.01,
+        "tolerance": 0.005,
         "reference": (
             "Roark's Formulas, 8th Ed., Table 8.1, Case 1: "
-            "Simply supported, center load. delta = PL^3 / (48EI)"
+            "Simply supported, center load. delta = PL^3 / (48EI), sigma = (PL/4)(c/I). "
+            "P=1000 N, L=2 m, E=200 GPa, 50x10 mm rect (I=4.1667e-9 m^4): "
+            "delta=0.2 m, sigma=600 MPa"
         ),
     },
     "beam_cantilever_point": {
@@ -78,13 +104,15 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "support_type": "cantilever",
         },
         "expected": {
-            "max_deflection_m": 4.7767,
+            "max_deflection_m": 4.776664,
             "bending_stress_pa": 1757812500.0,
         },
-        "tolerance": 0.01,
+        "tolerance": 0.005,
         "reference": (
             "Roark's Formulas, 8th Ed., Table 8.1, Case 4: "
-            "Cantilever, end load. delta = PL^3 / (3EI)"
+            "Cantilever, end load. delta = PL^3 / (3EI), sigma = (PL)(c/I). "
+            "P=500 N, L=1.5 m, E=69 GPa, 40x8 mm rect (I=1.7067e-9 m^4): "
+            "delta=4.7767 m, sigma=1757.8 MPa"
         ),
     },
     # ---- Skin Friction ----
@@ -101,7 +129,9 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "expected": {"skin_friction_coefficient": 0.002357},
         "tolerance": 0.01,
         "reference": (
-            "Blasius turbulent: cf = 0.0592 * Re^(-0.2) = 0.0592 * (1e7)^(-0.2) = 0.002357"
+            "Prandtl 1/7-power turbulent local skin friction: "
+            "cf = 0.0592 / Re^0.2 = 0.0592 / (1e7)^0.2 = 0.002357. "
+            "(Do not confuse with the 0.074/Re^0.2 flat-plate average drag coefficient.)"
         ),
     },
     # ---- Rocket Equation ----
@@ -113,12 +143,12 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "final_mass_kg": 2000,
         },
         "expected": {
-            "delta_v_ms": 5068.0,
+            "delta_v_ms": 5050.62,
             "mass_ratio": 5.0,
         },
         "tolerance": 0.005,
         "reference": 'Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed., Eq. 4-6. '
-        "delta-v = Isp * g0 * ln(m0/mf) = 320 * 9.80665 * ln(5) = 5068 m/s",
+        "delta-v = Isp * g0 * ln(m0/mf) = 320 * 9.80665 * ln(5) = 5050.6 m/s",
     },
     # ---- Isentropic Flow ----
     "isentropic_mach_2": {
@@ -142,23 +172,151 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "pressure_ratio": 4.500,
             "density_ratio": 2.667,
             "temperature_ratio": 1.687,
+            "stagnation_pressure_ratio": 0.7209,
         },
         "tolerance": 0.005,
-        "reference": 'Anderson, "Fundamentals of Aerodynamics", 6th Ed., Table A.2. '
-        "For M1=2, gamma=1.4: M2=0.5774, P2/P1=4.50, rho2/rho1=2.667, T2/T1=1.687",
+        "reference": 'Anderson, "Fundamentals of Aerodynamics", 6th Ed., Table A.2 / NACA 1135. '
+        "For M1=2, gamma=1.4: M2=0.5774, P2/P1=4.50, rho2/rho1=2.667, T2/T1=1.687, p02/p01=0.7209",
+    },
+    # ---- Oblique Shock (weak solution) ----
+    "oblique_shock_m2_theta15": {
+        "tool_name": "oblique_shock",
+        "inputs": {"mach1": 2.0, "deflection_deg": 15.0},
+        "expected": {
+            "wave_angle_deg": 45.34,
+            "mach_downstream": 1.4457,
+            "pressure_ratio": 2.1947,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            'Anderson, "Fundamentals of Aerodynamics", 6th Ed., Ch. 9 (theta-beta-M). '
+            "M1=2, theta=15 deg, gamma=1.4, WEAK solution: beta=45.34 deg, M2=1.446, p2/p1=2.195"
+        ),
     },
     # ---- Orbital Velocity ----
     "orbital_velocity_leo": {
         "tool_name": "orbital_velocity",
         "inputs": {"altitude_m": 400e3},
         "expected": {
-            "circular_velocity_kms": 7.669,
-            "orbital_period_min": 92.6,
+            "circular_velocity_kms": 7.6726,
+            "orbital_period_min": 92.41,
         },
         "tolerance": 0.005,
         "reference": (
             'Vallado, "Fundamentals of Astrodynamics and Applications", '
-            "4th Ed., Eq. 1-28. v_c = sqrt(mu/r) = sqrt(3.986e14 / 6771000)"
+            "4th Ed., Eq. 1-28. Mean Earth radius 6371 km + 400 km alt = r=6771 km. "
+            "v_c = sqrt(mu/r) = sqrt(3.986004e14 / 6771000) = 7.6726 km/s; "
+            "period = 2*pi*sqrt(r^3/mu) = 92.41 min"
+        ),
+    },
+    # ---- Propulsion Thermochemistry ----
+    "characteristic_velocity_lox_rp1": {
+        "tool_name": "characteristic_velocity",
+        "inputs": {"chamber_temperature_k": 3500.0, "gamma": 1.22, "molecular_weight": 23.3},
+        "expected": {"characteristic_velocity_ms": 1713.043},
+        "tolerance": 0.001,
+        "reference": (
+            'Sutton & Biblarz, "Rocket Propulsion Elements", 9th Ed., Eq. 3-32. '
+            "c* = sqrt(R*Tc)/Gamma; Tc=3500 K, gamma=1.22, M=23.3 kg/kmol -> 1713.0 m/s"
+        ),
+    },
+    # ---- Nozzle (ideal 1-D) ----
+    "nozzle_ideal_expansion": {
+        "tool_name": "nozzle_performance",
+        "inputs": {
+            "chamber_pressure_pa": 7.0e6,
+            "chamber_temperature_k": 3500.0,
+            "ambient_pressure_pa": 101325.0,
+            "throat_area_m2": 0.01,
+            "exit_area_m2": 0.08,
+            "gamma": 1.22,
+            "molecular_weight": 23.3,
+        },
+        "expected": {
+            "exit_mach": 3.1725,
+            "thrust_coefficient_cf": 1.5873,
+            "exit_pressure_pa": 112223.83,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Ideal 1-D compressible nozzle flow (Sutton & Biblarz Ch. 3; Anderson Ch. 4). "
+            "Area ratio Ae/At=8, gamma=1.22: area-Mach relation gives Me=3.1725; the "
+            "thrust coefficient Cf=1.587 and exit pressure ratio follow (both independent of R)."
+        ),
+    },
+    # ---- Aerothermodynamics ----
+    "stagnation_temperature_mach3": {
+        "tool_name": "stagnation_temperature",
+        "inputs": {"static_temperature_k": 220.0, "mach": 3.0},
+        "expected": {"stagnation_temperature_k": 616.0},
+        "tolerance": 0.001,
+        "reference": (
+            'Anderson, "Hypersonic and High-Temperature Gas Dynamics", 2nd Ed. '
+            "T0 = T*(1 + (gamma-1)/2*M^2) = 220*(1 + 0.2*9) = 616 K"
+        ),
+    },
+    "ballistic_entry_allen_eggers": {
+        "tool_name": "ballistic_entry_peak_deceleration",
+        "inputs": {"entry_velocity_ms": 7800.0, "flight_path_angle_deg": 30.0},
+        "expected": {"peak_deceleration_g": 79.689, "velocity_at_peak_ms": 4730.94},
+        "tolerance": 0.001,
+        "reference": (
+            "Allen & Eggers, NACA TR 1381 (1958). "
+            "a_max = V^2*sin(gamma)/(2*e*H), V at peak = V/sqrt(e). "
+            "V=7800 m/s, gamma=30 deg, H=7160 m: a_max=79.69 g, V_peak=4730.9 m/s"
+        ),
+    },
+    # ---- Hohmann Transfer ----
+    "hohmann_leo_to_geo": {
+        "tool_name": "hohmann_transfer",
+        "inputs": {"radius1_m": 6678137.0, "radius2_m": 42164137.0},
+        "expected": {
+            "delta_v1_ms": 2425.7,
+            "delta_v2_ms": 1466.8,
+            "total_delta_v_ms": 3892.5,
+            "transfer_time_hr": 5.275,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            'Curtis, "Orbital Mechanics for Engineering Students", 3rd Ed., Ch. 6. '
+            "300 km LEO (r=6678.137 km) to GEO (r=42164.137 km), mu=3.986004418e14: "
+            "dv1=2.4257, dv2=1.4668, total=3.8925 km/s, transfer time 5.275 h"
+        ),
+    },
+    # ---- Column Buckling (Euler-Johnson) ----
+    "column_buckling_euler": {
+        "tool_name": "column_buckling",
+        "inputs": {
+            "youngs_modulus": 200e9,
+            "area_moment": 1e-8,
+            "area": 1e-3,
+            "length": 2.0,
+            "yield_strength": 250e6,
+            "end_condition": "pinned_pinned",
+        },
+        "expected": {"critical_load_n": 4934.80, "slenderness_ratio": 632.456},
+        "tolerance": 0.005,
+        "reference": (
+            "Timoshenko & Gere, Theory of Elastic Stability, 2nd Ed. Euler regime "
+            "(slenderness 632 > Cc 126): Pcr = pi^2*E*I/(KL)^2 = 4934.8 N."
+        ),
+    },
+    "column_buckling_johnson": {
+        "tool_name": "column_buckling",
+        "inputs": {
+            "youngs_modulus": 69e9,
+            "area_moment": 5e-8,
+            "area": 2e-3,
+            "length": 0.3,
+            "yield_strength": 276e6,
+            "end_condition": "pinned_pinned",
+        },
+        "expected": {"critical_load_n": 350654.54, "critical_stress_mpa": 175.327},
+        "tolerance": 0.005,
+        "reference": (
+            "Shigley's Mechanical Engineering Design, 11th Ed., Eq. 4-46 (J.B. Johnson). "
+            "Inelastic regime (slenderness 60 < Cc 70): "
+            "sigma_cr = Sy - (Sy^2/(4 pi^2 E)) (L/r)^2 = 175.3 MPa; Pcr = 350.65 kN."
         ),
     },
     # ---- Section Properties ----
@@ -173,6 +331,46 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "tolerance": 0.005,
         "reference": "Roark's Formulas, 8th Ed., Table A.1: Rectangular section. "
         "A=bh=0.02, I=bh^3/12=6.667e-5, S=bh^2/6=6.667e-4",
+    },
+    "section_ibeam": {
+        "tool_name": "section_properties",
+        "inputs": {
+            "shape": "ibeam",
+            "flange_width": 0.1,
+            "height": 0.2,
+            "flange_thickness": 0.01,
+            "web_thickness": 0.008,
+        },
+        "expected": {
+            "area_m2": 0.00344,
+            "i_xx_m4": 2.1954667e-5,
+            "s_xx_m3": 2.1954667e-4,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Roark's Formulas, 8th Ed., Table A.1 (symmetric I-section via parallel-axis). "
+            "b_f=0.1, h=0.2, t_f=0.01, t_w=0.008: A=3.44e-3, I=2.1955e-5, S=I/(h/2)=2.1955e-4."
+        ),
+    },
+    "section_tsection": {
+        "tool_name": "section_properties",
+        "inputs": {
+            "shape": "tsection",
+            "flange_width": 0.1,
+            "height": 0.15,
+            "flange_thickness": 0.02,
+            "web_thickness": 0.01,
+        },
+        "expected": {
+            "area_m2": 0.0033,
+            "i_xx_m4": 6.3293182e-6,
+            "s_xx_m3": 5.7302469e-5,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Roark's Formulas, 8th Ed., Table A.1 (T-section; centroid + parallel-axis). "
+            "b_f=0.1, h=0.15, t_f=0.02, t_w=0.01: A=3.3e-3, I about centroid=6.329e-6."
+        ),
     },
     # ---- NACA Airfoil Drag Polar (Validation against wind tunnel) ----
     "naca_0012_drag_polar": {
@@ -194,6 +392,56 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
         "NACA 0012 drag data at Re ~ 3x10^6 (Langley wind tunnel). "
         "Note: This benchmark validates Re and Mach computation only; "
         "actual drag polar requires airfoil-specific data not in the generic tool.",
+    },
+    # ---- Trajectory (analytic vacuum reference) ----
+    "ascent_vacuum_vertical": {
+        "tool_name": "simulate_ascent",
+        "inputs": {
+            "initial_mass_kg": 1000.0,
+            "dry_mass_kg": 400.0,
+            "specific_impulse_s": 250.0,
+            "mass_flow_rate_kg_s": 20.0,
+            "reference_area_m2": 1.0,
+            "include_drag": False,
+            "gravity_model": "constant",
+            "dt": 0.01,
+            "launch_angle_deg": 90.0,
+        },
+        "expected": {
+            "burnout_velocity_ms": 1952.2361,
+            "burnout_altitude_m": 24208.17,
+            "apogee_m": 218526.61,
+        },
+        "tolerance": 0.002,
+        "reference": (
+            "Closed-form vertical vacuum ascent (constant gravity, no drag): "
+            "v_bo = Isp*g0*ln(m0/mf) - g0*t_burn; h_apogee = h_bo + v_bo^2/(2*g0). "
+            "Sutton & Biblarz, Rocket Propulsion Elements 9th Ed. Ch. 4; "
+            "Curtis, Orbital Mechanics for Engineering Students 3rd Ed. Ch. 11. "
+            "Isolates RK4 integrator error from the atmospheric/gravity model."
+        ),
+    },
+    # ---- Optimal staging (analytic symmetric optimum) ----
+    "staging_optimum_symmetric": {
+        "tool_name": "optimize_staging",
+        "inputs": {
+            "delta_v_target_ms": 9000.0,
+            "stages": [
+                {"specific_impulse_s": 300.0, "structural_ratio": 0.1},
+                {"specific_impulse_s": 300.0, "structural_ratio": 0.1},
+            ],
+        },
+        "expected": {
+            "total_delta_v_ms": 9000.0,
+            "optimal_payload_fraction": 0.016793,
+        },
+        "tolerance": 0.005,
+        "reference": (
+            "Optimal staging, identical stages: by symmetry the optimum splits delta-v "
+            "equally (4500 m/s each). With c=Isp*g0=2942 m/s, eps=0.1: n=exp(dv/c), "
+            "stage payload ratio pi=(1/n-eps)/(1-eps), overall PF=pi^2=0.016793. "
+            "Curtis, Orbital Mechanics for Engineering Students 3rd Ed. Ch. 11."
+        ),
     },
 }
 

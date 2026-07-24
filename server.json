@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.benajaero/rocket-tools",
+  "description": "Engineering-grade aerospace computation (structures, aerodynamics, compressible flow, propulsion, orbital mechanics, ascent simulation, optimization, visualization) exposed as validated MCP tools with provenance.",
+  "repository": {
+    "url": "https://github.com/benajaero/rocket-tools",
+    "source": "github"
+  },
+  "version": "0.4.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "rocket-tools",
+      "version": "0.4.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeHint": "rocket-tools",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "serve"
+        }
+      ]
+    }
+  ]
+}

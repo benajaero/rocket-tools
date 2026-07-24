@@ -9,13 +9,16 @@ These models provide:
 from .aerodynamics import (
     AeroAnalysisInput,
     AeroAnalysisOutput,
+    BallisticEntryInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
+    CharacteristicVelocityInput,
     DragCoefficientInput,
     DragCoefficientOutput,
     DragPolarInput,
     DynamicPressureInput,
     DynamicPressureOutput,
+    IdealSpecificImpulseInput,
     IsentropicFlowInput,
     LiftCoefficientInput,
     LiftCoefficientOutput,
@@ -28,26 +31,44 @@ from .aerodynamics import (
     OptimalAreaRatioInput,
     PrandtlMeyerFromAngleInput,
     PrandtlMeyerInput,
+    RecoveryTemperatureInput,
     ReynoldsNumberInput,
     ReynoldsNumberOutput,
     SkinFrictionInput,
     SkinFrictionOutput,
+    StagnationTemperatureInput,
+    SuttonGravesInput,
+    ThroatMassFluxInput,
     WingLoadingInput,
 )
 from .design import (
     CompositeCGInput,
+    HohmannTransferInput,
     MultiStageDeltaVInput,
+    OrbitalPeriodInput,
     OrbitalVelocityInput,
     PayloadFractionInput,
+    PlaneChangeInput,
     PropellantTankSizingInput,
     RocketDeltaVInput,
     ThrustToWeightInput,
+    VisVivaInput,
 )
 from .materials import (
     ISAAtmosphereInput,
     ISAAtmosphereOutput,
     MaterialLookupInput,
     MaterialLookupOutput,
+)
+from .optimization import (
+    DesignOptimizerInput,
+    StagingOptimizerInput,
+)
+from .standards import (
+    DesignReviewInput,
+    DesignReviewItem,
+    FMEAInput,
+    FMEAItem,
 )
 from .structural import (
     BeamAnalysisInput,
@@ -63,7 +84,25 @@ from .structural import (
     TrussAnalysisInput,
     VonMisesInput,
 )
-from .utils import UnitConvertInput, UnitConvertOutput
+from .trajectory import (
+    AscentSimInput,
+    VehicleSizingInput,
+)
+from .utils import (
+    CiteToolInput,
+    ParameterSweepInput,
+    PropagateUncertaintyInput,
+    UnitConvertInput,
+    UnitConvertOutput,
+    ValidateResultInput,
+)
+from .viz import (
+    BeamDiagramInput,
+    DragPolarPlotInput,
+    ISAProfileInput,
+    NozzleContourInput,
+    TrajectoryPlotInput,
+)
 
 __all__ = [
     # Structural
@@ -114,6 +153,15 @@ __all__ = [
     # Aerodynamics - Nozzle
     "NozzlePerformanceInput",
     "OptimalAreaRatioInput",
+    # Aerodynamics - Aerothermodynamics
+    "StagnationTemperatureInput",
+    "RecoveryTemperatureInput",
+    "SuttonGravesInput",
+    "BallisticEntryInput",
+    # Aerodynamics - Propulsion
+    "CharacteristicVelocityInput",
+    "IdealSpecificImpulseInput",
+    "ThroatMassFluxInput",
     # Design
     "RocketDeltaVInput",
     "MultiStageDeltaVInput",
@@ -122,7 +170,32 @@ __all__ = [
     "ThrustToWeightInput",
     "CompositeCGInput",
     "PropellantTankSizingInput",
+    "HohmannTransferInput",
+    "VisVivaInput",
+    "PlaneChangeInput",
+    "OrbitalPeriodInput",
+    # Trajectory
+    "AscentSimInput",
+    "VehicleSizingInput",
+    # Optimization
+    "StagingOptimizerInput",
+    "DesignOptimizerInput",
+    # Standards & reliability
+    "DesignReviewInput",
+    "DesignReviewItem",
+    "FMEAInput",
+    "FMEAItem",
+    # Visualization
+    "BeamDiagramInput",
+    "DragPolarPlotInput",
+    "NozzleContourInput",
+    "ISAProfileInput",
+    "TrajectoryPlotInput",
     # Utils
+    "CiteToolInput",
+    "ParameterSweepInput",
+    "PropagateUncertaintyInput",
+    "ValidateResultInput",
     "UnitConvertInput",
     "UnitConvertOutput",
 ]

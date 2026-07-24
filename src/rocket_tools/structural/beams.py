@@ -80,6 +80,74 @@ def _positive_section_value(cross_section: Mapping[str, object], key: str) -> fl
     return float(value)
 
 
+def _beam_stations(
+    load: float,
+    length: float,
+    youngs_modulus: float,
+    area_moment_m4: float,
+    load_type: str,
+    support_type: str,
+    n: int = 101,
+) -> dict:
+    """Along-span shear V(x), moment M(x), and deflection d(x) arrays (Roark Table 8.1).
+
+    Returns numpy arrays for the load/support combinations that ``beam_analysis``
+    supports for bending (point_midspan: simply_supported / cantilever / fixed_ends;
+    distributed: simply_supported / cantilever). ``cantilever`` uses a tip point load,
+    matching ``beam_analysis``. Used by ``viz.plot_beam_diagrams``; not an MCP tool.
+    """
+    x = np.linspace(0.0, length, n)
+    e_i = youngs_modulus * area_moment_m4
+    w = load
+    p = load
+    ll = length
+
+    if load_type == "point_midspan" and support_type == "simply_supported":
+        v = np.where(x < ll / 2.0, p / 2.0, -p / 2.0)
+        m = np.where(x <= ll / 2.0, p * x / 2.0, p * (ll - x) / 2.0)
+        d = np.where(
+            x <= ll / 2.0,
+            p * x * (3.0 * ll**2 - 4.0 * x**2) / (48.0 * e_i),
+            p * (ll - x) * (3.0 * ll**2 - 4.0 * (ll - x) ** 2) / (48.0 * e_i),
+        )
+    elif load_type == "point_midspan" and support_type == "cantilever":
+        # Tip point load (matches beam_analysis PL^3/3EI convention), fixed at x=0.
+        v = np.full_like(x, p)
+        m = -p * (ll - x)
+        d = p * x**2 * (3.0 * ll - x) / (6.0 * e_i)
+    elif load_type == "point_midspan" and support_type == "fixed_ends":
+        v = np.where(x < ll / 2.0, p / 2.0, -p / 2.0)
+        m = np.where(
+            x <= ll / 2.0,
+            p * x / 2.0 - p * ll / 8.0,
+            p * (ll - x) / 2.0 - p * ll / 8.0,
+        )
+        d = np.where(
+            x <= ll / 2.0,
+            p * x**2 * (3.0 * ll - 4.0 * x) / (48.0 * e_i),
+            p * (ll - x) ** 2 * (3.0 * ll - 4.0 * (ll - x)) / (48.0 * e_i),
+        )
+    elif load_type == "distributed" and support_type == "simply_supported":
+        v = w * (ll / 2.0 - x)
+        m = w * x * (ll - x) / 2.0
+        d = w * x * (ll**3 - 2.0 * ll * x**2 + x**3) / (24.0 * e_i)
+    elif load_type == "distributed" and support_type == "cantilever":
+        v = w * (ll - x)
+        m = -w * (ll - x) ** 2 / 2.0
+        d = w * x**2 * (6.0 * ll**2 - 4.0 * ll * x + x**2) / (24.0 * e_i)
+    else:
+        raise ValueError(
+            f"No station diagram for load_type={load_type!r}, support_type={support_type!r}"
+        )
+
+    return {
+        "x_m": x,
+        "shear_n": v,
+        "moment_n_m": m,
+        "deflection_m": d,
+    }
+
+
 def beam_analysis(
     load: float,
     length: float,

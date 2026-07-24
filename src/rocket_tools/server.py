@@ -1,24 +1,34 @@
 """FastMCP server exposing aerospace engineering tools with Pydantic validation."""
 
-import functools
-import time
-from collections.abc import Callable
+from typing import Literal
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import ValidationError as PydanticValidationError
 
-from rocket_tools.observability import record_tool_call
 from rocket_tools.schemas import (
     AeroAnalysisInput,
+    AscentSimInput,
+    BallisticEntryInput,
+    BeamDiagramInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
+    CharacteristicVelocityInput,
+    CiteToolInput,
     ColumnBucklingInput,
     CombinedMarginInput,
     CompositeCGInput,
     DeflectionMarginInput,
+    DesignOptimizerInput,
+    DesignReviewInput,
     DragCoefficientInput,
     DragPolarInput,
+    DragPolarPlotInput,
     DynamicPressureInput,
+    FMEAInput,
+    HohmannTransferInput,
+    IdealSpecificImpulseInput,
     ISAAtmosphereInput,
+    ISAProfileInput,
     IsentropicFlowInput,
     LiftCoefficientInput,
     LiftCurveSlopeInput,
@@ -27,66 +37,88 @@ from rocket_tools.schemas import (
     MaterialLookupInput,
     MultiStageDeltaVInput,
     NormalShockInput,
+    NozzleContourInput,
     NozzlePerformanceInput,
     ObliqueShockInput,
     OptimalAreaRatioInput,
+    OrbitalPeriodInput,
     OrbitalVelocityInput,
+    ParameterSweepInput,
     PayloadFractionInput,
+    PlaneChangeInput,
     PlateBucklingInput,
     PrandtlMeyerFromAngleInput,
     PrandtlMeyerInput,
+    PropagateUncertaintyInput,
     PropellantTankSizingInput,
+    RecoveryTemperatureInput,
     ReynoldsNumberInput,
     RocketDeltaVInput,
     SkinFrictionInput,
+    StagingOptimizerInput,
+    StagnationTemperatureInput,
+    SuttonGravesInput,
+    ThroatMassFluxInput,
     ThrustToWeightInput,
+    TrajectoryPlotInput,
     TrussAnalysisInput,
     UnitConvertInput,
+    ValidateResultInput,
+    VehicleSizingInput,
+    VisVivaInput,
     VonMisesInput,
     WingLoadingInput,
 )
 from rocket_tools.schemas.structural import BeamAnalysisInput
 from rocket_tools.utils.validation import ToolError
 
-
-def _timed_tool(tool_name: str):
-    """Decorator that records Prometheus metrics for each MCP tool call."""
-
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            start = time.perf_counter()
-            status = "success"
-            try:
-                result = func(*args, **kwargs)
-                if isinstance(result, dict) and result.get("error"):
-                    status = "error"
-                return result
-            except Exception:
-                status = "error"
-                raise
-            finally:
-                duration = time.perf_counter() - start
-                record_tool_call(tool_name, status, duration)
-
-        return wrapper
-
-    return decorator
-
-
 mcp = FastMCP("rocket-tools")
 
 
 # ---- Structured Error Formatter ----
+#
+# Every tool returns the SAME error schema so an agent can branch on it reliably:
+#   {error, error_code, error_type, message, parameter, constraint, suggestion}
+# error_code is the machine identifier (INVALID_PARAMETER / INTERNAL_ERROR / ...);
+# error_type is its lowercase form, kept for backwards compatibility.
+
+
+def _format_pydantic_error(e: PydanticValidationError) -> dict:
+    """Turn a Pydantic ValidationError into a clean, actionable structured error.
+
+    An invalid argument is the agent's fault, not an internal fault, so it is
+    reported as INVALID_PARAMETER with the offending field name(s) and constraint
+    surfaced directly instead of a raw multi-line Pydantic dump.
+    """
+    errors = e.errors()
+    parameters = [".".join(str(p) for p in err["loc"]) for err in errors]
+    parameter = ", ".join(dict.fromkeys(parameters))  # de-duped, order-preserving
+    constraint = "; ".join(f"{p}: {err['msg']}" for p, err in zip(parameters, errors))
+    message = f"Invalid input for {parameter}: " + "; ".join(err["msg"] for err in errors)
+    return {
+        "error": True,
+        "error_code": "INVALID_PARAMETER",
+        "error_type": "invalid_parameter",
+        "message": message,
+        "parameter": parameter,
+        "constraint": constraint,
+        "suggestion": (
+            f"Correct the '{parameter}' argument(s) and retry. "
+            "Check units and allowed ranges in the tool description."
+        ),
+    }
 
 
 def _format_error(e: Exception) -> dict:
     """Format any exception into a structured MCP-compatible error response."""
     if isinstance(e, ToolError):
         return e.to_dict()
+    if isinstance(e, PydanticValidationError):
+        return _format_pydantic_error(e)
     return {
         "error": True,
         "error_code": "INTERNAL_ERROR",
+        "error_type": "internal_error",
         "message": str(e),
         "parameter": "",
         "constraint": "",
@@ -96,11 +128,167 @@ def _format_error(e: Exception) -> dict:
     }
 
 
+# ---- Research / Provenance Tools ----
+
+
+@mcp.tool()
+def cite_tool(tool_name: str) -> dict:
+    """Provenance for a rocket-tools computation, for citing or auditing a result.
+
+    Given a tool name (e.g. "normal_shock"), returns its authoritative reference(s),
+    governing formula, modelling assumptions, and any curated validation benchmark(s)
+    that pin it to published values (with a `validated` flag). Use this to defend or
+    trace any number the server produces. Call `list_references` for the full bibliography.
+    """
+    from rocket_tools.provenance import get_provenance
+
+    try:
+        validated = CiteToolInput(tool_name=tool_name)
+        return get_provenance(validated.tool_name)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def propagate_uncertainty(
+    tool_name: str,
+    params: dict,
+    samples: int = 1000,
+    seed: int = 42,
+    sensitivity: bool = True,
+) -> dict:
+    """Monte-Carlo uncertainty propagation and sensitivity ranking for any tool.
+
+    Run `tool_name` many times with uncertain inputs and report each output's
+    mean, std, min, max, and 95% CI, plus a sensitivity ranking of which inputs
+    drive each output (Pearson correlation).
+
+    `params` maps the tool's arguments to fixed numbers or distribution dicts:
+    {"distribution":"normal","mean":M,"std":S}; "uniform" with low/high;
+    "lognormal" with mean/sigma; "truncated_normal" with mean/std/low/high.
+    Example: propagate_uncertainty("rocket_delta_v",
+      {"specific_impulse_s":{"distribution":"normal","mean":320,"std":5},
+       "initial_mass_kg":10000, "final_mass_kg":2000}).
+    """
+    from rocket_tools.uncertainty import run_with_uncertainty
+
+    try:
+        validated = PropagateUncertaintyInput(
+            tool_name=tool_name,
+            params=params,
+            samples=samples,
+            seed=seed,
+            sensitivity=sensitivity,
+        )
+        return run_with_uncertainty(
+            validated.tool_name,
+            validated.params,
+            validated.samples,
+            validated.seed,
+            validated.sensitivity,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def list_validation_benchmarks() -> dict:
+    """List curated validation benchmarks available for self-checking a result.
+
+    Each entry gives the benchmark name, the tool it validates, its inputs, and
+    the authoritative reference. Pass a name and your tool output to `validate_result`.
+    """
+    from rocket_tools.validation import get_benchmark, list_benchmarks
+
+    try:
+        benchmarks = []
+        for name in list_benchmarks():
+            bm = get_benchmark(name)
+            benchmarks.append(
+                {
+                    "name": name,
+                    "tool_name": bm["tool_name"],
+                    "inputs": bm["inputs"],
+                    "reference": bm["reference"],
+                }
+            )
+        return {"benchmarks": benchmarks, "count": len(benchmarks)}
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def validate_result(benchmark_name: str, result: dict) -> dict:
+    """Check a computed result against a curated, reference-backed benchmark.
+
+    Given a benchmark name (from `list_validation_benchmarks`) and a tool's output
+    dict, returns whether each expected value is within tolerance, the per-key
+    errors, and the authoritative reference. Use it to self-verify a number.
+    """
+    from rocket_tools.validation import validate_benchmark
+
+    try:
+        validated = ValidateResultInput(benchmark_name=benchmark_name, result=result)
+        return validate_benchmark(validated.benchmark_name, validated.result)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def parameter_sweep(
+    tool_name: str, params: dict, sweep_parameter: str, values: list[float]
+) -> dict:
+    """Trade study: run a tool across a series of values for one input.
+
+    Returns one row per value with the tool's numeric outputs, so you can see how
+    an output responds to a design variable (e.g. sweep `altitude_m` for
+    `isa_atmosphere`, or `mach` for `isentropic_flow`). A value that errors is
+    reported per-row without aborting the sweep. tool_name must be a computational
+    tool (see the tools list); sweep_parameter is one of its inputs.
+    """
+    from rocket_tools.workflows.engine import parameter_sweep as _sweep
+
+    try:
+        validated = ParameterSweepInput(
+            tool_name=tool_name,
+            params=params,
+            sweep_parameter=sweep_parameter,
+            values=values,
+        )
+        return _sweep(
+            validated.tool_name,
+            validated.params,
+            validated.sweep_parameter,
+            validated.values,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def list_references() -> dict:
+    """List the authoritative sources behind rocket-tools and which tools are documented.
+
+    Returns the de-duplicated bibliography (textbooks, NACA/NASA reports, standards)
+    and the tool names that have provenance available via `cite_tool`.
+    """
+    from rocket_tools.provenance import list_documented_tools
+    from rocket_tools.provenance import list_references as _lr
+
+    try:
+        return {
+            "references": _lr(),
+            "documented_tools": list_documented_tools(),
+            "documented_tool_count": len(list_documented_tools()),
+        }
+    except Exception as e:
+        return _format_error(e)
+
+
 # ---- Utility Tools ----
 
 
 @mcp.tool()
-@_timed_tool("unit_convert")
 def unit_convert(value: float, from_unit: str, to_unit: str) -> dict:
     """Convert engineering units.
 
@@ -116,7 +304,6 @@ def unit_convert(value: float, from_unit: str, to_unit: str) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("material_lookup")
 def material_lookup(name: str, property_filter: str = "all") -> dict:
     """Look up aerospace material properties by name.
 
@@ -132,7 +319,6 @@ def material_lookup(name: str, property_filter: str = "all") -> dict:
 
 
 @mcp.tool()
-@_timed_tool("list_materials")
 def list_materials() -> list[str]:
     """List available bundled aerospace materials."""
     from rocket_tools.materials import list_materials as _lm
@@ -144,9 +330,12 @@ def list_materials() -> list[str]:
 
 
 @mcp.tool()
-@_timed_tool("isa_atmosphere")
 def isa_atmosphere(altitude_m: float) -> dict:
-    """Get ISA atmosphere properties at a given altitude (0-25000 m)."""
+    """Get ISA atmosphere properties (temperature, pressure, density, speed of sound).
+
+    altitude_m is geopotential altitude, 0-84852 m (0-86 km geometric). Uses the
+    full 7-layer U.S. Standard Atmosphere 1976 model.
+    """
     from rocket_tools.materials import isa_atmosphere as _isa
 
     try:
@@ -160,7 +349,6 @@ def isa_atmosphere(altitude_m: float) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("beam_analysis")
 def beam_analysis(
     load: float,
     length: float,
@@ -204,7 +392,6 @@ def beam_analysis(
 
 
 @mcp.tool()
-@_timed_tool("section_properties")
 def section_properties(
     shape: str,
     width: float | None = None,
@@ -244,7 +431,6 @@ def section_properties(
 
 
 @mcp.tool()
-@_timed_tool("column_buckling")
 def column_buckling(
     youngs_modulus: float,
     area_moment: float,
@@ -281,7 +467,6 @@ def column_buckling(
 
 
 @mcp.tool()
-@_timed_tool("plate_buckling_coefficient")
 def plate_buckling_coefficient(
     aspect_ratio: float,
     boundary_condition: str = "simply_supported",
@@ -312,7 +497,6 @@ def plate_buckling_coefficient(
 
 
 @mcp.tool()
-@_timed_tool("margin_of_safety")
 def margin_of_safety(
     allowable_stress_pa: float | None = None,
     actual_stress_pa: float | None = None,
@@ -354,7 +538,6 @@ def margin_of_safety(
 
 
 @mcp.tool()
-@_timed_tool("von_mises_stress")
 def von_mises_stress(
     sigma_x: float,
     sigma_y: float = 0.0,
@@ -391,7 +574,6 @@ def von_mises_stress(
 
 
 @mcp.tool()
-@_timed_tool("combined_margin_of_safety")
 def combined_margin_of_safety(
     sigma_x: float,
     sigma_y: float = 0.0,
@@ -431,7 +613,6 @@ def combined_margin_of_safety(
 
 
 @mcp.tool()
-@_timed_tool("deflection_margin")
 def deflection_margin(
     actual_deflection_m: float,
     allowable_deflection_m: float | None = None,
@@ -462,7 +643,6 @@ def deflection_margin(
 
 
 @mcp.tool()
-@_timed_tool("truss_analysis")
 def truss_analysis(
     nodes: list,
     elements: list,
@@ -503,7 +683,6 @@ def truss_analysis(
 
 
 @mcp.tool()
-@_timed_tool("reynolds_number")
 def reynolds_number(
     velocity: float,
     characteristic_length: float,
@@ -542,7 +721,6 @@ def reynolds_number(
 
 
 @mcp.tool()
-@_timed_tool("mach_number")
 def mach_number(velocity: float, altitude_m: float) -> dict:
     """Compute Mach number at given altitude."""
     from rocket_tools.aerodynamics import mach_number as _ma
@@ -555,7 +733,6 @@ def mach_number(velocity: float, altitude_m: float) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("dynamic_pressure")
 def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
     """Compute dynamic pressure q = 0.5 * rho * V^2 at given altitude."""
     from rocket_tools.aerodynamics import dynamic_pressure as _q
@@ -568,7 +745,6 @@ def dynamic_pressure(velocity: float, altitude_m: float) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("lift_coefficient")
 def lift_coefficient(
     lift: float, velocity: float, altitude_m: float, reference_area: float
 ) -> dict:
@@ -590,7 +766,6 @@ def lift_coefficient(
 
 
 @mcp.tool()
-@_timed_tool("drag_coefficient")
 def drag_coefficient(
     drag: float, velocity: float, altitude_m: float, reference_area: float
 ) -> dict:
@@ -612,7 +787,6 @@ def drag_coefficient(
 
 
 @mcp.tool()
-@_timed_tool("skin_friction_coefficient")
 def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "laminar") -> dict:
     """Compute skin friction coefficient using Blasius correlation."""
     from rocket_tools.aerodynamics import skin_friction_coefficient as _cf
@@ -628,7 +802,6 @@ def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "lamina
 
 
 @mcp.tool()
-@_timed_tool("aero_analysis")
 def aero_analysis(
     velocity: float,
     altitude_m: float,
@@ -665,7 +838,6 @@ def aero_analysis(
 
 
 @mcp.tool()
-@_timed_tool("isentropic_flow")
 def isentropic_flow(mach: float, gamma: float = 1.4) -> dict:
     """Compute isentropic flow ratios (T/T0, P/P0, rho/rho0, A/A*) for given Mach number."""
     from rocket_tools.aerodynamics import isentropic_flow as _if
@@ -678,7 +850,6 @@ def isentropic_flow(mach: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("normal_shock")
 def normal_shock(mach1: float, gamma: float = 1.4) -> dict:
     """Compute normal shock relations for upstream Mach number > 1."""
     from rocket_tools.aerodynamics import normal_shock as _ns
@@ -691,7 +862,6 @@ def normal_shock(mach1: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("oblique_shock")
 def oblique_shock(mach1: float, deflection_deg: float, gamma: float = 1.4) -> dict:
     """Compute oblique shock relations for upstream Mach and deflection angle."""
     from rocket_tools.aerodynamics import oblique_shock as _os
@@ -704,7 +874,6 @@ def oblique_shock(mach1: float, deflection_deg: float, gamma: float = 1.4) -> di
 
 
 @mcp.tool()
-@_timed_tool("prandtl_meyer")
 def prandtl_meyer(mach: float, gamma: float = 1.4) -> dict:
     """Compute Prandtl-Meyer expansion angle for Mach >= 1."""
     from rocket_tools.aerodynamics import prandtl_meyer as _pm
@@ -717,7 +886,6 @@ def prandtl_meyer(mach: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("prandtl_meyer_from_angle")
 def prandtl_meyer_from_angle(angle_deg: float, gamma: float = 1.4) -> dict:
     """Compute Mach number from Prandtl-Meyer expansion angle."""
     from rocket_tools.aerodynamics import prandtl_meyer_from_angle as _pmfa
@@ -733,7 +901,6 @@ def prandtl_meyer_from_angle(angle_deg: float, gamma: float = 1.4) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("lift_curve_slope")
 def lift_curve_slope(
     mach: float,
     aspect_ratio: float,
@@ -764,7 +931,6 @@ def lift_curve_slope(
 
 
 @mcp.tool()
-@_timed_tool("drag_polar")
 def drag_polar(
     cl: float,
     cd0: float,
@@ -795,7 +961,6 @@ def drag_polar(
 
 
 @mcp.tool()
-@_timed_tool("breguet_range")
 def breguet_range(
     lift_to_drag_ratio: float,
     specific_fuel_consumption: float,
@@ -826,7 +991,6 @@ def breguet_range(
 
 
 @mcp.tool()
-@_timed_tool("breguet_endurance")
 def breguet_endurance(
     lift_to_drag_ratio: float,
     specific_fuel_consumption: float,
@@ -854,7 +1018,6 @@ def breguet_endurance(
 
 
 @mcp.tool()
-@_timed_tool("wing_loading")
 def wing_loading(weight_n: float, wing_area_m2: float) -> dict:
     """Compute wing loading and stall speed estimates."""
     from rocket_tools.aerodynamics import wing_loading as _wl
@@ -870,7 +1033,6 @@ def wing_loading(weight_n: float, wing_area_m2: float) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("nozzle_performance")
 def nozzle_performance(
     chamber_pressure_pa: float,
     chamber_temperature_k: float,
@@ -907,7 +1069,6 @@ def nozzle_performance(
 
 
 @mcp.tool()
-@_timed_tool("optimal_area_ratio")
 def optimal_area_ratio(
     chamber_pressure_pa: float, ambient_pressure_pa: float, gamma: float = 1.4
 ) -> dict:
@@ -929,11 +1090,199 @@ def optimal_area_ratio(
         return _format_error(e)
 
 
+# ---- Propulsion Thermochemistry Tools ----
+
+
+@mcp.tool()
+def characteristic_velocity(
+    chamber_temperature_k: float, gamma: float = 1.2, molecular_weight: float = 22.0
+) -> dict:
+    """Characteristic velocity c* = sqrt(R*Tc)/Gamma (m/s), a propellant figure of merit.
+
+    Geometry-free: measures how well the chamber converts propellant to throat
+    mass flux (c* = p_c*A_t/mdot). gamma is exhaust ratio of specific heats,
+    molecular_weight in kg/kmol. Typical c*: 1500-1800 (LOX/RP-1), ~2400 (LOX/LH2).
+    """
+    from rocket_tools.aerodynamics import characteristic_velocity as _cs
+
+    try:
+        validated = CharacteristicVelocityInput(
+            chamber_temperature_k=chamber_temperature_k,
+            gamma=gamma,
+            molecular_weight=molecular_weight,
+        )
+        return _cs(validated.chamber_temperature_k, validated.gamma, validated.molecular_weight)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def ideal_specific_impulse(
+    chamber_temperature_k: float,
+    pressure_ratio: float,
+    gamma: float = 1.2,
+    molecular_weight: float = 22.0,
+) -> dict:
+    """Ideal exhaust velocity and Isp from the exit/chamber pressure ratio.
+
+    v_e = sqrt(2*g/(g-1)*R*Tc*(1-(pe/pc)^((g-1)/g))), Isp = v_e/g0. pressure_ratio
+    is pe/pc in (0, 1); also returns the vacuum limit (pe/pc -> 0). Ideal (frozen,
+    isentropic, 1-D) upper bound; real engines run a few percent below.
+    """
+    from rocket_tools.aerodynamics import ideal_specific_impulse as _isp
+
+    try:
+        validated = IdealSpecificImpulseInput(
+            chamber_temperature_k=chamber_temperature_k,
+            pressure_ratio=pressure_ratio,
+            gamma=gamma,
+            molecular_weight=molecular_weight,
+        )
+        return _isp(
+            validated.chamber_temperature_k,
+            validated.pressure_ratio,
+            validated.gamma,
+            validated.molecular_weight,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def throat_mass_flux(
+    chamber_pressure_pa: float,
+    chamber_temperature_k: float,
+    gamma: float = 1.2,
+    molecular_weight: float = 22.0,
+) -> dict:
+    """Choked mass flux mdot/At = pc*Gamma/sqrt(R*Tc), in kg/(s*m^2).
+
+    Multiply by throat area to get the ideal choked mass flow. gamma is exhaust
+    ratio of specific heats, molecular_weight in kg/kmol.
+    """
+    from rocket_tools.aerodynamics import throat_mass_flux as _tmf
+
+    try:
+        validated = ThroatMassFluxInput(
+            chamber_pressure_pa=chamber_pressure_pa,
+            chamber_temperature_k=chamber_temperature_k,
+            gamma=gamma,
+            molecular_weight=molecular_weight,
+        )
+        return _tmf(
+            validated.chamber_pressure_pa,
+            validated.chamber_temperature_k,
+            validated.gamma,
+            validated.molecular_weight,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Aerothermodynamics Tools ----
+
+
+@mcp.tool()
+def stagnation_temperature(static_temperature_k: float, mach: float, gamma: float = 1.4) -> dict:
+    """Total (stagnation) temperature of an adiabatic compressible flow.
+
+    T0 = T*(1 + (gamma-1)/2*M^2). The insulated-stagnation ceiling; a real wall
+    sees the lower recovery_temperature. static_temperature_k in K, mach >= 0.
+    """
+    from rocket_tools.aerodynamics import stagnation_temperature as _st
+
+    try:
+        validated = StagnationTemperatureInput(
+            static_temperature_k=static_temperature_k, mach=mach, gamma=gamma
+        )
+        return _st(validated.static_temperature_k, validated.mach, validated.gamma)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def recovery_temperature(
+    static_temperature_k: float,
+    mach: float,
+    gamma: float = 1.4,
+    prandtl: float = 0.71,
+    regime: str = "laminar",
+) -> dict:
+    """Adiabatic-wall (recovery) temperature: Tr = T*(1 + r*(gamma-1)/2*M^2).
+
+    Recovery factor r = Pr^0.5 (laminar) or Pr^(1/3) (turbulent); air Pr ~ 0.71.
+    regime is "laminar" or "turbulent".
+    """
+    from rocket_tools.aerodynamics import recovery_temperature as _rt
+
+    try:
+        validated = RecoveryTemperatureInput(
+            static_temperature_k=static_temperature_k,
+            mach=mach,
+            gamma=gamma,
+            prandtl=prandtl,
+            regime=regime,  # type: ignore[arg-type]
+        )
+        return _rt(
+            validated.static_temperature_k,
+            validated.mach,
+            validated.gamma,
+            validated.prandtl,
+            validated.regime,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def sutton_graves_heat_flux(density_kg_m3: float, velocity_ms: float, nose_radius_m: float) -> dict:
+    """Stagnation-point convective heat flux for Earth entry (Sutton-Graves).
+
+    q = 1.7415e-4*sqrt(rho/Rn)*V^3, result in W/m^2 (also returned as W/cm^2 and
+    MW/m^2). Cold-wall convective estimate for a blunt body; excludes radiation.
+    """
+    from rocket_tools.aerodynamics import sutton_graves_heat_flux as _sg
+
+    try:
+        validated = SuttonGravesInput(
+            density_kg_m3=density_kg_m3, velocity_ms=velocity_ms, nose_radius_m=nose_radius_m
+        )
+        return _sg(validated.density_kg_m3, validated.velocity_ms, validated.nose_radius_m)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def ballistic_entry_peak_deceleration(
+    entry_velocity_ms: float, flight_path_angle_deg: float, scale_height_m: float = 7160.0
+) -> dict:
+    """Peak deceleration of a steep non-lifting entry (Allen-Eggers, NACA TR 1381).
+
+    a_max = V_e^2*sin(gamma)/(2*e*H), independent of ballistic coefficient; peak
+    always occurs at V = V_e/sqrt(e). flight_path_angle_deg is below horizontal,
+    (0, 90]; scale_height_m defaults to Earth ~7160 m.
+    """
+    from rocket_tools.aerodynamics import ballistic_entry_peak_deceleration as _be
+
+    try:
+        validated = BallisticEntryInput(
+            entry_velocity_ms=entry_velocity_ms,
+            flight_path_angle_deg=flight_path_angle_deg,
+            scale_height_m=scale_height_m,
+        )
+        return _be(
+            validated.entry_velocity_ms,
+            validated.flight_path_angle_deg,
+            validated.scale_height_m,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
 # ---- Design Tools ----
 
 
 @mcp.tool()
-@_timed_tool("rocket_delta_v")
 def rocket_delta_v(
     specific_impulse_s: float,
     initial_mass_kg: float,
@@ -961,7 +1310,6 @@ def rocket_delta_v(
 
 
 @mcp.tool()
-@_timed_tool("multi_stage_delta_v")
 def multi_stage_delta_v(stages: list[dict], gravity: float = 9.80665) -> dict:
     """Compute total delta-v for multi-stage rocket."""
     from rocket_tools.design import multi_stage_delta_v as _msdv
@@ -974,7 +1322,6 @@ def multi_stage_delta_v(stages: list[dict], gravity: float = 9.80665) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("orbital_velocity")
 def orbital_velocity(
     altitude_m: float,
     body_radius_m: float = 6_371_000.0,
@@ -1002,7 +1349,76 @@ def orbital_velocity(
 
 
 @mcp.tool()
-@_timed_tool("payload_fraction")
+def hohmann_transfer(radius1_m: float, radius2_m: float, mu: float = 3.986004418e14) -> dict:
+    """Two-impulse Hohmann transfer between coplanar circular orbits.
+
+    radius1_m/radius2_m: orbital radii (body center to orbit) in meters, NOT altitude.
+    mu: gravitational parameter GM in m^3/s^2 (default Earth 3.986004418e14).
+    Returns delta_v1_ms, delta_v2_ms, total_delta_v_ms/_kms, and transfer_time_s/_hr.
+    """
+    from rocket_tools.design import hohmann_transfer as _ht
+
+    try:
+        validated = HohmannTransferInput(radius1_m=radius1_m, radius2_m=radius2_m, mu=mu)
+        return _ht(validated.radius1_m, validated.radius2_m, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def vis_viva_velocity(
+    radius_m: float, semi_major_axis_m: float, mu: float = 3.986004418e14
+) -> dict:
+    """Orbital speed at a radius via the vis-viva equation v = sqrt(mu*(2/r - 1/a)).
+
+    radius_m: distance from the body center in meters. semi_major_axis_m: orbit
+    semi-major axis in meters (equals radius_m for a circular orbit). Returns
+    velocity_ms and velocity_kms.
+    """
+    from rocket_tools.design import vis_viva_velocity as _vv
+
+    try:
+        validated = VisVivaInput(radius_m=radius_m, semi_major_axis_m=semi_major_axis_m, mu=mu)
+        return _vv(validated.radius_m, validated.semi_major_axis_m, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def plane_change_delta_v(velocity_ms: float, inclination_change_deg: float) -> dict:
+    """Delta-v for a simple plane change: delta_v = 2*v*sin(delta_i/2).
+
+    velocity_ms: orbital speed at the maneuver point. inclination_change_deg in
+    [0, 180]. Cheapest where orbital speed is lowest (near apoapsis).
+    """
+    from rocket_tools.design import plane_change_delta_v as _pc
+
+    try:
+        validated = PlaneChangeInput(
+            velocity_ms=velocity_ms, inclination_change_deg=inclination_change_deg
+        )
+        return _pc(validated.velocity_ms, validated.inclination_change_deg)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def orbital_period(semi_major_axis_m: float, mu: float = 3.986004418e14) -> dict:
+    """Keplerian orbital period T = 2*pi*sqrt(a^3/mu).
+
+    semi_major_axis_m in meters; mu in m^3/s^2 (default Earth). Returns
+    period_s, period_min, period_hr.
+    """
+    from rocket_tools.design import orbital_period as _op
+
+    try:
+        validated = OrbitalPeriodInput(semi_major_axis_m=semi_major_axis_m, mu=mu)
+        return _op(validated.semi_major_axis_m, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
 def payload_fraction(
     delta_v_required_ms: float,
     specific_impulse_s: float,
@@ -1030,7 +1446,6 @@ def payload_fraction(
 
 
 @mcp.tool()
-@_timed_tool("thrust_to_weight")
 def thrust_to_weight(thrust_n: float, mass_kg: float, gravity: float = 9.80665) -> dict:
     """Compute thrust-to-weight ratio."""
     from rocket_tools.design import thrust_to_weight as _ttw
@@ -1043,7 +1458,6 @@ def thrust_to_weight(thrust_n: float, mass_kg: float, gravity: float = 9.80665) 
 
 
 @mcp.tool()
-@_timed_tool("composite_cg")
 def composite_cg(masses: list[float], positions: list[list[float]]) -> dict:
     """Compute center of gravity and mass moments for composite body."""
     from rocket_tools.design import composite_cg as _ccg
@@ -1056,7 +1470,6 @@ def composite_cg(masses: list[float], positions: list[list[float]]) -> dict:
 
 
 @mcp.tool()
-@_timed_tool("propellant_tank_sizing")
 def propellant_tank_sizing(
     propellant_volume_m3: float,
     ullage_fraction: float = 0.1,
@@ -1087,6 +1500,500 @@ def propellant_tank_sizing(
         )
     except Exception as e:
         return _format_error(e)
+
+
+# ---- Trajectory & Vehicle Sizing ----
+
+
+@mcp.tool()
+def simulate_ascent(
+    initial_mass_kg: float,
+    dry_mass_kg: float,
+    specific_impulse_s: float,
+    mass_flow_rate_kg_s: float,
+    reference_area_m2: float,
+    drag_coefficient: float = 0.5,
+    launch_angle_deg: float = 90.0,
+    initial_altitude_m: float = 0.0,
+    initial_velocity_ms: float = 0.0,
+    dt: float = 0.05,
+    max_time: float = 2000.0,
+    include_drag: bool = True,
+    gravity_model: Literal["inverse_square", "constant"] = "inverse_square",
+) -> dict:
+    """Simulate a launch-vehicle ascent with a fixed-step RK4 integrator.
+
+    Planar point-mass gravity-turn model: thrust F = mdot*Isp*g0 along the velocity
+    vector while propellant remains, drag 0.5*rho*V^2*Cd*A with ISA density, and
+    inverse-square (or constant) gravity. launch_angle_deg=90 is a vertical launch.
+    Returns `events` (burnout, apogee), summary scalars (apogee_m, burnout_velocity_ms,
+    max_dynamic_pressure_pa, max_accel_g, ideal_delta_v_ms, total_losses_ms, ...), and
+    downsampled `series` arrays for plotting. Set gravity_model="constant",
+    include_drag=False for an analytic vacuum comparison.
+    """
+    from rocket_tools.trajectory import simulate_ascent as _sim
+
+    try:
+        v = AscentSimInput(
+            initial_mass_kg=initial_mass_kg,
+            dry_mass_kg=dry_mass_kg,
+            specific_impulse_s=specific_impulse_s,
+            mass_flow_rate_kg_s=mass_flow_rate_kg_s,
+            reference_area_m2=reference_area_m2,
+            drag_coefficient=drag_coefficient,
+            launch_angle_deg=launch_angle_deg,
+            initial_altitude_m=initial_altitude_m,
+            initial_velocity_ms=initial_velocity_ms,
+            dt=dt,
+            max_time=max_time,
+            include_drag=include_drag,
+            gravity_model=gravity_model,
+        )
+        return _sim(
+            v.initial_mass_kg,
+            v.dry_mass_kg,
+            v.specific_impulse_s,
+            v.mass_flow_rate_kg_s,
+            v.reference_area_m2,
+            v.drag_coefficient,
+            v.launch_angle_deg,
+            v.initial_altitude_m,
+            v.initial_velocity_ms,
+            v.dt,
+            v.max_time,
+            v.include_drag,
+            v.gravity_model,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def size_vehicle(
+    payload_mass_kg: float,
+    delta_v_target_ms: float,
+    specific_impulse_s: float,
+    inert_mass_fraction: float,
+    thrust_to_weight_liftoff: float = 1.3,
+    propellant_density_kg_m3: float = 1000.0,
+) -> dict:
+    """Preliminary single-stage vehicle sizing from a delta-v budget.
+
+    Solves the rocket equation for gross liftoff mass and the propellant/inert/payload
+    breakdown given a payload, delta-v target, Isp, and structural fraction epsilon,
+    then chains rocket_delta_v, thrust_to_weight, and propellant_tank_sizing. Returns
+    achievable=False (with the max achievable delta-v) when the structural fraction is
+    too high for the target.
+    """
+    from rocket_tools.trajectory import size_vehicle as _sv
+
+    try:
+        v = VehicleSizingInput(
+            payload_mass_kg=payload_mass_kg,
+            delta_v_target_ms=delta_v_target_ms,
+            specific_impulse_s=specific_impulse_s,
+            inert_mass_fraction=inert_mass_fraction,
+            thrust_to_weight_liftoff=thrust_to_weight_liftoff,
+            propellant_density_kg_m3=propellant_density_kg_m3,
+        )
+        return _sv(
+            v.payload_mass_kg,
+            v.delta_v_target_ms,
+            v.specific_impulse_s,
+            v.inert_mass_fraction,
+            v.thrust_to_weight_liftoff,
+            v.propellant_density_kg_m3,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Optimization ----
+
+
+@mcp.tool()
+def optimize_staging(
+    delta_v_target_ms: float,
+    stages: list[dict],
+    payload_mass_kg: float = 1.0,
+    gravity: float = 9.80665,
+) -> dict:
+    """Optimal delta-v split across stages that maximizes overall payload fraction.
+
+    Each stage dict needs `specific_impulse_s` and `structural_ratio` (epsilon in (0,1)).
+    Solves the restricted staging problem via a Lagrange multiplier (robust bisection),
+    returning per-stage optimal delta-v/mass ratio, total delta-v, the overall
+    `optimal_payload_fraction`, and `max_achievable_delta_v_ms`. Returns achievable=False
+    when the target exceeds the theoretical ceiling. (Curtis Ch. 11.)
+    """
+    from rocket_tools.optimization import optimize_staging as _os
+
+    try:
+        v = StagingOptimizerInput(
+            delta_v_target_ms=delta_v_target_ms,
+            stages=stages,
+            payload_mass_kg=payload_mass_kg,
+            gravity=gravity,
+        )
+        return _os(v.delta_v_target_ms, v.stages, v.payload_mass_kg, v.gravity)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def optimize_design(
+    tool_name: str,
+    fixed_params: dict,
+    variable: str,
+    bounds: list[float],
+    objective_key: str,
+    sense: Literal["max", "min"] = "max",
+    iterations: int = 40,
+) -> dict:
+    """Optimize one output of any computational tool over a single input variable.
+
+    Generalizes `parameter_sweep` from a grid scan to a golden-section search over the
+    same tool dispatch registry. Give the tool name, the fixed arguments, the variable
+    to vary, its [low, high] bounds, the output key to optimize, and the sense
+    ("max"/"min"). Returns the optimal variable value, the objective there, the tool's
+    full output at the optimum, and the evaluated `trace` (inspect it if the response
+    may be non-unimodal).
+    """
+    from rocket_tools.optimization import optimize_design as _od
+
+    try:
+        v = DesignOptimizerInput(
+            tool_name=tool_name,
+            fixed_params=fixed_params,
+            variable=variable,
+            bounds=bounds,
+            objective_key=objective_key,
+            sense=sense,
+            iterations=iterations,
+        )
+        return _od(
+            v.tool_name,
+            v.fixed_params,
+            v.variable,
+            v.bounds,
+            v.objective_key,
+            v.sense,
+            v.iterations,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Standards & Reliability ----
+
+
+@mcp.tool()
+def design_review_report(items: list[dict], min_acceptable_margin: float = 0.0) -> dict:
+    """Roll up margins of safety across design items into a go/no-go review.
+
+    Each item needs `name` and either a precomputed `margin_of_safety` or an
+    `allowable_stress_pa`/`actual_stress_pa` pair (optional `factor_of_safety`,
+    default 1.5). Returns a per-item table, the governing (minimum) margin and item,
+    the failing count, and a PASS/FAIL verdict.
+    """
+    from rocket_tools.standards import design_review_report as _drr
+
+    try:
+        v = DesignReviewInput.model_validate(
+            {"items": items, "min_acceptable_margin": min_acceptable_margin}
+        )
+        return _drr([it.model_dump() for it in v.items], v.min_acceptable_margin)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def fmea_report(items: list[dict], rpn_threshold: int = 100) -> dict:
+    """Rank failure modes by Risk Priority Number (RPN = Severity x Occurrence x Detection).
+
+    Each item needs `failure_mode` and integer `severity`, `occurrence`, `detection`
+    on 1-10 scales (optional `function`, `effect`, `cause`). Returns the modes ranked by
+    RPN, the max/mean RPN, and the high-priority subset (RPN >= threshold or severity >= 9).
+    MIL-STD-1629A / SAE J1739.
+    """
+    from rocket_tools.standards import fmea_report as _fmea
+
+    try:
+        v = FMEAInput.model_validate({"items": items, "rpn_threshold": rpn_threshold})
+        return _fmea([it.model_dump() for it in v.items], v.rpn_threshold)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def list_standards() -> dict:
+    """List the aerospace design standards catalog (id, title, domain, scope, factors).
+
+    Covers the standards informing rocket-tools' factors of safety and reliability
+    methods (FAR 25.303, FAA AC 25.571-1D, NASA-STD-5001, MMPDS-15, MIL-STD-1629A,
+    SAE J1739). Also available as the `rocket-tools://standards` resource.
+    """
+    from rocket_tools.standards import list_standards as _ls
+
+    try:
+        return _ls()
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Visualization (optional; requires the `viz` extra: matplotlib) ----
+#
+# Dual-return contract: render="data" (default) returns a JSON dict with a base64 PNG
+# plus the underlying `series`; render="image" returns a native MCP image. Errors always
+# return the structured dict error, never an image.
+
+
+@mcp.tool()
+def plot_beam_diagrams(
+    load: float,
+    length: float,
+    youngs_modulus: float,
+    cross_section: dict,
+    load_type: Literal["point_midspan", "distributed"] = "point_midspan",
+    support_type: Literal["simply_supported", "cantilever", "fixed_ends"] = "simply_supported",
+    render: Literal["data", "image"] = "data",
+    output_path: str | None = None,
+) -> dict:
+    """Shear, bending-moment, and deflection diagrams along a beam span (Roark Table 8.1).
+
+    Returns a base64 PNG plus the x/shear/moment/deflection `series`, or a native MCP
+    image when render="image".
+    """
+    from rocket_tools.viz import plot_beam_diagrams as _fn
+
+    try:
+        v = BeamDiagramInput(
+            load=load,
+            length=length,
+            youngs_modulus=youngs_modulus,
+            cross_section=cross_section,
+            load_type=load_type,
+            support_type=support_type,
+            render=render,
+            output_path=output_path,
+        )
+        return _fn(
+            v.load,
+            v.length,
+            v.youngs_modulus,
+            v.cross_section,
+            v.load_type,
+            v.support_type,
+            v.render,
+            v.output_path,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def plot_drag_polar(
+    cd0: float,
+    aspect_ratio: float,
+    oswald_efficiency: float = 0.85,
+    mach: float = 0.0,
+    cl_max: float = 1.5,
+    render: Literal["data", "image"] = "data",
+    output_path: str | None = None,
+) -> dict:
+    """Drag polar (C_D vs C_L) and L/D vs C_L for an aircraft configuration."""
+    from rocket_tools.viz import plot_drag_polar as _fn
+
+    try:
+        v = DragPolarPlotInput(
+            cd0=cd0,
+            aspect_ratio=aspect_ratio,
+            oswald_efficiency=oswald_efficiency,
+            mach=mach,
+            cl_max=cl_max,
+            render=render,
+            output_path=output_path,
+        )
+        return _fn(
+            v.cd0, v.aspect_ratio, v.oswald_efficiency, v.mach, v.cl_max, v.render, v.output_path
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def plot_nozzle_contour(
+    throat_radius_m: float,
+    area_ratio: float,
+    half_angle_deg: float = 15.0,
+    render: Literal["data", "image"] = "data",
+    output_path: str | None = None,
+) -> dict:
+    """Conical convergent-divergent nozzle wall contour from throat radius and A_e/A*."""
+    from rocket_tools.viz import plot_nozzle_contour as _fn
+
+    try:
+        v = NozzleContourInput(
+            throat_radius_m=throat_radius_m,
+            area_ratio=area_ratio,
+            half_angle_deg=half_angle_deg,
+            render=render,
+            output_path=output_path,
+        )
+        return _fn(v.throat_radius_m, v.area_ratio, v.half_angle_deg, v.render, v.output_path)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def plot_isa_profile(
+    max_altitude_m: float = 84000.0,
+    render: Literal["data", "image"] = "data",
+    output_path: str | None = None,
+) -> dict:
+    """Temperature, pressure, and density vs altitude (US Standard Atmosphere 1976)."""
+    from rocket_tools.viz import plot_isa_profile as _fn
+
+    try:
+        v = ISAProfileInput(max_altitude_m=max_altitude_m, render=render, output_path=output_path)
+        return _fn(v.max_altitude_m, v.render, v.output_path)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def plot_trajectory(
+    initial_mass_kg: float,
+    dry_mass_kg: float,
+    specific_impulse_s: float,
+    mass_flow_rate_kg_s: float,
+    reference_area_m2: float,
+    drag_coefficient: float = 0.5,
+    launch_angle_deg: float = 90.0,
+    dt: float = 0.1,
+    render: Literal["data", "image"] = "data",
+    output_path: str | None = None,
+) -> dict:
+    """Run an ascent simulation and plot altitude, velocity, dynamic pressure, and g-load."""
+    from rocket_tools.viz import plot_trajectory as _fn
+
+    try:
+        v = TrajectoryPlotInput(
+            initial_mass_kg=initial_mass_kg,
+            dry_mass_kg=dry_mass_kg,
+            specific_impulse_s=specific_impulse_s,
+            mass_flow_rate_kg_s=mass_flow_rate_kg_s,
+            reference_area_m2=reference_area_m2,
+            drag_coefficient=drag_coefficient,
+            launch_angle_deg=launch_angle_deg,
+            dt=dt,
+            render=render,
+            output_path=output_path,
+        )
+        return _fn(
+            v.initial_mass_kg,
+            v.dry_mass_kg,
+            v.specific_impulse_s,
+            v.mass_flow_rate_kg_s,
+            v.reference_area_m2,
+            v.drag_coefficient,
+            v.launch_angle_deg,
+            v.dt,
+            v.render,
+            v.output_path,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- MCP Resources (readable datasets for research context) ----
+#
+# Resources let an agent pull the reference bibliography, the curated validation
+# dataset, the materials database, and per-tool provenance as context, rather
+# than discovering them one tool call at a time.
+
+
+@mcp.resource(
+    "rocket-tools://references",
+    mime_type="application/json",
+    description="Authoritative bibliography behind rocket-tools and the documented tool list.",
+)
+def references_resource() -> str:
+    import json
+
+    from rocket_tools.provenance import list_documented_tools, list_references
+
+    return json.dumps(
+        {"references": list_references(), "documented_tools": list_documented_tools()}, indent=2
+    )
+
+
+@mcp.resource(
+    "rocket-tools://benchmarks",
+    mime_type="application/json",
+    description="Curated validation benchmarks: inputs, expected values, tolerance, and source.",
+)
+def benchmarks_resource() -> str:
+    import json
+
+    from rocket_tools.validation.benchmarks import get_benchmark, list_benchmarks
+
+    return json.dumps({name: get_benchmark(name) for name in list_benchmarks()}, indent=2)
+
+
+@mcp.resource(
+    "rocket-tools://provenance",
+    mime_type="application/json",
+    description="Per-tool provenance: reference(s), governing formula, assumptions, validation.",
+)
+def provenance_resource() -> str:
+    import json
+
+    from rocket_tools.provenance import get_provenance, list_documented_tools
+
+    return json.dumps({t: get_provenance(t) for t in list_documented_tools()}, indent=2)
+
+
+@mcp.resource(
+    "rocket-tools://standards",
+    mime_type="application/json",
+    description="Catalog of aerospace design standards (factors of safety, FMEA, allowables).",
+)
+def standards_resource() -> str:
+    import json
+
+    from rocket_tools.standards import list_standards
+
+    return json.dumps(list_standards(), indent=2)
+
+
+@mcp.resource(
+    "rocket-tools://materials",
+    mime_type="application/json",
+    description="Full aerospace materials database with mechanical and thermal properties.",
+)
+def materials_resource() -> str:
+    import json
+
+    from rocket_tools.materials import list_materials, material_lookup
+
+    return json.dumps({name: material_lookup(name) for name in list_materials()}, indent=2)
+
+
+@mcp.resource(
+    "rocket-tools://materials/{name}",
+    mime_type="application/json",
+    description="Properties of a single material by name (e.g. rocket-tools://materials/6061-T6).",
+)
+def material_resource(name: str) -> str:
+    import json
+
+    from rocket_tools.materials import material_lookup
+
+    try:
+        return json.dumps(material_lookup(name), indent=2)
+    except Exception as e:
+        return json.dumps(_format_error(e), indent=2)
 
 
 # ---- Server Entry Point ----

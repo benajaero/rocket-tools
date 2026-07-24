@@ -19,6 +19,8 @@ References:
 import numpy as np
 from numba import njit
 
+from rocket_tools.utils.validation import ToolError
+
 GAMMA = 1.4  # Ratio of specific heats for air
 
 
@@ -100,13 +102,17 @@ def _normal_shock_t2_t1(m1: float, gamma: float = GAMMA):
 
 @njit(cache=True)
 def _normal_shock_p0_ratio(m1: float, gamma: float = GAMMA):
-    """Stagnation pressure ratio p02/p01 across normal shock."""
-    p2_p1 = _normal_shock_p2_p1(m1, gamma)
-    p02_p2 = (1.0 + (gamma - 1.0) / 2.0 * _normal_shock_m2(m1, gamma) ** 2) ** (
-        -gamma / (gamma - 1.0)
-    )
-    p01_p1 = (1.0 + (gamma - 1.0) / 2.0 * m1**2) ** (-gamma / (gamma - 1.0))
-    return p2_p1 * p02_p2 / p01_p1
+    """Stagnation pressure ratio p02/p01 across a normal shock (NACA 1135 Eq. 100).
+
+    p02/p01 = [ (g+1) M1^2 / ((g-1) M1^2 + 2) ]^(g/(g-1))
+              * [ (g+1) / (2 g M1^2 - (g-1)) ]^(1/(g-1))
+
+    Always <= 1: total pressure drops across a shock (entropy rises).
+    """
+    m1sq = m1 * m1
+    term1 = ((gamma + 1.0) * m1sq / ((gamma - 1.0) * m1sq + 2.0)) ** (gamma / (gamma - 1.0))
+    term2 = ((gamma + 1.0) / (2.0 * gamma * m1sq - (gamma - 1.0))) ** (1.0 / (gamma - 1.0))
+    return term1 * term2
 
 
 @njit(cache=True)
@@ -142,29 +148,74 @@ def _prandtl_meyer_mach(nu: float, gamma: float = GAMMA):
 
 
 @njit(cache=True)
-def _oblique_shock_beta(m1: float, theta: float, gamma: float = GAMMA):
-    """Solve for weak shock wave angle beta given deflection angle theta (radians)."""
+def _oblique_theta_from_beta(m1: float, beta: float, gamma: float = GAMMA):
+    """theta-beta-M relation: deflection theta (rad) for a wave angle beta (rad)."""
+    sb = np.sin(beta)
+    cb = np.cos(beta)
+    num = 2.0 * (cb / sb) * (m1**2 * sb**2 - 1.0)
+    den = m1**2 * (gamma + np.cos(2.0 * beta)) + 2.0
+    return np.arctan(num / den)
+
+
+@njit(cache=True)
+def _oblique_shock_theta_max(m1: float, gamma: float = GAMMA):
+    """Maximum deflection (rad) for an attached shock and the wave angle where it occurs.
+
+    theta(beta) rises from 0 at the Mach angle to a single maximum, then falls to 0
+    at beta=90 deg; above theta_max the shock detaches. Coarse-scan then refine.
+    """
+    beta_min = np.arcsin(1.0 / m1)
+    beta_hi = np.pi / 2.0
+    best_theta = 0.0
+    best_beta = beta_min
+    n = 2000
+    for i in range(1, n):
+        beta = beta_min + (beta_hi - beta_min) * i / n
+        t = _oblique_theta_from_beta(m1, beta, gamma)
+        if t > best_theta:
+            best_theta = t
+            best_beta = beta
+    # Refine around the peak by climbing the local gradient.
+    step = (beta_hi - beta_min) / n
+    lo = best_beta - step
+    hi = best_beta + step
+    for _ in range(100):
+        mid = (lo + hi) / 2.0
+        d = 1e-8
+        if _oblique_theta_from_beta(m1, mid + d, gamma) > _oblique_theta_from_beta(
+            m1, mid - d, gamma
+        ):
+            lo = mid
+        else:
+            hi = mid
+    best_beta = (lo + hi) / 2.0
+    return _oblique_theta_from_beta(m1, best_beta, gamma), best_beta
+
+
+@njit(cache=True)
+def _oblique_shock_beta(m1: float, theta: float, beta_star: float, gamma: float = GAMMA):
+    """Weak-shock wave angle beta (rad) for deflection theta (rad).
+
+    The weak (physically-realized, attached) solution lies on the rising branch
+    below beta_star, where theta(beta) is monotonic. Callers must reject
+    theta > theta_max first (detached shock — no attached solution exists).
+    """
     if theta <= 0.0 or m1 <= 1.0:
         raise ValueError("theta must be > 0 and M1 > 1 for oblique shocks")
 
-    beta_min = np.arcsin(1.0 / m1) + 1e-6
-    beta_max = np.pi / 2.0 - 1e-6
-
+    beta_lo = np.arcsin(1.0 / m1) + 1e-9
+    beta_hi = beta_star
     for _ in range(100):
-        beta = (beta_min + beta_max) / 2.0
-        sb = np.sin(beta)
-        cb = np.cos(beta)
-        num = 2.0 * (cb / sb) * (m1**2 * sb**2 - 1.0)
-        den = m1**2 * (gamma + np.cos(2.0 * beta)) + 2.0
-        t = np.arctan(num / den)
+        beta = (beta_lo + beta_hi) / 2.0
+        t = _oblique_theta_from_beta(m1, beta, gamma)
         if t < theta:
-            beta_max = beta
+            beta_lo = beta
         else:
-            beta_min = beta
-        if abs(t - theta) < 1e-8:
+            beta_hi = beta
+        if abs(t - theta) < 1e-10:
             return beta
 
-    return (beta_min + beta_max) / 2.0
+    return (beta_lo + beta_hi) / 2.0
 
 
 def isentropic_flow(mach: float, gamma: float = GAMMA) -> dict:
@@ -228,6 +279,11 @@ def normal_shock(mach1: float, gamma: float = GAMMA) -> dict:
 def oblique_shock(mach1: float, deflection_deg: float, gamma: float = GAMMA) -> dict:
     """Compute oblique shock relations for given upstream Mach and deflection angle.
 
+    Returns the **weak** (physically-realized, attached) shock solution. If the
+    deflection exceeds the maximum for an attached shock at this Mach the shock
+    detaches (a curved bow shock forms) and no oblique-shock solution exists —
+    a ValueError is raised naming the maximum deflection.
+
     Used for: supersonic wing design, inlet geometry, and missile aerodynamics.
     """
     if mach1 <= 1.0:
@@ -236,7 +292,23 @@ def oblique_shock(mach1: float, deflection_deg: float, gamma: float = GAMMA) -> 
         raise ValueError("deflection_deg must be between 0 and 90")
 
     theta = np.radians(deflection_deg)
-    beta = _oblique_shock_beta(mach1, theta, gamma)
+    theta_max, beta_star = _oblique_shock_theta_max(mach1, gamma)
+    theta_max_deg = float(np.degrees(theta_max))
+    if theta > theta_max:
+        raise ToolError(
+            f"deflection_deg={deflection_deg:g} exceeds the maximum "
+            f"{theta_max_deg:.2f} deg for an attached oblique shock at M1={mach1:g}; "
+            "the shock detaches into a curved bow shock",
+            error_code="INVALID_PARAMETER",
+            parameter="deflection_deg",
+            constraint=f"deflection_deg <= {theta_max_deg:.2f} (theta_max at M1={mach1:g})",
+            suggestion=(
+                f"Reduce deflection_deg to <= {theta_max_deg:.2f} deg, or increase mach1. "
+                "Above theta_max the shock detaches and no attached oblique-shock solution exists."
+            ),
+        )
+
+    beta = _oblique_shock_beta(mach1, theta, beta_star, gamma)
     beta_deg = np.degrees(beta)
 
     mn1 = mach1 * np.sin(beta)
@@ -252,6 +324,9 @@ def oblique_shock(mach1: float, deflection_deg: float, gamma: float = GAMMA) -> 
         "mach_downstream": round(m2, 6),
         "wave_angle_deg": round(beta_deg, 2),
         "deflection_angle_deg": round(deflection_deg, 2),
+        "solution": "weak",
+        "max_deflection_deg": round(theta_max_deg, 2),
+        "normal_mach_upstream": round(float(mn1), 6),
         "pressure_ratio": round(p2_p1, 6),
         "density_ratio": round(rho2_rho1, 6),
         "temperature_ratio": round(t2_t1, 6),

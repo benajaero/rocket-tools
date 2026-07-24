@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rocket-tools"
-version = "0.3.3"
+version = "0.4.0"
 description = "Aerospace engineering calculations for Python, CLI, and MCP agents"
 readme = "README.md"
 license = "Apache-2.0"
@@ -15,7 +15,7 @@ authors = [
     {name = "Human Engine Labs", email = "engineering@humanengine.dev"}
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
@@ -37,6 +37,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+viz = [
+    "matplotlib>=3.7",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -48,6 +51,9 @@ dev = [
 release = [
     "build>=1.2",
     "twine>=5.0",
+]
+docs = [
+    "mkdocs-material>=9.5",
 ]
 
 [project.scripts]

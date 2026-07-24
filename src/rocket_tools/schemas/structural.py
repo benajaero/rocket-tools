@@ -2,10 +2,12 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from rocket_tools.schemas.base import StrictModel
 
 
-class RectangleSection(BaseModel):
+class RectangleSection(StrictModel):
     """Rectangular cross-section for beam analysis."""
 
     type: Literal["rectangle"] = "rectangle"
@@ -13,14 +15,14 @@ class RectangleSection(BaseModel):
     height: float = Field(..., gt=0, description="Height in meters")
 
 
-class CircleSection(BaseModel):
+class CircleSection(StrictModel):
     """Circular cross-section for beam analysis."""
 
     type: Literal["circle"] = "circle"
     diameter: float = Field(..., gt=0, description="Diameter in meters")
 
 
-class BeamAnalysisInput(BaseModel):
+class BeamAnalysisInput(StrictModel):
     """Input parameters for beam_analysis tool."""
 
     load: float = Field(..., gt=0, description="Applied load in Newtons (N)")
@@ -44,7 +46,7 @@ class BeamAnalysisInput(BaseModel):
     )
 
 
-class BeamAnalysisOutput(BaseModel):
+class BeamAnalysisOutput(StrictModel):
     """Output from beam_analysis tool."""
 
     max_bending_moment_n_m: float
@@ -68,7 +70,7 @@ class BeamAnalysisOutput(BaseModel):
 # ---- Section Properties ----
 
 
-class SectionPropertiesInput(BaseModel):
+class SectionPropertiesInput(StrictModel):
     """Input for section_properties tool."""
 
     shape: Literal[
@@ -88,7 +90,7 @@ class SectionPropertiesInput(BaseModel):
 # ---- Column Buckling ----
 
 
-class ColumnBucklingInput(BaseModel):
+class ColumnBucklingInput(StrictModel):
     """Input for column_buckling tool."""
 
     youngs_modulus: float = Field(..., gt=0, description="Young's modulus in Pa")
@@ -104,7 +106,7 @@ class ColumnBucklingInput(BaseModel):
 # ---- Plate Buckling ----
 
 
-class PlateBucklingInput(BaseModel):
+class PlateBucklingInput(StrictModel):
     """Input for plate_buckling_coefficient tool."""
 
     aspect_ratio: float = Field(..., gt=0, description="Plate length / width")
@@ -117,7 +119,7 @@ class PlateBucklingInput(BaseModel):
 # ---- Margin of Safety ----
 
 
-class MarginOfSafetyInput(BaseModel):
+class MarginOfSafetyInput(StrictModel):
     """Input for margin_of_safety tool."""
 
     allowable_stress_pa: float | None = Field(None, gt=0)
@@ -130,7 +132,7 @@ class MarginOfSafetyInput(BaseModel):
     )
 
 
-class VonMisesInput(BaseModel):
+class VonMisesInput(StrictModel):
     """Input for von_mises_stress tool."""
 
     sigma_x: float
@@ -141,7 +143,7 @@ class VonMisesInput(BaseModel):
     tau_xz: float = 0.0
 
 
-class CombinedMarginInput(BaseModel):
+class CombinedMarginInput(StrictModel):
     """Input for combined_margin_of_safety tool."""
 
     sigma_x: float
@@ -153,7 +155,7 @@ class CombinedMarginInput(BaseModel):
     factor_of_safety_ultimate: float = Field(default=1.5, gt=0)
 
 
-class DeflectionMarginInput(BaseModel):
+class DeflectionMarginInput(StrictModel):
     """Input for deflection_margin tool."""
 
     actual_deflection_m: float = Field(..., ge=0)
@@ -165,28 +167,28 @@ class DeflectionMarginInput(BaseModel):
 # ---- Truss Analysis ----
 
 
-class TrussElementProperty(BaseModel):
+class TrussElementProperty(StrictModel):
     """Material and geometric properties for a truss element."""
 
     youngs_modulus_pa: float = Field(..., gt=0)
     area_m2: float = Field(..., gt=0)
 
 
-class TrussConstraint(BaseModel):
+class TrussConstraint(StrictModel):
     """Constraint (support) definition for a truss node."""
 
     node: int = Field(..., ge=0)
     fixed_dof: list[int] = Field(..., description="List of fixed DOF indices (0=x, 1=y, 2=z)")
 
 
-class TrussLoad(BaseModel):
+class TrussLoad(StrictModel):
     """Load applied at a truss node."""
 
     node: int = Field(..., ge=0)
     force: list[float] = Field(..., description="Force vector [Fx, Fy] or [Fx, Fy, Fz]")
 
 
-class TrussAnalysisInput(BaseModel):
+class TrussAnalysisInput(StrictModel):
     """Input for truss_analysis tool."""
 
     nodes: list[list[float]] = Field(..., min_length=2)

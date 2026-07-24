@@ -2,12 +2,14 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from rocket_tools.schemas.base import StrictModel
 
 # ---- Fundamental Aerodynamics ----
 
 
-class ReynoldsNumberInput(BaseModel):
+class ReynoldsNumberInput(StrictModel):
     """Input for reynolds_number tool."""
 
     velocity: float = Field(..., gt=0, description="Velocity in m/s")
@@ -24,7 +26,7 @@ class ReynoldsNumberInput(BaseModel):
     )
 
 
-class ReynoldsNumberOutput(BaseModel):
+class ReynoldsNumberOutput(StrictModel):
     """Output from reynolds_number tool."""
 
     reynolds_number: float
@@ -35,14 +37,14 @@ class ReynoldsNumberOutput(BaseModel):
     flow_regime: str
 
 
-class MachNumberInput(BaseModel):
+class MachNumberInput(StrictModel):
     """Input for mach_number tool."""
 
     velocity: float = Field(..., gt=0, description="Velocity in m/s")
     altitude_m: float = Field(..., ge=0, le=25_000, description="Altitude in meters")
 
 
-class MachNumberOutput(BaseModel):
+class MachNumberOutput(StrictModel):
     """Output from mach_number tool."""
 
     mach_number: float
@@ -52,14 +54,14 @@ class MachNumberOutput(BaseModel):
     regime: str
 
 
-class DynamicPressureInput(BaseModel):
+class DynamicPressureInput(StrictModel):
     """Input for dynamic_pressure tool."""
 
     velocity: float = Field(..., gt=0, description="Velocity in m/s")
     altitude_m: float = Field(..., ge=0, le=25_000, description="Altitude in meters")
 
 
-class DynamicPressureOutput(BaseModel):
+class DynamicPressureOutput(StrictModel):
     """Output from dynamic_pressure tool."""
 
     dynamic_pressure_pa: float
@@ -69,7 +71,7 @@ class DynamicPressureOutput(BaseModel):
     density_kg_m3: float
 
 
-class LiftCoefficientInput(BaseModel):
+class LiftCoefficientInput(StrictModel):
     """Input for lift_coefficient tool."""
 
     lift: float = Field(..., description="Lift force in Newtons")
@@ -78,7 +80,7 @@ class LiftCoefficientInput(BaseModel):
     reference_area: float = Field(..., gt=0, description="Reference area in m²")
 
 
-class LiftCoefficientOutput(BaseModel):
+class LiftCoefficientOutput(StrictModel):
     """Output from lift_coefficient tool."""
 
     lift_coefficient: float
@@ -87,7 +89,7 @@ class LiftCoefficientOutput(BaseModel):
     reference_area_m2: float
 
 
-class DragCoefficientInput(BaseModel):
+class DragCoefficientInput(StrictModel):
     """Input for drag_coefficient tool."""
 
     drag: float = Field(..., description="Drag force in Newtons")
@@ -96,7 +98,7 @@ class DragCoefficientInput(BaseModel):
     reference_area: float = Field(..., gt=0, description="Reference area in m²")
 
 
-class DragCoefficientOutput(BaseModel):
+class DragCoefficientOutput(StrictModel):
     """Output from drag_coefficient tool."""
 
     drag_coefficient: float
@@ -105,7 +107,7 @@ class DragCoefficientOutput(BaseModel):
     reference_area_m2: float
 
 
-class SkinFrictionInput(BaseModel):
+class SkinFrictionInput(StrictModel):
     """Input for skin_friction_coefficient tool."""
 
     reynolds_number: float = Field(..., gt=0, description="Reynolds number")
@@ -114,7 +116,7 @@ class SkinFrictionInput(BaseModel):
     )
 
 
-class SkinFrictionOutput(BaseModel):
+class SkinFrictionOutput(StrictModel):
     """Output from skin_friction_coefficient tool."""
 
     skin_friction_coefficient: float
@@ -123,7 +125,7 @@ class SkinFrictionOutput(BaseModel):
     correlation: str
 
 
-class AeroAnalysisInput(BaseModel):
+class AeroAnalysisInput(StrictModel):
     """Input for comprehensive aero_analysis tool."""
 
     velocity: float = Field(..., gt=0, description="Velocity in m/s")
@@ -134,7 +136,7 @@ class AeroAnalysisInput(BaseModel):
     drag: float = Field(default=0.0, description="Drag force in Newtons (optional)")
 
 
-class AeroAnalysisOutput(BaseModel):
+class AeroAnalysisOutput(StrictModel):
     """Output from aero_analysis tool."""
 
     reynolds_number: float
@@ -156,21 +158,21 @@ class AeroAnalysisOutput(BaseModel):
 # ---- Compressible Flow ----
 
 
-class IsentropicFlowInput(BaseModel):
+class IsentropicFlowInput(StrictModel):
     """Input for isentropic_flow tool."""
 
     mach: float = Field(..., gt=0, description="Mach number")
     gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
 
 
-class NormalShockInput(BaseModel):
+class NormalShockInput(StrictModel):
     """Input for normal_shock tool."""
 
     mach1: float = Field(..., gt=1.0, description="Upstream Mach number")
     gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
 
 
-class ObliqueShockInput(BaseModel):
+class ObliqueShockInput(StrictModel):
     """Input for oblique_shock tool."""
 
     mach1: float = Field(..., gt=1.0, description="Upstream Mach number")
@@ -178,14 +180,14 @@ class ObliqueShockInput(BaseModel):
     gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
 
 
-class PrandtlMeyerInput(BaseModel):
+class PrandtlMeyerInput(StrictModel):
     """Input for prandtl_meyer tool."""
 
     mach: float = Field(..., ge=1.0, description="Mach number")
     gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
 
 
-class PrandtlMeyerFromAngleInput(BaseModel):
+class PrandtlMeyerFromAngleInput(StrictModel):
     """Input for prandtl_meyer_from_angle tool."""
 
     angle_deg: float = Field(..., ge=0, description="Prandtl-Meyer angle in degrees")
@@ -195,7 +197,7 @@ class PrandtlMeyerFromAngleInput(BaseModel):
 # ---- Aircraft Aerodynamics ----
 
 
-class LiftCurveSlopeInput(BaseModel):
+class LiftCurveSlopeInput(StrictModel):
     """Input for lift_curve_slope tool."""
 
     mach: float = Field(..., ge=0, description="Freestream Mach number")
@@ -205,7 +207,7 @@ class LiftCurveSlopeInput(BaseModel):
     oswald_efficiency: float = Field(default=0.85, gt=0, le=1.0)
 
 
-class DragPolarInput(BaseModel):
+class DragPolarInput(StrictModel):
     """Input for drag_polar tool."""
 
     cl: float = Field(..., description="Lift coefficient")
@@ -215,7 +217,7 @@ class DragPolarInput(BaseModel):
     mach: float = Field(default=0.0, ge=0, description="Mach number")
 
 
-class BreguetRangeInput(BaseModel):
+class BreguetRangeInput(StrictModel):
     """Input for breguet_range tool."""
 
     lift_to_drag_ratio: float = Field(..., gt=0, description="L/D ratio")
@@ -225,7 +227,7 @@ class BreguetRangeInput(BaseModel):
     final_mass_kg: float = Field(..., gt=0, description="Final mass in kg")
 
 
-class BreguetEnduranceInput(BaseModel):
+class BreguetEnduranceInput(StrictModel):
     """Input for breguet_endurance tool."""
 
     lift_to_drag_ratio: float = Field(..., gt=0, description="L/D ratio")
@@ -234,7 +236,7 @@ class BreguetEnduranceInput(BaseModel):
     final_mass_kg: float = Field(..., gt=0, description="Final mass in kg")
 
 
-class WingLoadingInput(BaseModel):
+class WingLoadingInput(StrictModel):
     """Input for wing_loading tool."""
 
     weight_n: float = Field(..., gt=0, description="Weight in Newtons")
@@ -244,7 +246,7 @@ class WingLoadingInput(BaseModel):
 # ---- Nozzle / Inlet ----
 
 
-class NozzlePerformanceInput(BaseModel):
+class NozzlePerformanceInput(StrictModel):
     """Input for nozzle_performance tool."""
 
     chamber_pressure_pa: float = Field(..., gt=0, description="Chamber total pressure in Pa")
@@ -256,9 +258,89 @@ class NozzlePerformanceInput(BaseModel):
     molecular_weight: float = Field(default=28.97, gt=0, description="Molecular weight in kg/kmol")
 
 
-class OptimalAreaRatioInput(BaseModel):
+class OptimalAreaRatioInput(StrictModel):
     """Input for optimal_area_ratio tool."""
 
     chamber_pressure_pa: float = Field(..., gt=0)
     ambient_pressure_pa: float = Field(..., gt=0)
     gamma: float = Field(default=1.4, gt=1.0)
+
+
+# ---- Aerothermodynamics ----
+
+
+class StagnationTemperatureInput(StrictModel):
+    """Input for stagnation_temperature tool."""
+
+    static_temperature_k: float = Field(..., gt=0, description="Static (free-stream) temp in K")
+    mach: float = Field(..., ge=0, description="Mach number")
+    gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
+
+
+class RecoveryTemperatureInput(StrictModel):
+    """Input for recovery_temperature tool."""
+
+    static_temperature_k: float = Field(..., gt=0, description="Static (free-stream) temp in K")
+    mach: float = Field(..., ge=0, description="Mach number")
+    gamma: float = Field(default=1.4, gt=1.0, description="Ratio of specific heats")
+    prandtl: float = Field(default=0.71, gt=0, description="Prandtl number (air ~0.71)")
+    regime: Literal["laminar", "turbulent"] = Field(
+        default="laminar", description="Boundary-layer regime setting the recovery factor"
+    )
+
+
+class SuttonGravesInput(StrictModel):
+    """Input for sutton_graves_heat_flux tool."""
+
+    density_kg_m3: float = Field(..., gt=0, description="Free-stream density in kg/m^3")
+    velocity_ms: float = Field(..., gt=0, description="Free-stream velocity in m/s")
+    nose_radius_m: float = Field(..., gt=0, description="Effective nose radius in m")
+
+
+class BallisticEntryInput(StrictModel):
+    """Input for ballistic_entry_peak_deceleration tool."""
+
+    entry_velocity_ms: float = Field(..., gt=0, description="Atmospheric-interface velocity in m/s")
+    flight_path_angle_deg: float = Field(
+        ..., gt=0, le=90, description="Entry flight-path angle below horizontal, degrees"
+    )
+    scale_height_m: float = Field(
+        default=7160.0, gt=0, description="Atmospheric scale height in m (Earth ~7160)"
+    )
+
+
+# ---- Propulsion Thermochemistry ----
+
+
+class CharacteristicVelocityInput(StrictModel):
+    """Input for characteristic_velocity tool."""
+
+    chamber_temperature_k: float = Field(..., gt=0, description="Chamber temperature in K")
+    gamma: float = Field(default=1.2, gt=1.0, description="Ratio of specific heats of exhaust")
+    molecular_weight: float = Field(
+        default=22.0, gt=0, description="Exhaust molecular weight in kg/kmol"
+    )
+
+
+class IdealSpecificImpulseInput(StrictModel):
+    """Input for ideal_specific_impulse tool."""
+
+    chamber_temperature_k: float = Field(..., gt=0, description="Chamber temperature in K")
+    pressure_ratio: float = Field(
+        ..., gt=0, lt=1, description="Exit/chamber pressure ratio pe/pc, in (0, 1)"
+    )
+    gamma: float = Field(default=1.2, gt=1.0, description="Ratio of specific heats of exhaust")
+    molecular_weight: float = Field(
+        default=22.0, gt=0, description="Exhaust molecular weight in kg/kmol"
+    )
+
+
+class ThroatMassFluxInput(StrictModel):
+    """Input for throat_mass_flux tool."""
+
+    chamber_pressure_pa: float = Field(..., gt=0, description="Chamber total pressure in Pa")
+    chamber_temperature_k: float = Field(..., gt=0, description="Chamber temperature in K")
+    gamma: float = Field(default=1.2, gt=1.0, description="Ratio of specific heats of exhaust")
+    molecular_weight: float = Field(
+        default=22.0, gt=0, description="Exhaust molecular weight in kg/kmol"
+    )

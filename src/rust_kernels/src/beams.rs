@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
 #[pyfunction]
-fn beam_bending_stress(bending_moment: f64, section_modulus: f64) -> PyResult<f64> {
+pub fn beam_bending_stress(bending_moment: f64, section_modulus: f64) -> PyResult<f64> {
     if section_modulus <= 0.0 {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "section_modulus must be > 0"
@@ -11,7 +11,7 @@ fn beam_bending_stress(bending_moment: f64, section_modulus: f64) -> PyResult<f6
 }
 
 #[pyfunction]
-fn beam_deflection_simply_supported(load: f64, span: f64, e: f64, i: f64) -> PyResult<f64> {
+pub fn beam_deflection_simply_supported(load: f64, span: f64, e: f64, i: f64) -> PyResult<f64> {
     if e <= 0.0 || i <= 0.0 {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "E and I must be > 0"
@@ -21,7 +21,7 @@ fn beam_deflection_simply_supported(load: f64, span: f64, e: f64, i: f64) -> PyR
 }
 
 #[pyfunction]
-fn beam_deflection_cantilever(load: f64, span: f64, e: f64, i: f64) -> PyResult<f64> {
+pub fn beam_deflection_cantilever(load: f64, span: f64, e: f64, i: f64) -> PyResult<f64> {
     if e <= 0.0 || i <= 0.0 {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "E and I must be > 0"
@@ -31,7 +31,7 @@ fn beam_deflection_cantilever(load: f64, span: f64, e: f64, i: f64) -> PyResult<
 }
 
 #[pyfunction]
-fn column_euler_buckling(e: f64, i: f64, effective_length: f64) -> PyResult<f64> {
+pub fn column_euler_buckling(e: f64, i: f64, effective_length: f64) -> PyResult<f64> {
     if effective_length <= 0.0 {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "effective_length must be > 0"
@@ -42,7 +42,7 @@ fn column_euler_buckling(e: f64, i: f64, effective_length: f64) -> PyResult<f64>
 }
 
 #[pyfunction]
-fn section_properties_rectangle(width: f64, height: f64) -> PyResult<(f64, f64, f64, f64)> {
+pub fn section_properties_rectangle(width: f64, height: f64) -> PyResult<(f64, f64, f64, f64)> {
     if width <= 0.0 || height <= 0.0 {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "width and height must be > 0"

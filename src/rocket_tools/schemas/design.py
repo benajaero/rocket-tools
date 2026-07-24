@@ -1,11 +1,13 @@
 """Pydantic schemas for design and performance tools."""
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from rocket_tools.schemas.base import StrictModel
 
 # ---- Rocket Performance ----
 
 
-class RocketDeltaVInput(BaseModel):
+class RocketDeltaVInput(StrictModel):
     """Input for rocket_delta_v tool."""
 
     specific_impulse_s: float = Field(..., gt=0, description="Specific impulse in seconds")
@@ -14,14 +16,14 @@ class RocketDeltaVInput(BaseModel):
     gravity: float = Field(default=9.80665, gt=0, description="Gravity in m/s^2")
 
 
-class MultiStageDeltaVInput(BaseModel):
+class MultiStageDeltaVInput(StrictModel):
     """Input for multi_stage_delta_v tool."""
 
     stages: list[dict] = Field(..., description="List of stage dicts")
     gravity: float = Field(default=9.80665, gt=0)
 
 
-class OrbitalVelocityInput(BaseModel):
+class OrbitalVelocityInput(StrictModel):
     """Input for orbital_velocity tool."""
 
     altitude_m: float = Field(..., ge=0, description="Altitude in meters")
@@ -30,7 +32,7 @@ class OrbitalVelocityInput(BaseModel):
     gravity_constant: float = Field(default=6.67430e-11, gt=0)
 
 
-class PayloadFractionInput(BaseModel):
+class PayloadFractionInput(StrictModel):
     """Input for payload_fraction tool."""
 
     delta_v_required_ms: float = Field(..., gt=0)
@@ -39,7 +41,7 @@ class PayloadFractionInput(BaseModel):
     gravity: float = Field(default=9.80665, gt=0)
 
 
-class ThrustToWeightInput(BaseModel):
+class ThrustToWeightInput(StrictModel):
     """Input for thrust_to_weight tool."""
 
     thrust_n: float = Field(..., gt=0, description="Thrust in Newtons")
@@ -47,17 +49,60 @@ class ThrustToWeightInput(BaseModel):
     gravity: float = Field(default=9.80665, gt=0)
 
 
+# ---- Orbital Mechanics ----
+
+
+class HohmannTransferInput(StrictModel):
+    """Input for hohmann_transfer tool."""
+
+    radius1_m: float = Field(..., gt=0, description="Initial circular orbit radius in meters")
+    radius2_m: float = Field(..., gt=0, description="Target circular orbit radius in meters")
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter GM in m^3/s^2 (Earth)"
+    )
+
+
+class VisVivaInput(StrictModel):
+    """Input for vis_viva_velocity tool."""
+
+    radius_m: float = Field(..., gt=0, description="Distance from the body center in meters")
+    semi_major_axis_m: float = Field(
+        ..., gt=0, description="Orbit semi-major axis in meters (equals radius for a circle)"
+    )
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter in m^3/s^2"
+    )
+
+
+class PlaneChangeInput(StrictModel):
+    """Input for plane_change_delta_v tool."""
+
+    velocity_ms: float = Field(..., gt=0, description="Orbital speed at the maneuver point in m/s")
+    inclination_change_deg: float = Field(
+        ..., ge=0, le=180, description="Inclination change in degrees"
+    )
+
+
+class OrbitalPeriodInput(StrictModel):
+    """Input for orbital_period tool."""
+
+    semi_major_axis_m: float = Field(..., gt=0, description="Semi-major axis in meters")
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter in m^3/s^2"
+    )
+
+
 # ---- Mass Properties ----
 
 
-class CompositeCGInput(BaseModel):
+class CompositeCGInput(StrictModel):
     """Input for composite_cg tool."""
 
     masses: list[float] = Field(..., description="Component masses in kg")
     positions: list[list[float]] = Field(..., description="Component positions [x, y, z] in m")
 
 
-class PropellantTankSizingInput(BaseModel):
+class PropellantTankSizingInput(StrictModel):
     """Input for propellant_tank_sizing tool."""
 
     propellant_volume_m3: float = Field(..., gt=0)

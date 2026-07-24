@@ -1,0 +1,32 @@
+# .github/workflows/workflow.yml
+# Publishes to PyPI on a version tag (v*), using Trusted Publishing (OIDC) — no stored
+# token. Filename and `environment: pypi` must match the PyPI pending/trusted publisher
+# configured for benajaero/rocket-tools. Runs the clean-room build + smoke test first.
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # OIDC token for Trusted Publishing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Clean-room build + install + smoke test
+        run: |
+          pip install -e ".[release]"
+          scripts/verify_release.sh
+      - name: Build sdist + wheel
+        run: python -m build
+      - name: Check artifacts
+        run: twine check dist/*
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

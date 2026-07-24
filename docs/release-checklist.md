@@ -30,6 +30,16 @@ python -m pytest --benchmark-only -q
 
 ## Package Artifacts
 
+The whole build → `twine check` → clean-room install → smoke-test sequence is
+automated as a single reproducible gate:
+
+```bash
+scripts/verify_release.sh
+```
+
+It exits non-zero on any failure and prints `Release verification PASSED` on
+success. The equivalent manual steps are below.
+
 ```bash
 rm -rf dist
 python -m build

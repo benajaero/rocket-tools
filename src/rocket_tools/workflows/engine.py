@@ -2,7 +2,7 @@
 
 import math
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any
 
 from rocket_tools.utils.safe_eval import safe_eval
 from rocket_tools.utils.validation import ToolError
@@ -194,20 +194,81 @@ def run_workflow(workflow: Workflow, inputs: dict) -> WorkflowResult:
     return WorkflowResult(outputs=outputs, trace=trace)
 
 
-def _call_tool(tool_name: str, params: dict) -> dict:
-    """Dispatch a workflow step to the matching MCP tool function.
+_TOOL_DISPATCH: dict[str, Any] = {}
 
-    All tool functions are imported from rocket_tools.server so that workflows
-    stay in sync with the exposed MCP surface.
+
+def _build_dispatch() -> dict[str, Any]:
+    """Map every computational tool name to its library callable (built once).
+
+    Used by both the workflow engine and the uncertainty engine so any tool can
+    be composed or have its uncertainty propagated, not just a hand-picked few.
     """
-    from rocket_tools import server
+    from rocket_tools import aerodynamics, design, materials, structural, trajectory
+    from rocket_tools.utils import unit_convert
 
-    tool_fn = getattr(server, tool_name, None)
-    if tool_fn is None:
+    dispatch: dict[str, Any] = {"unit_convert": unit_convert}
+    for module in (aerodynamics, structural, design, materials, trajectory):
+        for name in getattr(module, "__all__", []):
+            dispatch[name] = getattr(module, name)
+    return dispatch
+
+
+def list_callable_tools() -> list[str]:
+    """Sorted names of every tool the workflow / uncertainty engines can call."""
+    if not _TOOL_DISPATCH:
+        _TOOL_DISPATCH.update(_build_dispatch())
+    return sorted(_TOOL_DISPATCH)
+
+
+def parameter_sweep(
+    tool_name: str, params: dict, sweep_parameter: str, values: list[float]
+) -> dict:
+    """Run a tool across a series of values for one input (a trade study / DoE line).
+
+    Returns one row per swept value with the tool's numeric outputs, so an agent
+    can see how an output responds to a design variable. A value that makes the
+    tool error is recorded with its error rather than aborting the sweep.
+    """
+    if not values:
+        raise ToolError(
+            "values must be a non-empty list",
+            error_code="INVALID_PARAMETER",
+            parameter="values",
+            constraint="len(values) >= 1",
+        )
+
+    points = []
+    output_keys: list[str] = []
+    for value in values:
+        trial = dict(params)
+        trial[sweep_parameter] = value
+        try:
+            result = _call_tool(tool_name, trial)
+        except Exception as e:  # noqa: BLE001 - report per-point, keep sweeping
+            points.append({"value": value, "error": str(e)})
+            continue
+        numeric = {k: v for k, v in result.items() if isinstance(v, (int, float))}
+        if not output_keys:
+            output_keys = list(numeric)
+        points.append({"value": value, "outputs": numeric})
+
+    return {
+        "tool_name": tool_name,
+        "sweep_parameter": sweep_parameter,
+        "output_keys": output_keys,
+        "points": points,
+    }
+
+
+def _call_tool(tool_name: str, params: dict) -> Any:
+    if not _TOOL_DISPATCH:
+        _TOOL_DISPATCH.update(_build_dispatch())
+    fn = _TOOL_DISPATCH.get(tool_name)
+    if fn is None:
         raise ToolError(
             f"Unknown tool: {tool_name}",
             error_code="UNKNOWN_TOOL",
             parameter="tool_name",
-            constraint="a registered rocket-tools MCP tool name",
+            constraint=f"one of: {', '.join(sorted(_TOOL_DISPATCH))}",
         )
-    return cast(dict, tool_fn(**params))
+    return fn(**params)

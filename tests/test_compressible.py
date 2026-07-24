@@ -48,8 +48,9 @@ class TestObliqueShock:
     def test_basic(self):
         result = oblique_shock(2.0, 10.0)
         assert result["mach_downstream"] < 2.0
-        assert result["wave_angle_deg"] > 30.0  # Mach angle for M=2 is 30°
-        assert result["wave_angle_deg"] < 90.0
+        # Weak (attached) solution: beta ~ 39.3 deg, well below the strong root (~83.7 deg).
+        assert result["wave_angle_deg"] == pytest.approx(39.31, abs=0.05)
+        assert result["solution"] == "weak"
         assert result["deflection_angle_deg"] == 10.0
 
     def test_invalid(self):

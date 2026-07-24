@@ -108,8 +108,13 @@ class TestMaterialSchemas:
             ISAAtmosphereInput(altitude_m=-100.0)
 
     def test_isa_altitude_too_high(self):
+        # Model ceiling is 84 852 m (86 km geometric); above that must be rejected.
         with pytest.raises(ValidationError):
-            ISAAtmosphereInput(altitude_m=50000.0)
+            ISAAtmosphereInput(altitude_m=90000.0)
+
+    def test_isa_high_altitude_accepted(self):
+        # 50 km is now within the extended 7-layer model.
+        assert ISAAtmosphereInput(altitude_m=50000.0).altitude_m == 50000.0
 
 
 class TestUnitConvertSchema:
