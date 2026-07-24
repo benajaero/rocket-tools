@@ -143,7 +143,7 @@ _ALUMINUM: dict[str, Material] = {
         thermal_conductivity_w_m_k=130.0,
         specific_heat_j_kg_k=960.0,
         applications=frozenset({"aircraft", "drone", "helicopter"}),
-        source="MIL-HDBK-5J Table 2.2.8.0(b)",
+        source="MIL-HDBK-5J Section 3.7 (7075 aluminum), representative room-temperature values",
     ),
     "7075-T73": Material(
         name="7075-T73",
@@ -156,7 +156,7 @@ _ALUMINUM: dict[str, Material] = {
         thermal_conductivity_w_m_k=130.0,
         specific_heat_j_kg_k=960.0,
         applications=frozenset({"aircraft", "drone"}),
-        source="MIL-HDBK-5J Table 2.2.8.0(c)",
+        source="MIL-HDBK-5J Section 3.7 (7075 aluminum), representative room-temperature values",
     ),
     "7475-T761": Material(
         name="7475-T761",
@@ -643,13 +643,13 @@ _REFRACTORY: dict[str, Material] = {
         applications=frozenset({"rocket", "engine"}),
         source="SCM Metal Products datasheet",
     ),
-    "Rhenium": Material(
+    "Rhenium": Material(  # NOTE: poisson corrected 0.49 -> 0.30 (near-incompressible was wrong)
         name="Rhenium",
         youngs_modulus_pa=463e9,
         density_kg_m3=21020.0,
         yield_strength_pa=300e6,
         ultimate_strength_pa=1070e6,
-        poisson_ratio=0.49,
+        poisson_ratio=0.30,
         thermal_expansion_1_k=6.2e-6,
         thermal_conductivity_w_m_k=48.0,
         specific_heat_j_kg_k=137.0,
