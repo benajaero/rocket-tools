@@ -3,6 +3,8 @@ message: "If you use rocket-tools in research or engineering work, please cite i
 title: "rocket-tools"
 type: software
 authors:
+  - family-names: "Ajaero"
+    given-names: "Ebenezer"
   - name: "Human Engine Labs"
 version: "0.4.1"
 date-released: "2026-07-25"

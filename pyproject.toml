@@ -8,10 +8,11 @@ version = "0.4.1"
 description = "Aerospace engineering calculations for Python, CLI, and MCP agents"
 readme = "README.md"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11,<3.14"
 keywords = ["aerospace", "engineering", "mcp", "aerodynamics", "structural-analysis"]
 authors = [
+    {name = "Ebenezer Ajaero"},
     {name = "Human Engine Labs", email = "engineering@humanengine.dev"}
 ]
 classifiers = [
