@@ -381,6 +381,20 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
         "formula": "two-impulse coplanar transfer; delta-v1, delta-v2, half-ellipse time",
         "assumptions": ["two-body", "coplanar circular orbits", "impulsive burns"],
     },
+    "bi_elliptic_transfer": {
+        "domain": "orbital mechanics",
+        "references": ["Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Ch. 6.4"],
+        "formula": (
+            "three-impulse via intermediate apoapsis rb; vis-viva at each burn; "
+            "time = pi*sqrt(a1^3/mu) + pi*sqrt(a2^3/mu)"
+        ),
+        "assumptions": [
+            "two-body",
+            "coplanar circular start/end orbits",
+            "impulsive burns",
+            "rb >= both orbit radii",
+        ],
+    },
     "vis_viva_velocity": {
         "domain": "orbital mechanics",
         "references": [

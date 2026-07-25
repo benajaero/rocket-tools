@@ -62,6 +62,19 @@ class HohmannTransferInput(StrictModel):
     )
 
 
+class BiEllipticTransferInput(StrictModel):
+    """Input for bi_elliptic_transfer tool."""
+
+    radius1_m: float = Field(..., gt=0, description="Initial circular orbit radius in meters")
+    radius2_m: float = Field(..., gt=0, description="Target circular orbit radius in meters")
+    intermediate_radius_m: float = Field(
+        ..., gt=0, description="Apoapsis radius rb of the first transfer ellipse in meters"
+    )
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter in m^3/s^2"
+    )
+
+
 class VisVivaInput(StrictModel):
     """Input for vis_viva_velocity tool."""
 

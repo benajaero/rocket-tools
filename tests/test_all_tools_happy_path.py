@@ -204,6 +204,11 @@ VALID_CALLS: dict[str, dict] = {
     # orbital mechanics
     "orbital_velocity": {"altitude_m": 400000.0},
     "hohmann_transfer": {"radius1_m": 6678137.0, "radius2_m": 42164137.0},
+    "bi_elliptic_transfer": {
+        "radius1_m": 7.0e6,
+        "radius2_m": 105.0e6,
+        "intermediate_radius_m": 210.0e6,
+    },
     "vis_viva_velocity": {"radius_m": 6778137.0, "semi_major_axis_m": 6778137.0},
     "plane_change_delta_v": {"velocity_ms": 7700.0, "inclination_change_deg": 28.5},
     "orbital_period": {"semi_major_axis_m": 6778137.0},

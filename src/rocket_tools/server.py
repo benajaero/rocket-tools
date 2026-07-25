@@ -10,6 +10,7 @@ from rocket_tools.schemas import (
     AscentSimInput,
     BallisticEntryInput,
     BeamDiagramInput,
+    BiEllipticTransferInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
     CenterOfPressureInput,
@@ -1565,6 +1566,40 @@ def hohmann_transfer(radius1_m: float, radius2_m: float, mu: float = 3.986004418
     try:
         validated = HohmannTransferInput(radius1_m=radius1_m, radius2_m=radius2_m, mu=mu)
         return _ht(validated.radius1_m, validated.radius2_m, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def bi_elliptic_transfer(
+    radius1_m: float,
+    radius2_m: float,
+    intermediate_radius_m: float,
+    mu: float = 3.986004418e14,
+) -> dict:
+    """Three-impulse bi-elliptic transfer between coplanar circular orbits.
+
+    Raises apoapsis to intermediate_radius_m (rb, beyond both orbits), coasts, raises
+    periapsis to the target, then circularizes. For large radius ratios with a high rb it
+    beats Hohmann on delta-v at the cost of much longer flight time. Returns the three
+    burns, total delta-v/time, and a comparison against the Hohmann transfer. Radii are
+    body-center distances in meters, NOT altitude; mu in m^3/s^2 (default Earth).
+    """
+    from rocket_tools.design import bi_elliptic_transfer as _bet
+
+    try:
+        validated = BiEllipticTransferInput(
+            radius1_m=radius1_m,
+            radius2_m=radius2_m,
+            intermediate_radius_m=intermediate_radius_m,
+            mu=mu,
+        )
+        return _bet(
+            validated.radius1_m,
+            validated.radius2_m,
+            validated.intermediate_radius_m,
+            validated.mu,
+        )
     except Exception as e:
         return _format_error(e)
 

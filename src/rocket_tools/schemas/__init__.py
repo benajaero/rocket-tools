@@ -45,6 +45,7 @@ from .aerodynamics import (
     WingLoadingInput,
 )
 from .design import (
+    BiEllipticTransferInput,
     CompositeCGInput,
     HohmannTransferInput,
     KeplerPropagateInput,
@@ -189,6 +190,7 @@ __all__ = [
     "CompositeCGInput",
     "PropellantTankSizingInput",
     "HohmannTransferInput",
+    "BiEllipticTransferInput",
     "VisVivaInput",
     "PlaneChangeInput",
     "OrbitalPeriodInput",

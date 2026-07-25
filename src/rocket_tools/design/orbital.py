@@ -78,6 +78,71 @@ def hohmann_transfer(radius1_m: float, radius2_m: float, mu: float = MU_EARTH) -
     }
 
 
+def bi_elliptic_transfer(
+    radius1_m: float,
+    radius2_m: float,
+    intermediate_radius_m: float,
+    mu: float = MU_EARTH,
+) -> dict:
+    """Three-impulse bi-elliptic transfer between coplanar circular orbits.
+
+    A bi-elliptic transfer raises apoapsis to an intermediate radius rb (beyond the
+    target), coasts to rb, raises periapsis to the target radius, then circularizes. For
+    large radius ratios (r2/r1 > ~11.94) with a sufficiently high rb it needs less total
+    delta-v than a Hohmann transfer, at the cost of a much longer flight time. Returns the
+    three burns, total delta-v and time, and a comparison against the Hohmann transfer.
+
+    Args:
+        radius1_m: Initial circular-orbit radius in m.
+        radius2_m: Final circular-orbit radius in m.
+        intermediate_radius_m: Apoapsis radius rb of the first transfer ellipse in m.
+        mu: Gravitational parameter in m^3/s^2 (default Earth).
+    """
+    if radius1_m <= 0 or radius2_m <= 0:
+        raise ValueError("orbital radii must be > 0")
+    if radius1_m == radius2_m:
+        raise ValueError("radius1_m and radius2_m must differ (no transfer needed)")
+    if intermediate_radius_m < radius1_m or intermediate_radius_m < radius2_m:
+        raise ValueError(
+            "intermediate_radius_m must be >= both orbit radii (the apoapsis is beyond both)"
+        )
+
+    v_c1 = np.sqrt(mu / radius1_m)
+    v_c2 = np.sqrt(mu / radius2_m)
+    rb = intermediate_radius_m
+
+    # Ellipse 1: periapsis r1, apoapsis rb.
+    a1 = 0.5 * (radius1_m + rb)
+    v_p1 = np.sqrt(mu * (2.0 / radius1_m - 1.0 / a1))
+    v_a1 = np.sqrt(mu * (2.0 / rb - 1.0 / a1))
+    # Ellipse 2: apoapsis rb, periapsis r2.
+    a2 = 0.5 * (radius2_m + rb)
+    v_a2 = np.sqrt(mu * (2.0 / rb - 1.0 / a2))
+    v_p2 = np.sqrt(mu * (2.0 / radius2_m - 1.0 / a2))
+
+    delta_v1 = abs(v_p1 - v_c1)  # raise apoapsis to rb
+    delta_v2 = abs(v_a2 - v_a1)  # raise periapsis to r2
+    delta_v3 = abs(v_c2 - v_p2)  # circularize at r2
+    total_delta_v = delta_v1 + delta_v2 + delta_v3
+    transfer_time_s = np.pi * np.sqrt(a1**3 / mu) + np.pi * np.sqrt(a2**3 / mu)
+
+    hohmann = hohmann_transfer(radius1_m, radius2_m, mu)
+    hohmann_dv = hohmann["total_delta_v_ms"]
+
+    return {
+        "delta_v1_ms": round(float(delta_v1), 3),
+        "delta_v2_ms": round(float(delta_v2), 3),
+        "delta_v3_ms": round(float(delta_v3), 3),
+        "total_delta_v_ms": round(float(total_delta_v), 3),
+        "total_delta_v_kms": round(float(total_delta_v) / 1000.0, 5),
+        "transfer_time_s": round(float(transfer_time_s), 1),
+        "transfer_time_hr": round(float(transfer_time_s) / 3600.0, 4),
+        "hohmann_total_delta_v_ms": hohmann_dv,
+        "delta_v_saving_vs_hohmann_ms": round(float(hohmann_dv - total_delta_v), 3),
+        "cheaper_than_hohmann": bool(total_delta_v < hohmann_dv),
+    }
+
+
 def plane_change_delta_v(velocity_ms: float, inclination_change_deg: float) -> dict:
     """Delta-v for a simple (circular, speed-preserving) plane change.
 
