@@ -4,6 +4,8 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
+## [0.6.1] — 2026-07-26
+
 ### Fixed
 - **Monte-Carlo aggregation was poisoned by non-finite samples** — `run_with_uncertainty`
   computed mean/std/min/max/CI over the raw sample array, so a single NaN or inf tail sample
