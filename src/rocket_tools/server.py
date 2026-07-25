@@ -56,6 +56,7 @@ from rocket_tools.schemas import (
     PlateBucklingInput,
     PrandtlMeyerFromAngleInput,
     PrandtlMeyerInput,
+    PressureVesselStressInput,
     PropagateUncertaintyInput,
     PropellantTankSizingInput,
     RecoveryTemperatureInput,
@@ -722,6 +723,41 @@ def thermal_stress(
             validated.constraint_factor,
             validated.length_m,
             validated.area_m2,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def pressure_vessel_stress(
+    internal_pressure_pa: float,
+    inner_radius_m: float,
+    wall_thickness_m: float,
+    geometry: str = "cylinder",
+    material_yield_pa: float | None = None,
+) -> dict:
+    """Thin-wall membrane stresses in a pressurized cylinder or sphere.
+
+    Cylinder: hoop = p*r/t, longitudinal = p*r/(2t); sphere: both = p*r/(2t). Also returns
+    the von Mises equivalent, the r/t ratio with a thin-wall-validity flag (r/t >= 10), and
+    a margin of safety when material_yield_pa is given. Complements propellant_tank_sizing.
+    """
+    from rocket_tools.structural import pressure_vessel_stress as _pv
+
+    try:
+        validated = PressureVesselStressInput(
+            internal_pressure_pa=internal_pressure_pa,
+            inner_radius_m=inner_radius_m,
+            wall_thickness_m=wall_thickness_m,
+            geometry=geometry,  # type: ignore[arg-type]
+            material_yield_pa=material_yield_pa,
+        )
+        return _pv(
+            validated.internal_pressure_pa,
+            validated.inner_radius_m,
+            validated.wall_thickness_m,
+            validated.geometry,
+            validated.material_yield_pa,
         )
     except Exception as e:
         return _format_error(e)

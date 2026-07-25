@@ -297,6 +297,21 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
             "uniform temperature change",
         ],
     },
+    "pressure_vessel_stress": {
+        "domain": "structural",
+        "references": [
+            "Boresi & Schmidt, Advanced Mechanics of Materials, 6th Ed. (thin-wall vessels)",
+            "Roark's Formulas for Stress and Strain (membrane theory of shells)",
+        ],
+        "formula": (
+            "cylinder: hoop=p*r/t, long=p*r/(2t); sphere: p*r/(2t); von Mises with radial ~ 0"
+        ),
+        "assumptions": [
+            "thin wall (r/t >= 10)",
+            "membrane (no bending) stresses",
+            "closed ends",
+        ],
+    },
     # ---- Materials & atmosphere ----
     "material_lookup": {
         "domain": "materials",

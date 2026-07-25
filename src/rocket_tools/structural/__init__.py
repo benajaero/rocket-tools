@@ -6,6 +6,7 @@ from .margin import (
     margin_of_safety,
     von_mises_stress,
 )
+from .pressure import pressure_vessel_stress
 from .sections import section_properties
 from .thermal import thermal_stress
 from .truss import truss_analysis
@@ -21,4 +22,5 @@ __all__ = [
     "deflection_margin",
     "truss_analysis",
     "thermal_stress",
+    "pressure_vessel_stress",
 ]

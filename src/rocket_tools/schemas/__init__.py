@@ -86,6 +86,7 @@ from .structural import (
     DeflectionMarginInput,
     MarginOfSafetyInput,
     PlateBucklingInput,
+    PressureVesselStressInput,
     RectangleSection,
     SectionPropertiesInput,
     ThermalStressInput,
@@ -129,6 +130,7 @@ __all__ = [
     "DeflectionMarginInput",
     "TrussAnalysisInput",
     "ThermalStressInput",
+    "PressureVesselStressInput",
     # Materials
     "MaterialLookupInput",
     "MaterialLookupOutput",
