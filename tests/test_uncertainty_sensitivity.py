@@ -45,6 +45,13 @@ class TestToolDispatch:
         for name in ("rocket_delta_v", "normal_shock", "hohmann_transfer", "column_buckling"):
             assert name in tools
 
+    def test_optimization_and_standards_tools_dispatchable(self):
+        # These modules were omitted from the dispatch loop, so their tools could not be
+        # composed in a workflow despite the "any tool can be composed" contract.
+        tools = list_callable_tools()
+        for name in ("optimize_staging", "optimize_design", "fmea_report", "design_review_report"):
+            assert name in tools
+
     def test_dispatch_calls_previously_unsupported_tool(self):
         out = _call_tool(
             "rocket_delta_v",

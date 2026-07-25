@@ -22,6 +22,11 @@ All notable changes to rocket-tools.
   `hohmann_transfer`, `bi_elliptic_transfer`, `orbital_period`, `vis_viva_velocity`, and
   `plane_change_delta_v` (the last extracts velocity and inclination directly), so these
   route to the right tool.
+- **Optimization and standards tools were not composable** — the workflow/uncertainty
+  dispatch was built from only five domain modules, so `optimize_staging`, `optimize_design`,
+  `fmea_report`, and `design_review_report` could not be called from a workflow or a parameter
+  sweep despite the "any tool can be composed" contract. The dispatch now includes the
+  `optimization` and `standards` modules too.
 
 ### Added
 - **`scripts/ship.sh` — the update/release pipeline.** One command for the routine loop
