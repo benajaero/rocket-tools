@@ -4,6 +4,12 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-07-26
+
+A correctness-and-precision release: the new thick-wall vessel tool (81 tools), four physics
+bug fixes each pinned to a regression test, a higher-precision ISA gas constant, and a batch
+of usability hardening across the unit engine and CLI.
+
 ### Added
 - **Thick-wall pressure-vessel stress** — `thick_wall_pressure_vessel_stress()`. The exact
   Lame elasticity solution for a pressurized cylinder or sphere at any radius ratio, for the
