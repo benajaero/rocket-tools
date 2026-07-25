@@ -429,3 +429,95 @@ def lambert_solver(
         "z": round(float(z), 6),
         "iterations": iterations,
     }
+
+
+def kepler_propagate(
+    position_m: list[float],
+    velocity_ms: list[float],
+    time_of_flight_s: float,
+    mu: float = MU_EARTH,
+) -> dict:
+    """Propagate a state vector forward in time on its two-body orbit.
+
+    Given an initial position/velocity and an elapsed time, returns the position and
+    velocity at that later time, via the universal-variable formulation and Lagrange
+    coefficients (Curtis, Orbital Mechanics for Engineering Students, 3rd Ed.,
+    Algorithm 3.4). Works for elliptical and hyperbolic orbits alike; time_of_flight_s
+    may be negative to propagate backward.
+
+    Args:
+        position_m: Initial inertial position vector [x, y, z] in m.
+        velocity_ms: Initial inertial velocity vector [vx, vy, vz] in m/s.
+        time_of_flight_s: Elapsed time in seconds (may be negative).
+        mu: Gravitational parameter of the central body in m^3/s^2 (default Earth).
+    """
+    if len(position_m) != 3 or len(velocity_ms) != 3:
+        raise ValueError("position_m and velocity_ms must each be 3-component vectors")
+    if mu <= 0:
+        raise ValueError("mu must be > 0")
+
+    r0_vec = np.asarray(position_m, dtype=float)
+    v0_vec = np.asarray(velocity_ms, dtype=float)
+    r0 = float(np.linalg.norm(r0_vec))
+    v0 = float(np.linalg.norm(v0_vec))
+    if r0 == 0.0:
+        raise ValueError("position vector must be non-zero")
+
+    dt = time_of_flight_s
+    vr0 = float(np.dot(r0_vec, v0_vec) / r0)
+    # Reciprocal of the semi-major axis (alpha > 0 ellipse, < 0 hyperbola, 0 parabola).
+    alpha = 2.0 / r0 - v0**2 / mu
+    root_mu = np.sqrt(mu)
+
+    # Solve the universal Kepler equation for the universal anomaly chi (Newton).
+    chi = root_mu * abs(alpha) * dt
+    tol = 1e-8
+    max_iter = 200
+    converged = False
+    for _ in range(max_iter):
+        z = alpha * chi**2
+        cz = _stumpff_c(z)
+        sz = _stumpff_s(z)
+        f_chi = (
+            r0 * vr0 / root_mu * chi**2 * cz
+            + (1.0 - alpha * r0) * chi**3 * sz
+            + r0 * chi
+            - root_mu * dt
+        )
+        dfdchi = (
+            r0 * vr0 / root_mu * chi * (1.0 - alpha * chi**2 * sz)
+            + (1.0 - alpha * r0) * chi**2 * cz
+            + r0
+        )
+        ratio = f_chi / dfdchi
+        chi -= ratio
+        if abs(ratio) < tol:
+            converged = True
+            break
+    if not converged:
+        raise ValueError("Kepler propagation did not converge; check inputs / time of flight")
+
+    z = alpha * chi**2
+    cz = _stumpff_c(z)
+    sz = _stumpff_s(z)
+    # Lagrange coefficients for the new position.
+    f = 1.0 - chi**2 / r0 * cz
+    g = dt - 1.0 / root_mu * chi**3 * sz
+    r_vec = f * r0_vec + g * v0_vec
+    r = float(np.linalg.norm(r_vec))
+    # Lagrange coefficients for the new velocity.
+    fdot = root_mu / (r * r0) * (alpha * chi**3 * sz - chi)
+    gdot = 1.0 - chi**2 / r * cz
+    v_vec = fdot * r0_vec + gdot * v0_vec
+
+    return {
+        "position_x_m": round(float(r_vec[0]), 3),
+        "position_y_m": round(float(r_vec[1]), 3),
+        "position_z_m": round(float(r_vec[2]), 3),
+        "velocity_x_ms": round(float(v_vec[0]), 5),
+        "velocity_y_ms": round(float(v_vec[1]), 5),
+        "velocity_z_ms": round(float(v_vec[2]), 5),
+        "radius_m": round(r, 3),
+        "speed_ms": round(float(np.linalg.norm(v_vec)), 5),
+        "universal_anomaly": round(float(chi), 6),
+    }

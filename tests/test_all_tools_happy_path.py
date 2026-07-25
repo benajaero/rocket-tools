@@ -205,6 +205,11 @@ VALID_CALLS: dict[str, dict] = {
         "argument_of_perigee_deg": 60.0,
         "true_anomaly_deg": 30.0,
     },
+    "kepler_propagate": {
+        "position_m": [7.0e6, -12.124e6, 0.0],
+        "velocity_ms": [2667.9, 4621.0, 0.0],
+        "time_of_flight_s": 3600.0,
+    },
     # trajectory & vehicle sizing
     "simulate_ascent": {
         "initial_mass_kg": 1000.0,

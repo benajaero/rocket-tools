@@ -514,6 +514,26 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "r=[-4040,4815,3629] km, v=[-10.39,-4.772,1.744] km/s."
         ),
     },
+    # ---- Universal-variable time-of-flight propagation ----
+    "kepler_propagate_curtis_3_7": {
+        "tool_name": "kepler_propagate",
+        "inputs": {
+            "position_m": [7.0e6, -12.124e6, 0.0],
+            "velocity_ms": [2667.9, 4621.0, 0.0],
+            "time_of_flight_s": 3600.0,
+        },
+        "expected": {
+            "position_x_m": -3297800.0,
+            "position_y_m": 7413400.0,
+            "velocity_x_ms": -8297.7,
+        },
+        "tolerance": 0.001,
+        "reference": (
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Example 3.7: "
+            "r0=[7000,-12124,0] km, v0=[2.6679,4.6210,0] km/s, dt=3600 s. "
+            "r=[-3297.8,7413.4,0] km, v=[-8.2977,-0.96309,0] km/s."
+        ),
+    },
 }
 
 

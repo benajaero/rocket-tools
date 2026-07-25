@@ -138,6 +138,21 @@ class StateFromOrbitalElementsInput(StrictModel):
     )
 
 
+class KeplerPropagateInput(StrictModel):
+    """Input for kepler_propagate tool."""
+
+    position_m: list[float] = Field(
+        ..., min_length=3, max_length=3, description="Initial position vector [x,y,z] in m"
+    )
+    velocity_ms: list[float] = Field(
+        ..., min_length=3, max_length=3, description="Initial velocity vector [vx,vy,vz] in m/s"
+    )
+    time_of_flight_s: float = Field(..., description="Elapsed time in seconds (may be negative)")
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter in m^3/s^2"
+    )
+
+
 # ---- Mass Properties ----
 
 

@@ -1,6 +1,7 @@
 from .mass import composite_cg, propellant_tank_sizing
 from .orbital import (
     hohmann_transfer,
+    kepler_propagate,
     lambert_solver,
     orbital_elements_from_state,
     orbital_period,
@@ -31,4 +32,5 @@ __all__ = [
     "lambert_solver",
     "orbital_elements_from_state",
     "state_from_orbital_elements",
+    "kepler_propagate",
 ]

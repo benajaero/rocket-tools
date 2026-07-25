@@ -408,6 +408,22 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
             "parabolic e == 1 unsupported via (a, e)",
         ],
     },
+    "kepler_propagate": {
+        "domain": "orbital mechanics",
+        "references": [
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Algorithm 3.4",
+            "Bate, Mueller & White, Fundamentals of Astrodynamics (universal variables)",
+        ],
+        "formula": (
+            "universal Kepler eq. in chi (Newton) with alpha=2/r0-v0^2/mu; "
+            "new state from Lagrange f,g,fdot,gdot"
+        ),
+        "assumptions": [
+            "two-body Keplerian orbit",
+            "elliptical or hyperbolic",
+            "time of flight may be negative (backward propagation)",
+        ],
+    },
     # ---- Trajectory & vehicle sizing ----
     "simulate_ascent": {
         "domain": "trajectory",

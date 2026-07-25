@@ -46,6 +46,7 @@ from .aerodynamics import (
 from .design import (
     CompositeCGInput,
     HohmannTransferInput,
+    KeplerPropagateInput,
     LambertSolverInput,
     MultiStageDeltaVInput,
     OrbitalElementsFromStateInput,
@@ -187,6 +188,7 @@ __all__ = [
     "LambertSolverInput",
     "OrbitalElementsFromStateInput",
     "StateFromOrbitalElementsInput",
+    "KeplerPropagateInput",
     # Trajectory
     "AscentSimInput",
     "VehicleSizingInput",

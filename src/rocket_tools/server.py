@@ -31,6 +31,7 @@ from rocket_tools.schemas import (
     ISAAtmosphereInput,
     ISAProfileInput,
     IsentropicFlowInput,
+    KeplerPropagateInput,
     LambertSolverInput,
     LiftCoefficientInput,
     LiftCurveSlopeInput,
@@ -1613,6 +1614,39 @@ def state_from_orbital_elements(
             validated.raan_deg,
             validated.argument_of_perigee_deg,
             validated.true_anomaly_deg,
+            validated.mu,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def kepler_propagate(
+    position_m: list[float],
+    velocity_ms: list[float],
+    time_of_flight_s: float,
+    mu: float = 3.986004418e14,
+) -> dict:
+    """Propagate a state vector forward (or backward) in time (Curtis Algorithm 3.4).
+
+    Given an initial position [x,y,z] in m and velocity [vx,vy,vz] in m/s, returns the
+    position and velocity after time_of_flight_s (may be negative), using the
+    universal-variable formulation. Works for elliptical and hyperbolic orbits. mu in
+    m^3/s^2 (default Earth).
+    """
+    from rocket_tools.design import kepler_propagate as _kp
+
+    try:
+        validated = KeplerPropagateInput(
+            position_m=position_m,
+            velocity_ms=velocity_ms,
+            time_of_flight_s=time_of_flight_s,
+            mu=mu,
+        )
+        return _kp(
+            validated.position_m,
+            validated.velocity_ms,
+            validated.time_of_flight_s,
             validated.mu,
         )
     except Exception as e:
