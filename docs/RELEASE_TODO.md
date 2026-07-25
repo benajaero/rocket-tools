@@ -1,5 +1,10 @@
 # rocket-tools — Release Backlog (path to a confident 1.0)
 
+> Historical note: this backlog was captured against the 0.3.3 baseline and most of it is
+> done. For the current forward plan see [ROADMAP.md](../ROADMAP.md); for the shipped and
+> pending changes see [CHANGELOG.md](../CHANGELOG.md). This file is kept for its record of
+> completed work.
+
 Prioritised, checkbox backlog of everything between the current state (`0.3.3`) and a
 confident public 1.0 on PyPI + the MCP registry. Ordered within each group by impact.
 Do NOT publish without explicit approval — prep to that line and stop.

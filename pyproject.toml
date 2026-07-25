@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rocket-tools"
 version = "0.4.1"
-description = "Aerospace engineering calculations for Python, CLI, and MCP agents"
+description = "Fast, reference-validated aerospace engineering calculations for Python, the CLI, and MCP agents"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]

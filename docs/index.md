@@ -1,28 +1,25 @@
 # 🚀 rocket-tools
 
-> **Engineering-grade aerospace computation. AI-native interface.**
+Fast, reference-validated aerospace engineering calculations, from beam deflection to
+atmospheric properties to a full ascent simulation. One shared core, reachable three ways:
 
-**rocket-tools** gives you fast, precise, *reference-validated* aerospace engineering
-calculations — from beam deflection to atmospheric properties to full ascent
-simulation — through three surfaces from one shared core:
+- a plain Python library,
+- a `rocket-tools` command line, and
+- an MCP server, so an AI agent can call the same validated calculations with structured
+  inputs and outputs.
 
-- a plain **Python library**,
-- a **`rocket-tools` CLI**, and
-- an **MCP server** so AI agents can call validated aerospace computations with
-  structured inputs and outputs.
-
-Every tool is validated against published references (NACA 1135, Anderson, Sutton &
-Biblarz, Curtis/Vallado, Roark), carries provenance you can query with `cite_tool`,
-and rejects unsafe/non-finite inputs at the schema boundary.
+Every tool is checked against a published reference (NACA 1135, Anderson, Sutton & Biblarz,
+Curtis, Vallado, Roark), carries provenance you can query with `cite_tool`, and rejects
+non-finite inputs at the schema boundary.
 
 ## Install
 
 ```bash
 pip install rocket-tools          # core (pure Python + Numba)
-pip install "rocket-tools[viz]"   # + matplotlib for the plotting tools
+pip install "rocket-tools[viz]"   # adds matplotlib for the plotting tools
 ```
 
-## 30-second example
+## A 30-second example
 
 ```python
 from rocket_tools.trajectory import simulate_ascent
@@ -37,23 +34,25 @@ print(f"Apogee: {sim['apogee_km']:.1f} km, max-q {sim['max_dynamic_pressure_pa']
 
 ## What's inside
 
-| Domain | Highlights |
-|--------|-----------|
-| **Structures** | Beam bending/shear/deflection, 7 section types, Euler-Johnson buckling, plate buckling, margins, von Mises, 2D/3D truss |
-| **Aerodynamics** | Reynolds/Mach/q, isentropic + normal/oblique shock + Prandtl-Meyer, aircraft performance, nozzle design (Numba-JIT) |
-| **Propulsion & mission** | Tsiolkovsky ΔV, multi-stage, c*/Isp, orbital mechanics, aerothermodynamics |
-| **Ascent & sizing** | `simulate_ascent` (RK4 through the ISA atmosphere), `size_vehicle` |
-| **Optimization** | `optimize_staging` (optimal ΔV split), `optimize_design` (any tool, any variable) |
-| **Visualization** | Beam/drag-polar/nozzle/ISA/trajectory plots — data **or** native MCP image |
-| **Standards & reliability** | Design-review margin rollups, FMEA (RPN), standards catalog |
-| **Research** | Provenance/citations, Monte-Carlo uncertainty + sensitivity, curated benchmarks, parameter sweeps |
+| Domain | What you get |
+|--------|--------------|
+| Structures | Beam bending, shear, and deflection; 7 section types; Euler-Johnson buckling; plate buckling; margins of safety; von Mises; 2D and 3D truss; thermal and pressure-vessel stress |
+| Aerodynamics | Reynolds, Mach, dynamic pressure; isentropic, normal and oblique shock, Prandtl-Meyer; aircraft performance; nozzle design |
+| Propulsion and mission | Rocket equation and staging; c* and specific impulse; motor thrust-curve analysis; orbital mechanics; aerothermodynamics |
+| Ascent and sizing | `simulate_ascent` (RK4 through the ISA atmosphere), `size_vehicle`, parachute recovery sizing |
+| Orbital mechanics | Hohmann and bi-elliptic transfers, Lambert solver, state-vector and orbital-element conversion, Kepler propagation |
+| Optimization | `optimize_staging` for the optimal delta-v split, `optimize_design` over any tool and variable |
+| Visualization | Beam, drag-polar, nozzle, ISA, and trajectory plots, as data or a native MCP image |
+| Standards and reliability | Design-review margin rollups, FMEA by risk priority number, a standards catalog |
+| Research support | Provenance and citations, Monte-Carlo uncertainty and sensitivity, curated benchmarks, parameter sweeps |
 
-See the [README on GitHub](https://github.com/benajaero/rocket-tools) for the full tool
-reference and the [Skills library](https://github.com/benajaero/rocket-tools/tree/main/skills)
-for worked examples, and [Scientific Validity](scientific-validity.md) for the validation
-scope and known limitations.
+For the full tool reference see the [README on GitHub](https://github.com/benajaero/rocket-tools)
+and the [feature list](https://github.com/benajaero/rocket-tools/blob/main/FEATURES.md). The
+[roadmap](https://github.com/benajaero/rocket-tools/blob/main/ROADMAP.md) covers what is
+coming next, and [scientific validity](scientific-validity.md) is honest about the
+validation scope and the known limits.
 
 !!! warning "Not certification software"
-    Results are preliminary engineering calculations for design exploration, education,
-    and agent/tool integration — **not** certification artifacts. Independent verification
-    by a qualified engineer is required.
+    These are preliminary engineering calculations for design exploration, education, and
+    agent integration. They are not certification artifacts, and a qualified engineer should
+    check any result before it informs a real design or flight.

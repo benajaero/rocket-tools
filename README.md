@@ -26,7 +26,7 @@ print(f"Dynamic pressure: {q['dynamic_pressure_pa']/1e3:.0f} kPa")
 print(f"Inconel-718 yield strength: {mat['yield_strength_mpa']:.0f} MPa")
 ```
 
-**[→ Skills Library](skills/)** · **[→ Quick Start for AI Agents](#for-ai-agents)** · **[→ Contributing](CONTRIBUTING.md)**
+**[→ Features](FEATURES.md)** · **[→ Roadmap](ROADMAP.md)** · **[→ Skills Library](skills/)** · **[→ Quick Start for AI Agents](#for-ai-agents)** · **[→ Contributing](CONTRIBUTING.md)**
 
 ---
 
@@ -39,6 +39,17 @@ print(f"Inconel-718 yield strength: {mat['yield_strength_mpa']:.0f} MPa")
 - AI-agent builders who want engineering tools exposed through the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP)
 
 Each tool is self-contained and validated against a published reference, and fast enough to call thousands of times per second. You can use one function on its own or chain several into a design review.
+
+### How it compares
+
+rocket-tools spans many domains at preliminary-design fidelity rather than going deep in one. Reach for it early, when you want a fast, traceable number in code or from an agent; hand off to the specialist tool for a final design. Roughly where it sits:
+
+- **OpenRocket / RASAero** are dedicated rocket flight simulators with a GUI. rocket-tools gives you scriptable Barrowman stability, a point-mass ascent, and recovery sizing at lower fidelity, as part of a broader library.
+- **NASA CEA / RPA** do rocket chemical equilibrium. rocket-tools does the ideal nozzle and Isp relations once you supply the gas properties CEA computes; a CEA front end is on the roadmap.
+- **NASTRAN / Ansys** are general FEM suites. rocket-tools covers closed-form beams, columns, trusses, plates, and thermal and pressure-vessel stress, not general FEM.
+- **GMAT / STK / poliastro** are astrodynamics tools. rocket-tools covers two-body transfers, Lambert, orbit determination, and propagation, without perturbations or ephemerides.
+
+The full table is in [FEATURES.md](FEATURES.md#how-it-compares). The one thing none of those do is expose validated aerospace calculations as MCP tools an AI agent can call and cite.
 
 ---
 
