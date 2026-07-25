@@ -70,6 +70,7 @@ from rocket_tools.schemas import (
     StaticMarginInput,
     SuttonGravesInput,
     ThermalStressInput,
+    ThickWallPressureVesselInput,
     ThroatMassFluxInput,
     ThrustToWeightInput,
     TrajectoryPlotInput,
@@ -757,6 +758,42 @@ def pressure_vessel_stress(
             validated.internal_pressure_pa,
             validated.inner_radius_m,
             validated.wall_thickness_m,
+            validated.geometry,
+            validated.material_yield_pa,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def thick_wall_pressure_vessel_stress(
+    internal_pressure_pa: float,
+    inner_radius_m: float,
+    outer_radius_m: float,
+    geometry: str = "cylinder",
+    material_yield_pa: float | None = None,
+) -> dict:
+    """Thick-wall (Lame) stresses in a pressurized cylinder or sphere.
+
+    Exact elasticity solution valid at any radius ratio; use it when r/t < 10, where
+    thin-wall theory is inaccurate. Reports the inner-surface hoop, radial, longitudinal,
+    von Mises, and max-shear stresses (largest there) plus the outer hoop stress, and a
+    margin of safety when material_yield_pa is given. outer_radius_m must exceed inner.
+    """
+    from rocket_tools.structural import thick_wall_pressure_vessel_stress as _tw
+
+    try:
+        validated = ThickWallPressureVesselInput(
+            internal_pressure_pa=internal_pressure_pa,
+            inner_radius_m=inner_radius_m,
+            outer_radius_m=outer_radius_m,
+            geometry=geometry,  # type: ignore[arg-type]
+            material_yield_pa=material_yield_pa,
+        )
+        return _tw(
+            validated.internal_pressure_pa,
+            validated.inner_radius_m,
+            validated.outer_radius_m,
             validated.geometry,
             validated.material_yield_pa,
         )

@@ -91,6 +91,7 @@ from .structural import (
     RectangleSection,
     SectionPropertiesInput,
     ThermalStressInput,
+    ThickWallPressureVesselInput,
     TrussAnalysisInput,
     VonMisesInput,
 )
@@ -132,6 +133,7 @@ __all__ = [
     "TrussAnalysisInput",
     "ThermalStressInput",
     "PressureVesselStressInput",
+    "ThickWallPressureVesselInput",
     # Materials
     "MaterialLookupInput",
     "MaterialLookupOutput",

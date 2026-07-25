@@ -4,6 +4,13 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
+### Added
+- **Thick-wall pressure-vessel stress** — `thick_wall_pressure_vessel_stress()`. The exact
+  Lame elasticity solution for a pressurized cylinder or sphere at any radius ratio, for the
+  r/t < 10 case where the thin-wall tool is inaccurate. Reports the inner-surface hoop,
+  radial, longitudinal, von Mises, and max-shear stresses plus the outer hoop stress, with a
+  margin against yield. Pinned by hand-computed cases. Tool count 80 → 81.
+
 ## [0.5.0] — 2026-07-25
 
 Twelve new reference-validated tools (68 → 80) plus a batch of correctness fixes that made

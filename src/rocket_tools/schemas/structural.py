@@ -225,3 +225,17 @@ class PressureVesselStressInput(StrictModel):
     material_yield_pa: float | None = Field(
         default=None, gt=0, description="Yield strength in Pa (optional; enables margin)"
     )
+
+
+class ThickWallPressureVesselInput(StrictModel):
+    """Input for thick_wall_pressure_vessel_stress tool."""
+
+    internal_pressure_pa: float = Field(..., gt=0, description="Gauge internal pressure in Pa")
+    inner_radius_m: float = Field(..., gt=0, description="Inner radius a in m")
+    outer_radius_m: float = Field(..., gt=0, description="Outer radius b in m (> inner radius)")
+    geometry: Literal["cylinder", "sphere"] = Field(
+        default="cylinder", description="Vessel geometry"
+    )
+    material_yield_pa: float | None = Field(
+        default=None, gt=0, description="Yield strength in Pa (optional; enables margin)"
+    )

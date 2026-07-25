@@ -312,6 +312,22 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
             "closed ends",
         ],
     },
+    "thick_wall_pressure_vessel_stress": {
+        "domain": "structural",
+        "references": [
+            "Boresi & Schmidt, Advanced Mechanics of Materials, 6th Ed. (Lame thick-wall)",
+            "Roark's Formulas for Stress and Strain (thick-wall pressure vessels)",
+        ],
+        "formula": (
+            "Lame: cylinder hoop_i=p(b^2+a^2)/(b^2-a^2), radial_i=-p; "
+            "sphere hoop_i=p(2a^3+b^3)/(2(b^3-a^3)); von Mises at the inner surface"
+        ),
+        "assumptions": [
+            "linear-elastic, isotropic",
+            "internal pressure only",
+            "stresses largest at the inner surface",
+        ],
+    },
     # ---- Materials & atmosphere ----
     "material_lookup": {
         "domain": "materials",

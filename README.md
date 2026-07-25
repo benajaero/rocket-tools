@@ -2,7 +2,7 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-760%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-771%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
@@ -57,7 +57,7 @@ The full table is in [FEATURES.md](FEATURES.md#how-it-compares). The one thing n
 
 | Capability | What You Get |
 |------------|--------------|
-| **80 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
+| **81 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
 | **49+ Materials** | Aluminum, titanium, steel, nickel superalloys, composites, refractory metals — with thermal & mechanical properties, filterable by application (rocket, drone, aircraft, spacecraft, engine) |
 | **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types, Euler-Johnson column buckling, plate buckling coefficients, margin of safety (stress/load/deflection), von Mises combined stress, 2D/3D truss analysis |
 | **Compressible Flow** | Isentropic relations, normal & oblique shocks, Prandtl-Meyer expansions — all Numba JIT-compiled |
@@ -424,7 +424,7 @@ When you use rocket-tools in research or a published work, please also cite it
 
 ### MCP Tool Manifest
 
-This repository exposes 80 tools via FastMCP. The key ones by domain are below; for the
+This repository exposes 81 tools via FastMCP. The key ones by domain are below; for the
 complete, always-current list run `rocket-tools tools`.
 
 #### Structural Analysis
@@ -441,6 +441,7 @@ complete, always-current list run `rocket-tools tools`.
 | `truss_analysis` | `TrussAnalysisInput` | 2D/3D pin-jointed truss analysis via direct stiffness method |
 | `thermal_stress` | `ThermalStressInput` | Thermal stress and free/restrained expansion of a heated or cooled member |
 | `pressure_vessel_stress` | `PressureVesselStressInput` | Thin-wall hoop/longitudinal/von Mises stress and margin for a pressurized cylinder or sphere |
+| `thick_wall_pressure_vessel_stress` | `ThickWallPressureVesselInput` | Thick-wall (Lamé) stresses at any radius ratio, for r/t < 10 |
 
 #### Aerodynamics
 | Tool | Schema | Description |

@@ -68,6 +68,12 @@ VALID_CALLS: dict[str, dict] = {
         "wall_thickness_m": 0.005,
         "material_yield_pa": 400e6,
     },
+    "thick_wall_pressure_vessel_stress": {
+        "internal_pressure_pa": 50e6,
+        "inner_radius_m": 0.1,
+        "outer_radius_m": 0.15,
+        "material_yield_pa": 250e6,
+    },
     # aerodynamics fundamentals
     "reynolds_number": {"velocity": 250.0, "characteristic_length": 2.0, "altitude_m": 5000.0},
     "mach_number": {"velocity": 250.0, "altitude_m": 5000.0},

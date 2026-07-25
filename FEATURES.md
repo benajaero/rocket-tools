@@ -23,6 +23,8 @@ Each tool is available three ways from one shared core: as a Python function, th
 - `thermal_stress` — stress and expansion of a restrained member heated or cooled by dT.
 - `pressure_vessel_stress` — thin-wall hoop, longitudinal, and von Mises stress for a
   cylinder or sphere, with a margin against yield.
+- `thick_wall_pressure_vessel_stress` — thick-wall (Lame) stresses at any radius ratio, for
+  the r/t < 10 case where thin-wall theory is inaccurate.
 
 ## Materials
 
