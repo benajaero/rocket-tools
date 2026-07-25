@@ -31,6 +31,7 @@ from .nozzle import nozzle_performance, optimal_area_ratio
 from .propulsion import (
     characteristic_velocity,
     ideal_specific_impulse,
+    motor_thrust_curve_analysis,
     throat_mass_flux,
 )
 from .stability import center_of_pressure, static_margin
@@ -68,6 +69,7 @@ __all__ = [
     "characteristic_velocity",
     "ideal_specific_impulse",
     "throat_mass_flux",
+    "motor_thrust_curve_analysis",
     # Static stability
     "center_of_pressure",
     "static_margin",

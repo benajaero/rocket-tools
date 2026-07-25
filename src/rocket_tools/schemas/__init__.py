@@ -26,6 +26,7 @@ from .aerodynamics import (
     LiftCurveSlopeInput,
     MachNumberInput,
     MachNumberOutput,
+    MotorThrustCurveInput,
     NormalShockInput,
     NozzlePerformanceInput,
     ObliqueShockInput,
@@ -173,6 +174,8 @@ __all__ = [
     # Aerodynamics - Static stability
     "CenterOfPressureInput",
     "StaticMarginInput",
+    # Propulsion - Motor ballistics
+    "MotorThrustCurveInput",
     # Design
     "RocketDeltaVInput",
     "MultiStageDeltaVInput",

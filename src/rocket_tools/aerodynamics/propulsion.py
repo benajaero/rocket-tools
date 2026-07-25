@@ -114,3 +114,88 @@ def throat_mass_flux(
         "chamber_pressure_pa": chamber_pressure_pa,
         "chamber_temperature_k": chamber_temperature_k,
     }
+
+
+# NAR/TRA total-impulse classes: letter -> inclusive upper bound in N*s.
+# Each letter doubles the previous ceiling (A: 2.5, B: 5, C: 10, ...).
+_NAR_LETTERS = "ABCDEFGHIJKLMNOPQRSTUV"
+
+
+def _nar_motor_class(total_impulse_ns: float) -> str:
+    """NAR/TRA motor class letter for a total impulse in N*s.
+
+    A = 1.26-2.5 N*s, and each subsequent letter doubles the upper bound. Impulses at
+    or below 1.25 N*s fall into the fractional-A classes.
+    """
+    if total_impulse_ns <= 0.3125:
+        return "sub-1/4A"
+    if total_impulse_ns <= 0.625:
+        return "1/4A"
+    if total_impulse_ns <= 1.25:
+        return "1/2A"
+    # Letter n (A = 0) has inclusive upper bound 2.5 * 2^n.
+    idx = int(np.ceil(np.log2(total_impulse_ns / 2.5)))
+    idx = max(idx, 0)
+    if idx >= len(_NAR_LETTERS):
+        idx = len(_NAR_LETTERS) - 1
+    return _NAR_LETTERS[idx]
+
+
+def motor_thrust_curve_analysis(
+    times_s: list[float],
+    thrusts_n: list[float],
+    propellant_mass_kg: float,
+) -> dict:
+    """Motor performance figures of merit from a measured thrust-time curve.
+
+    Integrates the thrust curve (trapezoidal rule) to the total impulse, then reports
+    burn time, average and peak thrust, delivered specific impulse, effective exhaust
+    velocity, and the NAR/TRA motor class and designation (e.g. "C6").
+
+    Args:
+        times_s: Strictly increasing sample times in seconds.
+        thrusts_n: Thrust at each sample in Newtons (>= 0), same length as times_s.
+        propellant_mass_kg: Total propellant (grain) mass consumed, in kg.
+
+    References:
+        - NAR/TRA motor certification: total-impulse letter classes.
+        - Sutton & Biblarz, Rocket Propulsion Elements, 9th Ed. (total impulse, Isp).
+    """
+    if len(times_s) != len(thrusts_n):
+        raise ValueError("times_s and thrusts_n must have the same length")
+    if len(times_s) < 2:
+        raise ValueError("need at least two samples to integrate a thrust curve")
+    if propellant_mass_kg <= 0:
+        raise ValueError("propellant_mass_kg must be > 0")
+
+    t = np.asarray(times_s, dtype=float)
+    f = np.asarray(thrusts_n, dtype=float)
+    if np.any(np.diff(t) <= 0):
+        raise ValueError("times_s must be strictly increasing")
+    if np.any(f < 0):
+        raise ValueError("thrusts_n must be >= 0")
+
+    total_impulse = float(np.trapezoid(f, t))
+    burn_time = float(t[-1] - t[0])
+    if total_impulse <= 0:
+        raise ValueError("total impulse is zero (thrust curve is all zeros)")
+
+    average_thrust = total_impulse / burn_time
+    peak_thrust = float(np.max(f))
+    # Delivered specific impulse and effective exhaust velocity from the propellant mass.
+    specific_impulse = total_impulse / (propellant_mass_kg * G_STD)
+    exhaust_velocity = total_impulse / propellant_mass_kg
+    motor_class = _nar_motor_class(total_impulse)
+    designation = f"{motor_class}{int(round(average_thrust))}" if motor_class.isalpha() else None
+
+    return {
+        "total_impulse_ns": round(total_impulse, 4),
+        "burn_time_s": round(burn_time, 4),
+        "average_thrust_n": round(average_thrust, 4),
+        "peak_thrust_n": round(peak_thrust, 4),
+        "specific_impulse_s": round(specific_impulse, 3),
+        "effective_exhaust_velocity_ms": round(exhaust_velocity, 3),
+        "motor_class": motor_class,
+        "motor_designation": designation,
+        "propellant_mass_kg": propellant_mass_kg,
+    }

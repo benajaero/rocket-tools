@@ -353,6 +353,23 @@ class ThroatMassFluxInput(StrictModel):
     )
 
 
+# ---- Motor Ballistics ----
+
+
+class MotorThrustCurveInput(StrictModel):
+    """Input for motor_thrust_curve_analysis tool."""
+
+    times_s: list[float] = Field(
+        ..., min_length=2, description="Strictly increasing sample times in seconds"
+    )
+    thrusts_n: list[float] = Field(
+        ..., min_length=2, description="Thrust at each sample in N (>= 0), same length as times_s"
+    )
+    propellant_mass_kg: float = Field(
+        ..., gt=0, description="Total propellant mass consumed, in kg"
+    )
+
+
 # ---- Static Stability ----
 
 

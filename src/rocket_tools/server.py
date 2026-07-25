@@ -38,6 +38,7 @@ from rocket_tools.schemas import (
     MachNumberInput,
     MarginOfSafetyInput,
     MaterialLookupInput,
+    MotorThrustCurveInput,
     MultiStageDeltaVInput,
     NormalShockInput,
     NozzleContourInput,
@@ -1191,6 +1192,36 @@ def throat_mass_flux(
             validated.chamber_temperature_k,
             validated.gamma,
             validated.molecular_weight,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def motor_thrust_curve_analysis(
+    times_s: list[float],
+    thrusts_n: list[float],
+    propellant_mass_kg: float,
+) -> dict:
+    """Motor performance figures of merit from a measured thrust-time curve.
+
+    Integrates the thrust curve (trapezoidal) to the total impulse, then reports burn
+    time, average/peak thrust, delivered specific impulse, effective exhaust velocity,
+    and the NAR/TRA motor class and designation (e.g. "C6"). times_s must be strictly
+    increasing; thrusts_n >= 0 and the same length; propellant_mass_kg > 0.
+    """
+    from rocket_tools.aerodynamics import motor_thrust_curve_analysis as _mtc
+
+    try:
+        validated = MotorThrustCurveInput(
+            times_s=times_s,
+            thrusts_n=thrusts_n,
+            propellant_mass_kg=propellant_mass_kg,
+        )
+        return _mtc(
+            validated.times_s,
+            validated.thrusts_n,
+            validated.propellant_mass_kg,
         )
     except Exception as e:
         return _format_error(e)

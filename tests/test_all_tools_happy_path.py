@@ -127,6 +127,12 @@ VALID_CALLS: dict[str, dict] = {
         "gamma": 1.22,
         "molecular_weight": 23.3,
     },
+    # motor ballistics
+    "motor_thrust_curve_analysis": {
+        "times_s": [0.0, 0.1, 0.5, 1.0, 1.5],
+        "thrusts_n": [0.0, 12.0, 6.0, 5.0, 0.0],
+        "propellant_mass_kg": 0.012,
+    },
     # static stability
     "center_of_pressure": {
         "nose_shape": "ogive",

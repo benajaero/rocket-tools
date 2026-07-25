@@ -161,6 +161,22 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
         "formula": "mdot/At = pc*Gamma/sqrt(R*Tc)",
         "assumptions": ["choked throat", "calorically perfect gas"],
     },
+    # ---- Motor ballistics ----
+    "motor_thrust_curve_analysis": {
+        "domain": "propulsion",
+        "references": [
+            "NAR/TRA motor certification (total-impulse letter classes)",
+            "Sutton & Biblarz, Rocket Propulsion Elements, 9th Ed. (total impulse, Isp)",
+        ],
+        "formula": (
+            "I_total = integral F dt (trapezoidal); avg thrust = I/t_burn; "
+            "Isp = I/(m_prop*g0); class from I doubling every letter (A: 2.5 N*s)"
+        ),
+        "assumptions": [
+            "thrust curve sampled finely enough for trapezoidal integration",
+            "propellant mass fully consumed",
+        ],
+    },
     # ---- Static stability ----
     "center_of_pressure": {
         "domain": "stability",
