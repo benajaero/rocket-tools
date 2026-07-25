@@ -6,7 +6,7 @@ authors:
   - family-names: "Ajaero"
     given-names: "Chukwudiebube E."
   - name: "Human Engine Labs"
-version: "0.4.1"
+version: "0.5.0"
 date-released: "2026-07-25"
 license: "Apache-2.0"
 url: "https://github.com/benajaero/rocket-tools"

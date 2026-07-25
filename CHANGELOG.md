@@ -4,8 +4,10 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
-Pending 0.5.0. Twelve new reference-validated tools (68 → 80) plus a batch of correctness
-fixes that made the existing tools trustworthy for real design work.
+## [0.5.0] — 2026-07-25
+
+Twelve new reference-validated tools (68 → 80) plus a batch of correctness fixes that made
+the existing tools trustworthy for real design work.
 
 ### Added
 - **Static stability** — `center_of_pressure()` and `static_margin()` (new `rocket_tools.aerodynamics.stability`). Subsonic center of pressure of a fin-stabilized rocket by the Barrowman method (nose + trapezoidal fins on a straight body), and static margin in calibers from CP, CG, and reference diameter. CP is pinned to a hand-computed Barrowman case. This closes the biggest rocketry gap: a vehicle with the CP ahead of the CG is unflyable regardless of its delta-v. Tool count 68 → 70.
