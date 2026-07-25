@@ -25,7 +25,15 @@ def test_readme_python_block_runs(code: str) -> None:
     exec(compile(code, "<readme>", "exec"), {})
 
 
-@pytest.mark.parametrize("script", ["quickstart.py", "ascent_and_sizing.py"])
+@pytest.mark.parametrize(
+    "script",
+    [
+        "quickstart.py",
+        "ascent_and_sizing.py",
+        "sounding_rocket_flight.py",
+        "orbit_determination.py",
+    ],
+)
 def test_example_script_runs(script: str) -> None:
     src = (ROOT / "examples" / script).read_text(encoding="utf-8")
     exec(compile(src, script, "exec"), {"__name__": "__main__"})
