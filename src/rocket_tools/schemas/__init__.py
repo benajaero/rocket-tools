@@ -88,6 +88,8 @@ from .structural import (
 )
 from .trajectory import (
     AscentSimInput,
+    ParachuteAreaInput,
+    ParachuteDescentInput,
     VehicleSizingInput,
 )
 from .utils import (
@@ -182,6 +184,8 @@ __all__ = [
     # Trajectory
     "AscentSimInput",
     "VehicleSizingInput",
+    "ParachuteDescentInput",
+    "ParachuteAreaInput",
     # Optimization
     "StagingOptimizerInput",
     "DesignOptimizerInput",

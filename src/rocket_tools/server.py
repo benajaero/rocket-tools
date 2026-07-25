@@ -44,6 +44,8 @@ from rocket_tools.schemas import (
     OptimalAreaRatioInput,
     OrbitalPeriodInput,
     OrbitalVelocityInput,
+    ParachuteAreaInput,
+    ParachuteDescentInput,
     ParameterSweepInput,
     PayloadFractionInput,
     PlaneChangeInput,
@@ -1716,6 +1718,78 @@ def size_vehicle(
             v.inert_mass_fraction,
             v.thrust_to_weight_liftoff,
             v.propellant_density_kg_m3,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Recovery ----
+
+
+@mcp.tool()
+def parachute_descent_rate(
+    mass_kg: float,
+    canopy_diameter_m: float,
+    drag_coefficient: float = 0.75,
+    altitude_m: float = 0.0,
+    air_density_kg_m3: float | None = None,
+) -> dict:
+    """Terminal descent rate of a recovered mass under a round parachute.
+
+    Drag balance mg = 0.5*rho*V^2*Cd*S gives V = sqrt(2*m*g/(rho*Cd*S)), S = pi*D^2/4.
+    Density defaults to ISA at altitude_m unless air_density_kg_m3 is given. Also returns
+    the landing kinetic energy, the usual recovery acceptance metric.
+    """
+    from rocket_tools.trajectory import parachute_descent_rate as _pdr
+
+    try:
+        v = ParachuteDescentInput(
+            mass_kg=mass_kg,
+            canopy_diameter_m=canopy_diameter_m,
+            drag_coefficient=drag_coefficient,
+            altitude_m=altitude_m,
+            air_density_kg_m3=air_density_kg_m3,
+        )
+        return _pdr(
+            v.mass_kg,
+            v.canopy_diameter_m,
+            v.drag_coefficient,
+            v.altitude_m,
+            v.air_density_kg_m3,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def parachute_area_for_descent_rate(
+    mass_kg: float,
+    target_descent_rate_ms: float,
+    drag_coefficient: float = 0.75,
+    altitude_m: float = 0.0,
+    air_density_kg_m3: float | None = None,
+) -> dict:
+    """Canopy area and diameter needed to hit a target descent (landing) rate.
+
+    Inverts the drag balance: S = 2*m*g/(rho*Cd*V_target^2), D = sqrt(4*S/pi). A common
+    hobby-rocket landing-speed target is roughly 3-6 m/s.
+    """
+    from rocket_tools.trajectory import parachute_area_for_descent_rate as _pafd
+
+    try:
+        v = ParachuteAreaInput(
+            mass_kg=mass_kg,
+            target_descent_rate_ms=target_descent_rate_ms,
+            drag_coefficient=drag_coefficient,
+            altitude_m=altitude_m,
+            air_density_kg_m3=air_density_kg_m3,
+        )
+        return _pafd(
+            v.mass_kg,
+            v.target_descent_rate_ms,
+            v.drag_coefficient,
+            v.altitude_m,
+            v.air_density_kg_m3,
         )
     except Exception as e:
         return _format_error(e)

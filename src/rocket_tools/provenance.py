@@ -394,6 +394,31 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
             "feasible only when epsilon < 1/MR",
         ],
     },
+    # ---- Recovery ----
+    "parachute_descent_rate": {
+        "domain": "trajectory",
+        "references": [
+            "Knacke, T. W., Parachute Recovery Systems Design Manual, NWC TP 6575 (1992)"
+        ],
+        "formula": "V = sqrt(2*m*g/(rho*Cd*S)), S = pi*D^2/4 (steady-descent drag balance)",
+        "assumptions": [
+            "terminal (steady) descent",
+            "Cd referenced to flat canopy area",
+            "constant air density over descent",
+        ],
+    },
+    "parachute_area_for_descent_rate": {
+        "domain": "trajectory",
+        "references": [
+            "Knacke, T. W., Parachute Recovery Systems Design Manual, NWC TP 6575 (1992)"
+        ],
+        "formula": "S = 2*m*g/(rho*Cd*V_target^2), D = sqrt(4*S/pi)",
+        "assumptions": [
+            "terminal (steady) descent",
+            "Cd referenced to flat canopy area",
+            "constant air density",
+        ],
+    },
     # ---- Optimization ----
     "optimize_staging": {
         "domain": "optimization",

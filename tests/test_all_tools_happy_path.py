@@ -203,6 +203,15 @@ VALID_CALLS: dict[str, dict] = {
         "specific_impulse_s": 320.0,
         "inert_mass_fraction": 0.1,
     },
+    # recovery
+    "parachute_descent_rate": {
+        "mass_kg": 5.0,
+        "canopy_diameter_m": 1.5,
+    },
+    "parachute_area_for_descent_rate": {
+        "mass_kg": 5.0,
+        "target_descent_rate_ms": 5.0,
+    },
     # optimization
     "optimize_staging": {
         "delta_v_target_ms": 9000.0,

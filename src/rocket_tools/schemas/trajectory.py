@@ -44,3 +44,37 @@ class VehicleSizingInput(StrictModel):
     propellant_density_kg_m3: float = Field(
         default=1000.0, gt=0, description="Bulk propellant density in kg/m^3"
     )
+
+
+class ParachuteDescentInput(StrictModel):
+    """Input for parachute_descent_rate tool."""
+
+    mass_kg: float = Field(..., gt=0, description="Recovered mass under the canopy in kg")
+    canopy_diameter_m: float = Field(..., gt=0, description="Nominal (flat) canopy diameter in m")
+    drag_coefficient: float = Field(
+        default=0.75, gt=0, le=2.0, description="Parachute Cd referenced to canopy area"
+    )
+    altitude_m: float = Field(
+        default=0.0, ge=0, le=25_000, description="Landing-site altitude for ISA density"
+    )
+    air_density_kg_m3: float | None = Field(
+        default=None, gt=0, description="Explicit air density override in kg/m^3"
+    )
+
+
+class ParachuteAreaInput(StrictModel):
+    """Input for parachute_area_for_descent_rate tool."""
+
+    mass_kg: float = Field(..., gt=0, description="Recovered mass under the canopy in kg")
+    target_descent_rate_ms: float = Field(
+        ..., gt=0, description="Target landing/descent speed in m/s"
+    )
+    drag_coefficient: float = Field(
+        default=0.75, gt=0, le=2.0, description="Parachute Cd referenced to canopy area"
+    )
+    altitude_m: float = Field(
+        default=0.0, ge=0, le=25_000, description="Landing-site altitude for ISA density"
+    )
+    air_density_kg_m3: float | None = Field(
+        default=None, gt=0, description="Explicit air density override in kg/m^3"
+    )
