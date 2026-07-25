@@ -1,4 +1,4 @@
-"""Tests for newly added router intents covering all 35 MCP tools."""
+"""Tests for the expanded router intent coverage across the MCP tool surface."""
 
 import pytest
 
@@ -98,3 +98,28 @@ class TestRouterStructural:
         result = route_query("Von Mises stress for sigma x 200 MPa")
         assert isinstance(result, ToolCall)
         assert result.tool_name == "von_mises_stress"
+
+
+class TestRouterAstrodynamics:
+    def test_hohmann_routes_to_correct_tool(self):
+        # Previously the greedy unit_convert "N unit to unit" pattern hijacked this.
+        result = route_query("hohmann transfer from 300km to GEO")
+        assert isinstance(result, ClarificationRequest)
+        assert result.possible_tools == ["hohmann_transfer"]
+
+    def test_bi_elliptic(self):
+        result = route_query("bi-elliptic transfer")
+        assert isinstance(result, ClarificationRequest)
+        assert result.possible_tools == ["bi_elliptic_transfer"]
+
+    def test_plane_change_extracts_params(self):
+        result = route_query("plane change at 7500 m/s with 20 degree inclination change")
+        assert isinstance(result, ToolCall)
+        assert result.tool_name == "plane_change_delta_v"
+        assert result.params["velocity_ms"] == pytest.approx(7500.0)
+        assert result.params["inclination_change_deg"] == pytest.approx(20.0)
+
+    def test_vis_viva_names_correct_tool(self):
+        result = route_query("vis-viva velocity")
+        assert isinstance(result, ClarificationRequest)
+        assert result.possible_tools == ["vis_viva_velocity"]

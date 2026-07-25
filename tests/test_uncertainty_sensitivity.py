@@ -3,8 +3,38 @@
 import asyncio
 import json
 
+import numpy as np
+
 from rocket_tools.uncertainty import run_with_uncertainty
+from rocket_tools.uncertainty.engine import _aggregate_results, _compute_sensitivity
 from rocket_tools.workflows.engine import _call_tool, list_callable_tools
+
+
+class TestAggregationRobustness:
+    def test_non_finite_samples_dropped(self):
+        # One NaN and one inf must not poison mean/std/min/max/CI; they are dropped
+        # and reported, not allowed to turn every statistic into NaN.
+        results = [{"x": 1.0}, {"x": 2.0}, {"x": 3.0}, {"x": float("nan")}, {"x": float("inf")}]
+        agg = _aggregate_results(results, samples=5)["results"]["x"]
+        assert agg["mean"] == 2.0
+        assert np.isfinite(agg["std"])
+        assert agg["min"] == 1.0 and agg["max"] == 3.0
+        assert all(np.isfinite(b) for b in agg["ci_95"])
+        assert agg["non_finite_samples"] == 2
+
+    def test_all_non_finite_key_skipped(self):
+        agg = _aggregate_results([{"x": float("inf")}, {"x": float("nan")}], samples=2)
+        assert "x" not in agg["results"]
+
+
+class TestSensitivityRobustness:
+    def test_non_numeric_later_sample_does_not_crash(self):
+        # An output that is numeric in sample 0 but non-numeric later must not crash
+        # the correlation path (the input/output arrays stay aligned).
+        param_samples = {"a": np.array([1.0, 2.0, 3.0, 4.0, 5.0])}
+        results = [{"y": 2.0}, {"y": 4.0}, {"y": 6.0}, {"y": "oops"}, {"y": 10.0}]
+        out = _compute_sensitivity(param_samples, results)  # must not raise
+        assert isinstance(out, dict)
 
 
 class TestToolDispatch:

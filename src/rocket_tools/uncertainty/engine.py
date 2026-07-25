@@ -97,12 +97,20 @@ def _compute_sensitivity(param_samples: dict, results: list[dict]) -> dict[str, 
     output_keys = [k for k, v in results[0].items() if isinstance(v, (int, float))]
     sensitivity: dict[str, Any] = {}
     for okey in output_keys:
+        # Keep only samples where this output is present, numeric, AND finite. Building
+        # `ovals` from the exact same predicate as `mask` keeps the two aligned (a weaker
+        # ovals filter used to crash or mis-pair when a later sample was non-numeric), and
+        # dropping non-finite outputs keeps the correlation from collapsing to NaN.
         mask = np.array(
-            [okey in r and isinstance(r[okey], (int, float)) for r in results], dtype=bool
+            [
+                okey in r and isinstance(r[okey], (int, float)) and np.isfinite(r[okey])
+                for r in results
+            ],
+            dtype=bool,
         )
         if mask.sum() < 3:
             continue
-        ovals = np.array([float(r[okey]) for r in results if okey in r], dtype=float)
+        ovals = np.array([float(r[okey]) for r, keep in zip(results, mask) if keep], dtype=float)
         if float(np.std(ovals)) == 0.0:
             continue
         ranked: list[tuple[float, str, float]] = []
@@ -131,12 +139,18 @@ def _aggregate_results(results: list[dict], samples: int) -> dict:
     keys = [k for k in results[0].keys() if isinstance(results[0][k], (int, float))]
 
     for key in keys:
-        values = np.array(
-            [r[key] for r in results if key in r and isinstance(r[key], (int, float))]
+        raw = np.array(
+            [r[key] for r in results if key in r and isinstance(r[key], (int, float))],
+            dtype=float,
         )
-        if len(values) == 0:
+        # Drop non-finite samples before aggregating: a single NaN/inf tail sample would
+        # otherwise poison mean, std, min, max, and both CI bounds. Report how many were
+        # dropped so the caller can judge whether the surviving statistics are trustworthy.
+        values = raw[np.isfinite(raw)]
+        n_dropped = int(raw.size - values.size)
+        if values.size == 0:
             continue
-        aggregated[key] = {
+        entry: dict[str, Any] = {
             "mean": round(float(np.mean(values)), 6),
             "std": round(float(np.std(values)), 6),
             "min": round(float(np.min(values)), 6),
@@ -146,6 +160,9 @@ def _aggregate_results(results: list[dict], samples: int) -> dict:
                 round(float(np.percentile(values, 97.5)), 6),
             ],
         }
+        if n_dropped:
+            entry["non_finite_samples"] = n_dropped
+        aggregated[key] = entry
 
     return {
         "samples": samples,

@@ -4,6 +4,25 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
+### Fixed
+- **Monte-Carlo aggregation was poisoned by non-finite samples** — `run_with_uncertainty`
+  computed mean/std/min/max/CI over the raw sample array, so a single NaN or inf tail sample
+  turned every reported statistic into NaN. Non-finite samples are now dropped before
+  aggregation and their count surfaced as `non_finite_samples`.
+- **Sensitivity ranking could crash on a mixed-type output** — the correlation path built its
+  output array with a weaker filter than the input mask, so an output that was numeric in the
+  first sample but not a later one raised or mis-paired the arrays. Both now use the same
+  present-numeric-and-finite predicate.
+- **FMEA silently truncated non-integer factors** — `fmea_report` did `int(9.9) → 9`, which
+  passed the 1–10 range check and produced a wrong RPN; a missing factor raised a bare
+  `KeyError`. Non-integer and non-numeric factors are now rejected with a clear message
+  (integer-valued floats like `9.0` still accepted), and a missing factor is a `ValueError`.
+- **Router misrouted astrodynamics queries** — "hohmann transfer …" matched the greedy
+  `unit_convert` "N unit to unit" pattern and asked for conversion units. Added intents for
+  `hohmann_transfer`, `bi_elliptic_transfer`, `orbital_period`, `vis_viva_velocity`, and
+  `plane_change_delta_v` (the last extracts velocity and inclination directly), so these
+  route to the right tool.
+
 ### Added
 - **`scripts/ship.sh` — the update/release pipeline.** One command for the routine loop
   (`check`, `merge`) and for a full release (`release X.Y.Z`, `site`, `ship X.Y.Z`): it runs

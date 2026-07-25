@@ -10,6 +10,26 @@ References:
 """
 
 
+def _factor(item: dict, key: str, i: int) -> int:
+    """Validate and return an FMEA factor: a whole number in [1, 10].
+
+    Rejects a missing key, a boolean, a non-numeric value, and a non-integer float
+    (e.g. 9.9) rather than silently truncating it — a truncated 9.9 -> 9 would pass
+    the range check and quietly corrupt the RPN. An integer-valued float (9.0) is fine.
+    """
+    if key not in item:
+        raise ValueError(f"item {i}: missing '{key}'")
+    val = item[key]
+    if isinstance(val, bool) or not isinstance(val, (int, float)):
+        raise ValueError(f"item {i}: {key} must be an integer in [1, 10]")
+    if isinstance(val, float) and not val.is_integer():
+        raise ValueError(f"item {i}: {key} must be a whole number in [1, 10], got {val}")
+    iv = int(val)
+    if not 1 <= iv <= 10:
+        raise ValueError(f"item {i}: {key} must be in [1, 10]")
+    return iv
+
+
 def fmea_report(items: list[dict], rpn_threshold: int = 100) -> dict:
     """Rank failure modes by Risk Priority Number and flag high-risk items.
 
@@ -29,12 +49,9 @@ def fmea_report(items: list[dict], rpn_threshold: int = 100) -> dict:
 
     scored = []
     for i, item in enumerate(items):
-        s = int(item["severity"])
-        o = int(item["occurrence"])
-        d = int(item["detection"])
-        for label, val in (("severity", s), ("occurrence", o), ("detection", d)):
-            if not 1 <= val <= 10:
-                raise ValueError(f"item {i}: {label} must be in [1, 10]")
+        s = _factor(item, "severity", i)
+        o = _factor(item, "occurrence", i)
+        d = _factor(item, "detection", i)
         rpn = s * o * d
         scored.append(
             {

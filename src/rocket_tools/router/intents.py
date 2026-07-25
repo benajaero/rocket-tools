@@ -614,4 +614,39 @@ INTENT_REGISTRY = {
         },
         required_params=["propellant_volume_m3"],
     ),
+    # ---- Astrodynamics (route by name; radii/elements are hard to extract from free
+    # text, so these correctly ask for the missing parameters rather than guessing). ----
+    "hohmann_transfer": IntentConfig(
+        patterns=[r"hohmann"],
+        param_extractors={},
+        defaults={},
+        required_params=["radius1_m", "radius2_m"],
+    ),
+    "bi_elliptic_transfer": IntentConfig(
+        patterns=[r"bi[\s-]?elliptic"],
+        param_extractors={},
+        defaults={},
+        required_params=["radius1_m", "radius2_m", "intermediate_radius_m"],
+    ),
+    "orbital_period": IntentConfig(
+        patterns=[r"orbital\s*period", r"period\s+of\s+(the\s+)?orbit"],
+        param_extractors={},
+        defaults={},
+        required_params=["semi_major_axis_m"],
+    ),
+    "vis_viva_velocity": IntentConfig(
+        patterns=[r"vis[\s-]?viva"],
+        param_extractors={},
+        defaults={},
+        required_params=["radius_m", "semi_major_axis_m"],
+    ),
+    "plane_change_delta_v": IntentConfig(
+        patterns=[r"plane\s*change", r"inclination\s*change"],
+        param_extractors={
+            "velocity_ms": extract_velocity,
+            "inclination_change_deg": extract_angle,
+        },
+        defaults={},
+        required_params=["velocity_ms", "inclination_change_deg"],
+    ),
 }

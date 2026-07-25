@@ -83,6 +83,24 @@ class TestFMEA:
         with pytest.raises(ValueError):
             fmea_report([{"failure_mode": "x", "severity": 11, "occurrence": 1, "detection": 1}])
 
+    def test_non_integer_factor_rejected(self):
+        # 9.9 must not be silently truncated to 9 (which would pass the range check).
+        with pytest.raises(ValueError, match="whole number"):
+            fmea_report([{"failure_mode": "x", "severity": 9.9, "occurrence": 5, "detection": 5}])
+
+    def test_integer_valued_float_accepted(self):
+        r = fmea_report([{"failure_mode": "x", "severity": 9.0, "occurrence": 5, "detection": 2}])
+        assert r["items_ranked"][0]["rpn"] == 90
+
+    def test_missing_factor_raises_valueerror(self):
+        # A missing key should be a clear ValueError, not a bare KeyError.
+        with pytest.raises(ValueError, match="missing 'detection'"):
+            fmea_report([{"failure_mode": "x", "severity": 9, "occurrence": 5}])
+
+    def test_boolean_factor_rejected(self):
+        with pytest.raises(ValueError):
+            fmea_report([{"failure_mode": "x", "severity": True, "occurrence": 5, "detection": 5}])
+
 
 class TestCatalog:
     def test_lists_known_standards(self):
