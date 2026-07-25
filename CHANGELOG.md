@@ -4,6 +4,33 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
+Pending 0.5.0. Ten new reference-validated tools (68 → 78) plus a batch of correctness
+fixes that made the existing tools trustworthy for real design work.
+
+### Added
+- **Static stability** — `center_of_pressure()` and `static_margin()` (new `rocket_tools.aerodynamics.stability`). Subsonic center of pressure of a fin-stabilized rocket by the Barrowman method (nose + trapezoidal fins on a straight body), and static margin in calibers from CP, CG, and reference diameter. CP is pinned to a hand-computed Barrowman case. This closes the biggest rocketry gap: a vehicle with the CP ahead of the CG is unflyable regardless of its delta-v. Tool count 68 → 70.
+- **Recovery sizing** — `parachute_descent_rate()` and `parachute_area_for_descent_rate()` (new `rocket_tools.trajectory.recovery`). Terminal descent rate and landing kinetic energy under a round parachute from the steady-descent drag balance, and the inverse (canopy area/diameter for a target landing speed). Air density defaults to ISA at altitude with an explicit override. Tool count 70 → 72.
+- **Astrodynamics — orbit determination, targeting, and propagation** (added to `rocket_tools.design.orbital`):
+  - `lambert_solver()` — universal-variable Lambert solution (Curtis Algorithm 5.2) for the transfer orbit joining two positions in a given time; validated against Curtis Example 5.2 to 4+ significant figures (`lambert_curtis_5_2` benchmark).
+  - `orbital_elements_from_state()` — classical orbital elements from a state vector (Curtis Algorithm 4.2); validated against Curtis Example 4.3 (`coe_from_state_curtis_4_3` benchmark).
+  - `state_from_orbital_elements()` — the inverse, a state vector from the elements (Curtis Algorithm 4.5); validated against Curtis Example 4.7 (`state_from_coe_curtis_4_7` benchmark).
+  - `kepler_propagate()` — universal-variable time-of-flight state propagation (Curtis Algorithm 3.4), forward or backward; validated against Curtis Example 3.7 (`kepler_propagate_curtis_3_7` benchmark).
+  - Together these cover the two-body determine → target → propagate workflow. Tool count 72 → 76.
+- **Motor ballistics** — `motor_thrust_curve_analysis()` (in `rocket_tools.aerodynamics.propulsion`). From a measured thrust-time table and propellant mass: total impulse (trapezoidal integral), burn time, average/peak thrust, delivered specific impulse, effective exhaust velocity, and the NAR/TRA motor class and designation (e.g. `C6`). Tool count 76 → 77.
+- **Thermal stress** — `thermal_stress()` (new `rocket_tools.structural.thermal`). Restrained-member thermal stress `sigma = -constraint*E*alpha*dT` (compressive when heated), plus free thermal strain, free/restrained elongation, and restraint force. Closes the "no thermal stress" gap previously noted in `docs/scientific-validity.md`. Tool count 77 → 78.
+- **`examples/sounding_rocket_flight.py`** and **`examples/orbit_determination.py`** — runnable end-to-end workflows that chain the new tools (thrust-curve reduction → Barrowman static margin → ISA ascent → parachute sizing → thermal check; and Lambert → orbital elements → propagation → round-trip). Both run as integration tests.
+
+### Fixed
+- **Structural correctness** — truss support reactions were computed from the penalty-augmented stiffness matrix and returned ≈0; now use the original stiffness so reactions are correct. Beam shear stress was dimensionally wrong (fixed to `tau = k*V/A` with the right section factor). The cantilever `point_midspan` case was actually applying a tip load; corrected, and a distinct `point_tip` load type added. The plate-compression buckling coefficient `k` was ~6× unconservative; replaced with the exact minimum-over-m. Added geometry validation to I-beam/C-channel/T-section and zero-length-member guards to the truss.
+- **Aerodynamics correctness** — `breguet_range` was ~9.8× too large (missing the `g` factor). `aero_analysis` crashed on transitional Reynolds numbers. `lift_curve_slope` produced a singularity at M = 1 (now rejects the transonic band and supersonic subsonic-leading-edge cases). `drag_polar` used a fabricated wave-drag term; replaced with the Korn drag-divergence model. The nozzle tool defaulted to air, ignored flow separation, and divided by zero in vacuum; now uses combustion-gas defaults, models Summerfield overexpansion separation, and guards the vacuum case.
+- **Propulsion / trajectory / mass fidelity** — `composite_cg` dropped each component's own inertia (now added via parallel-axis). `propellant_tank_sizing` gained real hoop-stress wall sizing, hemispherical cylinder domes, and a corrected ellipsoid surface area. Unified the gas constant to CODATA. `stagnation_temperature` flags `perfect_gas_valid=False` above M5; `simulate_ascent` reports `apogee_reached`.
+- **Data & provenance** — 7075 aluminum was mistakenly cited to the steel chapter of MIL-HDBK-5J (fixed to the aluminum section, marked representative); Rhenium's Poisson ratio was corrected 0.49 → 0.30.
+
+### Changed
+- **Stricter validation everywhere** — the new tools raise clear, structured errors on out-of-envelope inputs (degenerate Lambert geometry, inconsistent orbital elements, non-monotonic thrust curves, etc.) instead of returning wrong numbers.
+- **Honest scope docs** — `docs/scientific-validity.md` rewritten: "validated" means textbook-consistent (not experimental), with the real assumptions and missing tiers spelled out, and updated to describe the new stability, recovery, astrodynamics, and thermal-stress capabilities and their limits.
+- Updated the README (78 tools, test count), inventory floors (`tests/test_packaging.py`, `scripts/verify_release.sh`), and per-tool provenance for every new tool.
+
 ## [0.4.1] — 2026-07-25
 
 ### Fixed
