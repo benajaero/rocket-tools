@@ -55,6 +55,7 @@ from .design import (
     PlaneChangeInput,
     PropellantTankSizingInput,
     RocketDeltaVInput,
+    StateFromOrbitalElementsInput,
     ThrustToWeightInput,
     VisVivaInput,
 )
@@ -185,6 +186,7 @@ __all__ = [
     "OrbitalPeriodInput",
     "LambertSolverInput",
     "OrbitalElementsFromStateInput",
+    "StateFromOrbitalElementsInput",
     # Trajectory
     "AscentSimInput",
     "VehicleSizingInput",

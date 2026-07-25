@@ -3,7 +3,10 @@
 import numpy as np
 import pytest
 
-from rocket_tools.design import orbital_elements_from_state
+from rocket_tools.design import (
+    orbital_elements_from_state,
+    state_from_orbital_elements,
+)
 
 MU_EARTH = 3.986004418e14
 
@@ -79,3 +82,65 @@ class TestOrbitalElementsFromState:
     def test_invalid_inputs_rejected(self, kwargs):
         with pytest.raises(ValueError):
             orbital_elements_from_state(**kwargs)
+
+
+class TestStateFromOrbitalElements:
+    def test_curtis_example_4_7(self):
+        # Curtis Example 4.7: h=80000 km^2/s, e=1.4 -> a = (h^2/mu)/(1-e^2).
+        h = 80000e6
+        e = 1.4
+        a = (h**2 / MU_EARTH) / (1 - e**2)
+        r = state_from_orbital_elements(a, e, 30.0, 40.0, 60.0, 30.0)
+        assert r["position_x_m"] == pytest.approx(-4.040e6, abs=2000)
+        assert r["position_y_m"] == pytest.approx(4.815e6, abs=2000)
+        assert r["position_z_m"] == pytest.approx(3.629e6, abs=2000)
+        assert r["velocity_x_ms"] == pytest.approx(-10386.0, abs=5)
+        assert r["velocity_y_ms"] == pytest.approx(-4772.0, abs=5)
+        assert r["velocity_z_ms"] == pytest.approx(1744.0, abs=5)
+
+    def test_round_trip_with_forward_tool(self):
+        # COE -> state -> COE must recover the original state vector.
+        r0 = [-6.045e6, -3.49e6, 2.5e6]
+        v0 = [-3457.0, 6618.0, 2533.0]
+        coe = orbital_elements_from_state(r0, v0)
+        st = state_from_orbital_elements(
+            coe["semi_major_axis_m"],
+            coe["eccentricity"],
+            coe["inclination_deg"],
+            coe["raan_deg"],
+            coe["argument_of_perigee_deg"],
+            coe["true_anomaly_deg"],
+        )
+        assert st["position_x_m"] == pytest.approx(r0[0], abs=10)
+        assert st["position_y_m"] == pytest.approx(r0[1], abs=10)
+        assert st["position_z_m"] == pytest.approx(r0[2], abs=10)
+        assert st["velocity_x_ms"] == pytest.approx(v0[0], abs=0.1)
+
+    def test_circular_equatorial_radius(self):
+        # Circular equatorial orbit at a=7000 km, theta=0 -> r on +x axis, |r|=a.
+        st = state_from_orbital_elements(7.0e6, 0.0, 0.0, 0.0, 0.0, 0.0)
+        assert st["radius_m"] == pytest.approx(7.0e6, rel=1e-6)
+        assert st["position_x_m"] == pytest.approx(7.0e6, rel=1e-6)
+
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"eccentricity": 1.0},  # parabolic unsupported via (a, e)
+            {"eccentricity": -0.1},  # negative e
+            {"inclination_deg": 200.0},  # out of range
+            {"semi_major_axis_m": 7.0e6, "eccentricity": 1.4},  # inconsistent a>0, e>1
+            {"mu": 0.0},
+        ],
+    )
+    def test_invalid_inputs_rejected(self, kwargs):
+        args = {
+            "semi_major_axis_m": 7.0e6,
+            "eccentricity": 0.1,
+            "inclination_deg": 30.0,
+            "raan_deg": 40.0,
+            "argument_of_perigee_deg": 60.0,
+            "true_anomaly_deg": 30.0,
+        }
+        args.update(kwargs)
+        with pytest.raises(ValueError):
+            state_from_orbital_elements(**args)

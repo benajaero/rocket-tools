@@ -488,6 +488,32 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "e=0.1712, i=153.2 deg, RAAN=255.3 deg, argp=20.07 deg, TA=28.45 deg, a=8788 km."
         ),
     },
+    # ---- Classical orbital elements -> state vector ----
+    "state_from_coe_curtis_4_7": {
+        "tool_name": "state_from_orbital_elements",
+        "inputs": {
+            "semi_major_axis_m": -1.672619e7,
+            "eccentricity": 1.4,
+            "inclination_deg": 30.0,
+            "raan_deg": 40.0,
+            "argument_of_perigee_deg": 60.0,
+            "true_anomaly_deg": 30.0,
+        },
+        "expected": {
+            "position_x_m": -4040000.0,
+            "position_y_m": 4815000.0,
+            "position_z_m": 3629000.0,
+            "velocity_x_ms": -10386.0,
+            "velocity_y_ms": -4772.0,
+            "velocity_z_ms": 1744.0,
+        },
+        "tolerance": 0.001,
+        "reference": (
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Example 4.7: "
+            "h=80000 km^2/s (a=-16726 km), e=1.4, i=30, RAAN=40, argp=60, TA=30 deg. "
+            "r=[-4040,4815,3629] km, v=[-10.39,-4.772,1.744] km/s."
+        ),
+    },
 }
 
 

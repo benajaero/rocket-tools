@@ -5,6 +5,7 @@ from .orbital import (
     orbital_elements_from_state,
     orbital_period,
     plane_change_delta_v,
+    state_from_orbital_elements,
     vis_viva_velocity,
 )
 from .performance import (
@@ -29,4 +30,5 @@ __all__ = [
     "orbital_period",
     "lambert_solver",
     "orbital_elements_from_state",
+    "state_from_orbital_elements",
 ]

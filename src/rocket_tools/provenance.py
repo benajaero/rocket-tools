@@ -392,6 +392,22 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
             "circular/equatorial angles collapse to 0",
         ],
     },
+    "state_from_orbital_elements": {
+        "domain": "orbital mechanics",
+        "references": [
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Algorithm 4.5",
+            "Vallado, Fundamentals of Astrodynamics and Applications, 4th Ed. (COE2RV)",
+        ],
+        "formula": (
+            "perifocal r=(h^2/mu)/(1+e cos th)[cos th,sin th,0], v=(mu/h)[-sin th,e+cos th,0]; "
+            "rotate to ECI by R3(-RAAN)R1(-i)R3(-argp); h=sqrt(mu*a(1-e^2))"
+        ),
+        "assumptions": [
+            "two-body Keplerian orbit",
+            "inertial equatorial frame",
+            "parabolic e == 1 unsupported via (a, e)",
+        ],
+    },
     # ---- Trajectory & vehicle sizing ----
     "simulate_ascent": {
         "domain": "trajectory",

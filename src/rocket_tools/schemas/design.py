@@ -122,6 +122,22 @@ class OrbitalElementsFromStateInput(StrictModel):
     )
 
 
+class StateFromOrbitalElementsInput(StrictModel):
+    """Input for state_from_orbital_elements tool."""
+
+    semi_major_axis_m: float = Field(
+        ..., description="Semi-major axis in m (negative for hyperbolic orbits)"
+    )
+    eccentricity: float = Field(..., ge=0, description="Eccentricity (>= 0; e == 1 unsupported)")
+    inclination_deg: float = Field(..., ge=0, le=180, description="Inclination in degrees")
+    raan_deg: float = Field(..., description="Right ascension of the ascending node in degrees")
+    argument_of_perigee_deg: float = Field(..., description="Argument of perigee in degrees")
+    true_anomaly_deg: float = Field(..., description="True anomaly in degrees")
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter in m^3/s^2"
+    )
+
+
 # ---- Mass Properties ----
 
 

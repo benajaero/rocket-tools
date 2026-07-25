@@ -62,6 +62,7 @@ from rocket_tools.schemas import (
     SkinFrictionInput,
     StagingOptimizerInput,
     StagnationTemperatureInput,
+    StateFromOrbitalElementsInput,
     StaticMarginInput,
     SuttonGravesInput,
     ThroatMassFluxInput,
@@ -1572,6 +1573,48 @@ def orbital_elements_from_state(
             mu=mu,
         )
         return _oe(validated.position_m, validated.velocity_ms, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def state_from_orbital_elements(
+    semi_major_axis_m: float,
+    eccentricity: float,
+    inclination_deg: float,
+    raan_deg: float,
+    argument_of_perigee_deg: float,
+    true_anomaly_deg: float,
+    mu: float = 3.986004418e14,
+) -> dict:
+    """Inertial state vector from classical orbital elements (Curtis Algorithm 4.5).
+
+    The inverse of orbital_elements_from_state: returns position [x,y,z] in m and
+    velocity [vx,vy,vz] in m/s from a, e, inclination, RAAN, argument of perigee, and
+    true anomaly (degrees). Semi-major axis is negative for hyperbolic orbits; parabolic
+    (e == 1) is unsupported. mu in m^3/s^2 (default Earth).
+    """
+    from rocket_tools.design import state_from_orbital_elements as _se
+
+    try:
+        validated = StateFromOrbitalElementsInput(
+            semi_major_axis_m=semi_major_axis_m,
+            eccentricity=eccentricity,
+            inclination_deg=inclination_deg,
+            raan_deg=raan_deg,
+            argument_of_perigee_deg=argument_of_perigee_deg,
+            true_anomaly_deg=true_anomaly_deg,
+            mu=mu,
+        )
+        return _se(
+            validated.semi_major_axis_m,
+            validated.eccentricity,
+            validated.inclination_deg,
+            validated.raan_deg,
+            validated.argument_of_perigee_deg,
+            validated.true_anomaly_deg,
+            validated.mu,
+        )
     except Exception as e:
         return _format_error(e)
 

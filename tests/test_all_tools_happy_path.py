@@ -197,6 +197,14 @@ VALID_CALLS: dict[str, dict] = {
         "position_m": [-6.045e6, -3.49e6, 2.5e6],
         "velocity_ms": [-3457.0, 6618.0, 2533.0],
     },
+    "state_from_orbital_elements": {
+        "semi_major_axis_m": -1.67262e7,
+        "eccentricity": 1.4,
+        "inclination_deg": 30.0,
+        "raan_deg": 40.0,
+        "argument_of_perigee_deg": 60.0,
+        "true_anomaly_deg": 30.0,
+    },
     # trajectory & vehicle sizing
     "simulate_ascent": {
         "initial_mass_kg": 1000.0,

@@ -213,6 +213,88 @@ def orbital_elements_from_state(
     }
 
 
+def state_from_orbital_elements(
+    semi_major_axis_m: float,
+    eccentricity: float,
+    inclination_deg: float,
+    raan_deg: float,
+    argument_of_perigee_deg: float,
+    true_anomaly_deg: float,
+    mu: float = MU_EARTH,
+) -> dict:
+    """Inertial state vector (position + velocity) from classical orbital elements.
+
+    The inverse of orbital_elements_from_state: builds the perifocal state from the
+    orbit shape and true anomaly, then rotates into the geocentric-equatorial frame
+    (Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Algorithm 4.5).
+
+    Args:
+        semi_major_axis_m: Semi-major axis in m (negative for hyperbolic orbits).
+        eccentricity: Orbit eccentricity (>= 0; parabolic e == 1 is not supported here).
+        inclination_deg: Inclination in degrees [0, 180].
+        raan_deg: Right ascension of the ascending node in degrees.
+        argument_of_perigee_deg: Argument of perigee in degrees.
+        true_anomaly_deg: True anomaly in degrees.
+        mu: Gravitational parameter of the central body in m^3/s^2 (default Earth).
+    """
+    if eccentricity < 0:
+        raise ValueError("eccentricity must be >= 0")
+    if eccentricity == 1.0:
+        raise ValueError(
+            "parabolic orbit (e == 1) is not supported via (a, e); the semi-latus "
+            "rectum is required instead"
+        )
+    if mu <= 0:
+        raise ValueError("mu must be > 0")
+    if not 0.0 <= inclination_deg <= 180.0:
+        raise ValueError("inclination_deg must be in [0, 180]")
+
+    # Semi-latus rectum p = a(1 - e^2) is positive for every real conic.
+    p = semi_major_axis_m * (1.0 - eccentricity**2)
+    if p <= 0.0:
+        raise ValueError(
+            "inconsistent semi_major_axis and eccentricity (a(1-e^2) must be > 0): "
+            "use a > 0 with e < 1, or a < 0 with e > 1"
+        )
+    h = np.sqrt(mu * p)
+
+    theta = np.radians(true_anomaly_deg)
+    incl = np.radians(inclination_deg)
+    raan = np.radians(raan_deg)
+    argp = np.radians(argument_of_perigee_deg)
+
+    # Perifocal (PQW) position and velocity.
+    r_scalar = (h**2 / mu) / (1.0 + eccentricity * np.cos(theta))
+    r_pf = r_scalar * np.array([np.cos(theta), np.sin(theta), 0.0])
+    v_pf = (mu / h) * np.array([-np.sin(theta), eccentricity + np.cos(theta), 0.0])
+
+    # Perifocal -> geocentric-equatorial rotation (Curtis Eq. 4.49).
+    c_o, s_o = np.cos(raan), np.sin(raan)
+    c_i, s_i = np.cos(incl), np.sin(incl)
+    c_w, s_w = np.cos(argp), np.sin(argp)
+    q_mat = np.array(
+        [
+            [-s_o * c_i * s_w + c_o * c_w, -s_o * c_i * c_w - c_o * s_w, s_o * s_i],
+            [c_o * c_i * s_w + s_o * c_w, c_o * c_i * c_w - s_o * s_w, -c_o * s_i],
+            [s_i * s_w, s_i * c_w, c_i],
+        ]
+    )
+
+    r_vec = q_mat @ r_pf
+    v_vec = q_mat @ v_pf
+    return {
+        "position_x_m": round(float(r_vec[0]), 3),
+        "position_y_m": round(float(r_vec[1]), 3),
+        "position_z_m": round(float(r_vec[2]), 3),
+        "velocity_x_ms": round(float(v_vec[0]), 5),
+        "velocity_y_ms": round(float(v_vec[1]), 5),
+        "velocity_z_ms": round(float(v_vec[2]), 5),
+        "radius_m": round(float(np.linalg.norm(r_vec)), 3),
+        "speed_ms": round(float(np.linalg.norm(v_vec)), 5),
+        "specific_angular_momentum_m2_s": round(float(h), 3),
+    }
+
+
 def _stumpff_c(z: float) -> float:
     """Stumpff function C(z)."""
     if z > 0:

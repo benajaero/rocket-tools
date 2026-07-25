@@ -2,7 +2,7 @@
 
 > **Engineering-grade aerospace computation. AI-native interface.**
 
-[![Tests](https://img.shields.io/badge/tests-690%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-700%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow)](LICENSE)
@@ -46,14 +46,14 @@ Each tool is self-contained and validated against a published reference, and fas
 
 | Capability | What You Get |
 |------------|--------------|
-| **74 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
+| **75 MCP Tools** | Exposed via [FastMCP](https://github.com/modelcontextprotocol/python-sdk) — AI agents can call aerospace computations with structured inputs and validated outputs |
 | **49+ Materials** | Aluminum, titanium, steel, nickel superalloys, composites, refractory metals — with thermal & mechanical properties, filterable by application (rocket, drone, aircraft, spacecraft, engine) |
 | **Structural Analysis** | Beam bending/deflection/shear, 7 cross-section types, Euler-Johnson column buckling, plate buckling coefficients, margin of safety (stress/load/deflection), von Mises combined stress, 2D/3D truss analysis |
 | **Compressible Flow** | Isentropic relations, normal & oblique shocks, Prandtl-Meyer expansions — all Numba JIT-compiled |
 | **Aircraft Performance** | Lift curve slope, drag polar with compressibility, Breguet range & endurance, wing loading & stall speed |
 | **Rocket Nozzle Design** | Thrust, Isp, thrust coefficient, expansion ratio optimization with under/over-expansion detection |
 | **Mission Design** | Tsiolkovsky ΔV, multi-stage staging, orbital velocity, payload fraction, thrust-to-weight, composite CG, propellant tank sizing |
-| **Orbital Mechanics** | Hohmann transfers, vis-viva speed, plane-change ΔV, Keplerian period — validated vs Curtis/Vallado |
+| **Orbital Mechanics** | Hohmann transfers, vis-viva speed, plane-change ΔV, Keplerian period, universal-variable Lambert solver, and state-vector ↔ classical-orbital-element conversion — validated vs Curtis/Vallado |
 | **Aerothermodynamics** | Stagnation & recovery temperature, Sutton-Graves stagnation heat flux, Allen-Eggers ballistic-entry peak deceleration |
 | **Propulsion Thermochemistry** | Characteristic velocity c*, ideal specific impulse from pressure ratio, choked throat mass flux (Sutton & Biblarz Ch. 3) |
 | **Ascent & Vehicle Sizing** | `simulate_ascent` — fixed-step RK4 ascent through the ISA atmosphere (thrust/drag/gravity) reporting burnout, apogee, max-q, and g-load with time-series; `size_vehicle` chains the rocket equation, thrust-to-weight, and tank sizing. Pinned to the analytic vacuum trajectory (Curtis Ch. 11) |
@@ -413,7 +413,7 @@ When you use rocket-tools in research or a published work, please also cite it
 
 ### MCP Tool Manifest
 
-This repository exposes 74 tools via FastMCP. The key ones by domain are below; for the
+This repository exposes 75 tools via FastMCP. The key ones by domain are below; for the
 complete, always-current list run `rocket-tools tools`.
 
 #### Structural Analysis
@@ -482,6 +482,7 @@ complete, always-current list run `rocket-tools tools`.
 | `propellant_tank_sizing` | `PropellantTankSizingInput` | Tank mass, wall thickness, and dimensions for cylinder/sphere/ellipsoid |
 | `lambert_solver` | `LambertSolverInput` | Two-body Lambert problem: transfer-orbit velocities from two positions and a time of flight |
 | `orbital_elements_from_state` | `OrbitalElementsFromStateInput` | Classical orbital elements (a, e, i, RAAN, ω, θ) from a position/velocity state vector |
+| `state_from_orbital_elements` | `StateFromOrbitalElementsInput` | Inertial position/velocity state vector from classical orbital elements (inverse) |
 
 #### Trajectory & Vehicle Sizing
 | Tool | Schema | Description |
