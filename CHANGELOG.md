@@ -4,6 +4,14 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
+### Added
+- **`scripts/ship.sh` — the update/release pipeline.** One command for the routine loop
+  (`check`, `merge`) and for a full release (`release X.Y.Z`, `site`, `ship X.Y.Z`): it runs
+  the gauntlet, fast-forwards into `main`, bumps the version and finalizes the changelog,
+  runs the clean-room build, tags for PyPI Trusted Publishing, waits for the version to go
+  live, then syncs the marketing site's tool/test/benchmark counts (derived from the live
+  registry, so they can't drift) and deploys. `DRY_RUN=1` prints the mutating steps instead.
+
 ## [0.6.0] — 2026-07-26
 
 A correctness-and-precision release: the new thick-wall vessel tool (81 tools), four physics

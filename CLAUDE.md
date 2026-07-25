@@ -25,6 +25,17 @@ coverage traces the Numba kernels honestly.
 bash scripts/verify_release.sh              # clean-room build + install (before a release)
 ```
 
+`scripts/ship.sh` is the update/release pipeline — one command for the whole loop:
+
+```bash
+scripts/ship.sh check                 # full gauntlet only
+scripts/ship.sh counts                # live tool/test/benchmark counts (single source of truth)
+scripts/ship.sh merge [BRANCH]        # gauntlet, ff-merge into main, push
+scripts/ship.sh release X.Y.Z         # bump, changelog, clean-room build, tag, push, wait for PyPI
+scripts/ship.sh site                  # sync counts into the marketing site, build, deploy
+scripts/ship.sh ship X.Y.Z            # release + site in one shot   (DRY_RUN=1 to preview)
+```
+
 ## Skills for common tasks
 
 - **`add-tool`** — the seven-file pattern for adding a new validated MCP tool.
