@@ -127,6 +127,23 @@ VALID_CALLS: dict[str, dict] = {
         "gamma": 1.22,
         "molecular_weight": 23.3,
     },
+    # static stability
+    "center_of_pressure": {
+        "nose_shape": "ogive",
+        "nose_length_m": 0.15,
+        "body_diameter_m": 0.025,
+        "fin_count": 3,
+        "fin_root_chord_m": 0.05,
+        "fin_tip_chord_m": 0.025,
+        "fin_semi_span_m": 0.03,
+        "fin_sweep_length_m": 0.02,
+        "fin_position_from_nose_m": 0.5,
+    },
+    "static_margin": {
+        "cp_from_nose_m": 0.442,
+        "cg_from_nose_m": 0.35,
+        "reference_diameter_m": 0.025,
+    },
     # aerothermodynamics
     "stagnation_temperature": {"static_temperature_k": 220.0, "mach": 3.0},
     "recovery_temperature": {"static_temperature_k": 220.0, "mach": 3.0},

@@ -351,3 +351,37 @@ class ThroatMassFluxInput(StrictModel):
     molecular_weight: float = Field(
         default=22.0, gt=0, description="Exhaust molecular weight in kg/kmol"
     )
+
+
+# ---- Static Stability ----
+
+
+class CenterOfPressureInput(StrictModel):
+    """Input for center_of_pressure tool (Barrowman method)."""
+
+    nose_shape: Literal["cone", "ogive", "parabolic"] = Field(..., description="Nose cone shape")
+    nose_length_m: float = Field(..., gt=0, description="Nose cone length in m")
+    body_diameter_m: float = Field(..., gt=0, description="Body tube diameter at the fins in m")
+    fin_count: int = Field(..., ge=1, le=8, description="Number of fins")
+    fin_root_chord_m: float = Field(..., gt=0, description="Fin root chord in m")
+    fin_tip_chord_m: float = Field(..., ge=0, description="Fin tip chord in m (0 for delta fin)")
+    fin_semi_span_m: float = Field(..., gt=0, description="Fin semi-span (root-to-tip) in m")
+    fin_sweep_length_m: float = Field(
+        ..., ge=0, description="Axial distance from root LE to tip LE in m"
+    )
+    fin_position_from_nose_m: float = Field(
+        ..., ge=0, description="Fin root leading-edge position from nose tip in m"
+    )
+    reference_diameter_m: float | None = Field(
+        default=None, gt=0, description="Reference diameter (defaults to body diameter)"
+    )
+
+
+class StaticMarginInput(StrictModel):
+    """Input for static_margin tool."""
+
+    cp_from_nose_m: float = Field(..., ge=0, description="Center of pressure from nose tip in m")
+    cg_from_nose_m: float = Field(..., ge=0, description="Center of gravity from nose tip in m")
+    reference_diameter_m: float = Field(
+        ..., gt=0, description="Reference (body) diameter in m, one caliber"
+    )

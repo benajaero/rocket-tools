@@ -33,6 +33,7 @@ from .propulsion import (
     ideal_specific_impulse,
     throat_mass_flux,
 )
+from .stability import center_of_pressure, static_margin
 
 __all__ = [
     # Fundamentals
@@ -67,4 +68,7 @@ __all__ = [
     "characteristic_velocity",
     "ideal_specific_impulse",
     "throat_mass_flux",
+    # Static stability
+    "center_of_pressure",
+    "static_margin",
 ]

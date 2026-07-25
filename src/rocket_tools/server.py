@@ -12,6 +12,7 @@ from rocket_tools.schemas import (
     BeamDiagramInput,
     BreguetEnduranceInput,
     BreguetRangeInput,
+    CenterOfPressureInput,
     CharacteristicVelocityInput,
     CiteToolInput,
     ColumnBucklingInput,
@@ -57,6 +58,7 @@ from rocket_tools.schemas import (
     SkinFrictionInput,
     StagingOptimizerInput,
     StagnationTemperatureInput,
+    StaticMarginInput,
     SuttonGravesInput,
     ThroatMassFluxInput,
     ThrustToWeightInput,
@@ -1183,6 +1185,87 @@ def throat_mass_flux(
             validated.chamber_temperature_k,
             validated.gamma,
             validated.molecular_weight,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+# ---- Static Stability Tools ----
+
+
+@mcp.tool()
+def center_of_pressure(
+    nose_shape: str,
+    nose_length_m: float,
+    body_diameter_m: float,
+    fin_count: int,
+    fin_root_chord_m: float,
+    fin_tip_chord_m: float,
+    fin_semi_span_m: float,
+    fin_sweep_length_m: float,
+    fin_position_from_nose_m: float,
+    reference_diameter_m: float | None = None,
+) -> dict:
+    """Subsonic center of pressure of a fin-stabilized rocket (Barrowman method).
+
+    Combines a nose cone (cone/ogive/parabolic) and trapezoidal fins on a straight
+    body tube, returning the CP location from the nose tip and the total normal-force
+    slope. Pair with static_margin and a CG estimate to check flyability.
+    """
+    from rocket_tools.aerodynamics import center_of_pressure as _cp
+
+    try:
+        validated = CenterOfPressureInput(
+            nose_shape=nose_shape,  # type: ignore[arg-type]
+            nose_length_m=nose_length_m,
+            body_diameter_m=body_diameter_m,
+            fin_count=fin_count,
+            fin_root_chord_m=fin_root_chord_m,
+            fin_tip_chord_m=fin_tip_chord_m,
+            fin_semi_span_m=fin_semi_span_m,
+            fin_sweep_length_m=fin_sweep_length_m,
+            fin_position_from_nose_m=fin_position_from_nose_m,
+            reference_diameter_m=reference_diameter_m,
+        )
+        return _cp(
+            validated.nose_shape,
+            validated.nose_length_m,
+            validated.body_diameter_m,
+            validated.fin_count,
+            validated.fin_root_chord_m,
+            validated.fin_tip_chord_m,
+            validated.fin_semi_span_m,
+            validated.fin_sweep_length_m,
+            validated.fin_position_from_nose_m,
+            validated.reference_diameter_m,
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def static_margin(
+    cp_from_nose_m: float,
+    cg_from_nose_m: float,
+    reference_diameter_m: float,
+) -> dict:
+    """Static margin in calibers: (X_cp - X_cg)/d.
+
+    Positive (CP aft of CG) is statically stable; a common target for fin-stabilized
+    rockets is 1-2 calibers. cp/cg positions are measured from the nose tip.
+    """
+    from rocket_tools.aerodynamics import static_margin as _sm
+
+    try:
+        validated = StaticMarginInput(
+            cp_from_nose_m=cp_from_nose_m,
+            cg_from_nose_m=cg_from_nose_m,
+            reference_diameter_m=reference_diameter_m,
+        )
+        return _sm(
+            validated.cp_from_nose_m,
+            validated.cg_from_nose_m,
+            validated.reference_diameter_m,
         )
     except Exception as e:
         return _format_error(e)

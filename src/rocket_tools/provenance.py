@@ -161,6 +161,27 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
         "formula": "mdot/At = pc*Gamma/sqrt(R*Tc)",
         "assumptions": ["choked throat", "calorically perfect gas"],
     },
+    # ---- Static stability ----
+    "center_of_pressure": {
+        "domain": "stability",
+        "references": [
+            "Barrowman, J. S., The Practical Calculation of the Aerodynamic "
+            "Characteristics of Slender Finned Vehicles, NASA (1966)"
+        ],
+        "formula": "X_cp = sum(CNa_i*X_i)/sum(CNa_i); nose CNa=2, fin CNa via Barrowman",
+        "assumptions": [
+            "subsonic",
+            "small angle of attack",
+            "straight body (negligible body normal force)",
+            "trapezoidal fins",
+        ],
+    },
+    "static_margin": {
+        "domain": "stability",
+        "references": ["Barrowman, J. S., NASA (1966); standard rocketry stability convention"],
+        "formula": "SM = (X_cp - X_cg)/d (calibers)",
+        "assumptions": ["reference diameter = one caliber", "static (rigid-body) margin"],
+    },
     # ---- Aerothermodynamics ----
     "stagnation_temperature": {
         "domain": "aerothermodynamics",
