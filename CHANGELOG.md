@@ -4,7 +4,7 @@ All notable changes to rocket-tools.
 
 ## [Unreleased]
 
-Pending 0.5.0. Ten new reference-validated tools (68 → 78) plus a batch of correctness
+Pending 0.5.0. Eleven new reference-validated tools (68 → 79) plus a batch of correctness
 fixes that made the existing tools trustworthy for real design work.
 
 ### Added
@@ -18,6 +18,7 @@ fixes that made the existing tools trustworthy for real design work.
   - Together these cover the two-body determine → target → propagate workflow. Tool count 72 → 76.
 - **Motor ballistics** — `motor_thrust_curve_analysis()` (in `rocket_tools.aerodynamics.propulsion`). From a measured thrust-time table and propellant mass: total impulse (trapezoidal integral), burn time, average/peak thrust, delivered specific impulse, effective exhaust velocity, and the NAR/TRA motor class and designation (e.g. `C6`). Tool count 76 → 77.
 - **Thermal stress** — `thermal_stress()` (new `rocket_tools.structural.thermal`). Restrained-member thermal stress `sigma = -constraint*E*alpha*dT` (compressive when heated), plus free thermal strain, free/restrained elongation, and restraint force. Closes the "no thermal stress" gap previously noted in `docs/scientific-validity.md`. Tool count 77 → 78.
+- **Pressure-vessel stress** — `pressure_vessel_stress()` (new `rocket_tools.structural.pressure`). Thin-wall membrane hoop/longitudinal stresses for a pressurized cylinder or sphere, the von Mises equivalent, the r/t ratio with a thin-wall-validity flag, and a margin of safety against yield. The stress-analysis complement to `propellant_tank_sizing`. Tool count 78 → 79.
 - **`examples/sounding_rocket_flight.py`** and **`examples/orbit_determination.py`** — runnable end-to-end workflows that chain the new tools (thrust-curve reduction → Barrowman static margin → ISA ascent → parachute sizing → thermal check; and Lambert → orbital elements → propagation → round-trip). Both run as integration tests.
 
 ### Fixed
