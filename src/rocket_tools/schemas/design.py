@@ -92,6 +92,22 @@ class OrbitalPeriodInput(StrictModel):
     )
 
 
+class LambertSolverInput(StrictModel):
+    """Input for lambert_solver tool."""
+
+    r1_m: list[float] = Field(
+        ..., min_length=3, max_length=3, description="Initial position vector [x,y,z] in m"
+    )
+    r2_m: list[float] = Field(
+        ..., min_length=3, max_length=3, description="Final position vector [x,y,z] in m"
+    )
+    time_of_flight_s: float = Field(..., gt=0, description="Transfer time in seconds")
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter in m^3/s^2"
+    )
+    prograde: bool = Field(default=True, description="True for prograde transfer, False retrograde")
+
+
 # ---- Mass Properties ----
 
 

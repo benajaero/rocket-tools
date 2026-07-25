@@ -111,3 +111,139 @@ def orbital_period(semi_major_axis_m: float, mu: float = MU_EARTH) -> dict:
         "period_hr": round(float(period_s) / 3600.0, 5),
         "semi_major_axis_m": semi_major_axis_m,
     }
+
+
+def _stumpff_c(z: float) -> float:
+    """Stumpff function C(z)."""
+    if z > 0:
+        return float((1.0 - np.cos(np.sqrt(z))) / z)
+    if z < 0:
+        return float((np.cosh(np.sqrt(-z)) - 1.0) / (-z))
+    return 0.5
+
+
+def _stumpff_s(z: float) -> float:
+    """Stumpff function S(z)."""
+    if z > 0:
+        sz = np.sqrt(z)
+        return float((sz - np.sin(sz)) / sz**3)
+    if z < 0:
+        sz = np.sqrt(-z)
+        return float((np.sinh(sz) - sz) / sz**3)
+    return 1.0 / 6.0
+
+
+def lambert_solver(
+    r1_m: list[float],
+    r2_m: list[float],
+    time_of_flight_s: float,
+    mu: float = MU_EARTH,
+    prograde: bool = True,
+) -> dict:
+    """Solve Lambert's problem: the transfer orbit connecting two position vectors.
+
+    Given start and end position vectors and a time of flight, returns the required
+    departure and arrival velocity vectors of the connecting two-body (Keplerian) orbit,
+    via the universal-variable formulation with Stumpff functions and Newton iteration
+    (Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Algorithm 5.2).
+
+    Args:
+        r1_m: Initial position vector [x, y, z] in m (from the central body's center).
+        r2_m: Final position vector [x, y, z] in m.
+        time_of_flight_s: Transfer time in seconds.
+        mu: Gravitational parameter of the central body in m^3/s^2 (default Earth).
+        prograde: True for a prograde transfer (0 <= i < 90 deg), False for retrograde.
+    """
+    if len(r1_m) != 3 or len(r2_m) != 3:
+        raise ValueError("r1_m and r2_m must each be 3-component vectors")
+    if time_of_flight_s <= 0:
+        raise ValueError("time_of_flight_s must be > 0")
+    if mu <= 0:
+        raise ValueError("mu must be > 0")
+
+    r1 = np.asarray(r1_m, dtype=float)
+    r2 = np.asarray(r2_m, dtype=float)
+    norm1 = float(np.linalg.norm(r1))
+    norm2 = float(np.linalg.norm(r2))
+    if norm1 == 0.0 or norm2 == 0.0:
+        raise ValueError("position vectors must be non-zero")
+
+    c12 = np.cross(r1, r2)
+    theta = float(np.arccos(np.clip(np.dot(r1, r2) / (norm1 * norm2), -1.0, 1.0)))
+    if prograde:
+        if c12[2] < 0.0:
+            theta = 2.0 * np.pi - theta
+    else:
+        if c12[2] >= 0.0:
+            theta = 2.0 * np.pi - theta
+
+    sin_theta = np.sin(theta)
+    if abs(sin_theta) < 1e-12:
+        raise ValueError(
+            "transfer angle is 0 or 180 deg (collinear vectors); the orbital plane is "
+            "undefined and the universal-variable solver does not apply"
+        )
+    a_coeff = sin_theta * np.sqrt(norm1 * norm2 / (1.0 - np.cos(theta)))
+
+    def _y(z: float) -> float:
+        cz = _stumpff_c(z)
+        sz = _stumpff_s(z)
+        return float(norm1 + norm2 + a_coeff * (z * sz - 1.0) / np.sqrt(cz))
+
+    # Ratchet the starting z up until y > 0 so the sqrt(y) terms are real.
+    z = 0.0
+    while _y(z) < 0.0:
+        z += 0.1
+
+    root_mu_t = np.sqrt(mu) * time_of_flight_s
+    tol = 1e-8
+    max_iter = 200
+    converged = False
+    iterations = 0
+    for iterations in range(1, max_iter + 1):
+        cz = _stumpff_c(z)
+        sz = _stumpff_s(z)
+        y = _y(z)
+        f_z = (y / cz) ** 1.5 * sz + a_coeff * np.sqrt(y) - root_mu_t
+        if abs(z) < 1e-12:
+            # At z=0, C(0)=1/2 so y here is y(0); use it directly (Curtis Eq. 5.43 limit).
+            dfdz = (np.sqrt(2.0) / 40.0) * y**1.5 + (a_coeff / 8.0) * (
+                np.sqrt(y) + a_coeff * np.sqrt(1.0 / (2.0 * y))
+            )
+        else:
+            dfdz = (y / cz) ** 1.5 * (
+                (1.0 / (2.0 * z)) * (cz - 3.0 * sz / (2.0 * cz)) + 3.0 * sz**2 / (4.0 * cz)
+            ) + (a_coeff / 8.0) * (3.0 * sz / cz * np.sqrt(y) + a_coeff * np.sqrt(cz / y))
+        ratio = f_z / dfdz
+        z -= ratio
+        if abs(ratio) < tol:
+            converged = True
+            break
+
+    if not converged:
+        raise ValueError("Lambert solver did not converge; check inputs / time of flight")
+
+    cz = _stumpff_c(z)
+    y = _y(z)
+    # Lagrange coefficients.
+    f = 1.0 - y / norm1
+    g = a_coeff * np.sqrt(y / mu)
+    gdot = 1.0 - y / norm2
+    v1 = (r2 - f * r1) / g
+    v2 = (gdot * r2 - r1) / g
+
+    speed1 = float(np.linalg.norm(v1))
+    speed2 = float(np.linalg.norm(v2))
+    return {
+        "v1_x_ms": round(float(v1[0]), 4),
+        "v1_y_ms": round(float(v1[1]), 4),
+        "v1_z_ms": round(float(v1[2]), 4),
+        "v2_x_ms": round(float(v2[0]), 4),
+        "v2_y_ms": round(float(v2[1]), 4),
+        "v2_z_ms": round(float(v2[2]), 4),
+        "v1_speed_ms": round(speed1, 4),
+        "v2_speed_ms": round(speed2, 4),
+        "transfer_angle_deg": round(float(np.degrees(theta)), 4),
+        "z": round(float(z), 6),
+        "iterations": iterations,
+    }

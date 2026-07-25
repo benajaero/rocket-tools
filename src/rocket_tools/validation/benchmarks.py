@@ -443,6 +443,29 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
             "Curtis, Orbital Mechanics for Engineering Students 3rd Ed. Ch. 11."
         ),
     },
+    # ---- Lambert's problem ----
+    "lambert_curtis_5_2": {
+        "tool_name": "lambert_solver",
+        "inputs": {
+            "r1_m": [5.0e6, 1.0e7, 2.1e6],
+            "r2_m": [-1.46e7, 2.5e6, 7.0e6],
+            "time_of_flight_s": 3600.0,
+        },
+        "expected": {
+            "v1_x_ms": -5992.5,
+            "v1_y_ms": 1925.4,
+            "v1_z_ms": 3245.6,
+            "v2_x_ms": -3312.5,
+            "v2_y_ms": -4196.6,
+            "v2_z_ms": -385.29,
+        },
+        "tolerance": 0.002,
+        "reference": (
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Example 5.2: "
+            "r1=[5000,10000,2100] km, r2=[-14600,2500,7000] km, dt=1 h, prograde. "
+            "v1=[-5.9925,1.9254,3.2456] km/s, v2=[-3.3125,-4.1966,-0.38529] km/s."
+        ),
+    },
 }
 
 

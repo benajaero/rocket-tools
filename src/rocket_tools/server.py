@@ -31,6 +31,7 @@ from rocket_tools.schemas import (
     ISAAtmosphereInput,
     ISAProfileInput,
     IsentropicFlowInput,
+    LambertSolverInput,
     LiftCoefficientInput,
     LiftCurveSlopeInput,
     MachNumberInput,
@@ -1508,6 +1509,42 @@ def orbital_period(semi_major_axis_m: float, mu: float = 3.986004418e14) -> dict
     try:
         validated = OrbitalPeriodInput(semi_major_axis_m=semi_major_axis_m, mu=mu)
         return _op(validated.semi_major_axis_m, validated.mu)
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def lambert_solver(
+    r1_m: list[float],
+    r2_m: list[float],
+    time_of_flight_s: float,
+    mu: float = 3.986004418e14,
+    prograde: bool = True,
+) -> dict:
+    """Solve Lambert's problem: velocities of the orbit joining two positions in a time.
+
+    Universal-variable formulation (Curtis Algorithm 5.2). Given start/end position
+    vectors [x,y,z] in m and a transfer time, returns the departure and arrival velocity
+    vector components (m/s), their speeds, and the transfer angle. mu in m^3/s^2 (default
+    Earth). Use for interplanetary/orbital targeting and rendezvous first cuts.
+    """
+    from rocket_tools.design import lambert_solver as _ls
+
+    try:
+        validated = LambertSolverInput(
+            r1_m=r1_m,
+            r2_m=r2_m,
+            time_of_flight_s=time_of_flight_s,
+            mu=mu,
+            prograde=prograde,
+        )
+        return _ls(
+            validated.r1_m,
+            validated.r2_m,
+            validated.time_of_flight_s,
+            validated.mu,
+            validated.prograde,
+        )
     except Exception as e:
         return _format_error(e)
 

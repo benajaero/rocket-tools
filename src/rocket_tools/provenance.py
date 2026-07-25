@@ -359,6 +359,23 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
         "formula": "T = 2*pi*sqrt(a^3/mu) (Kepler's third law)",
         "assumptions": ["two-body Keplerian orbit"],
     },
+    "lambert_solver": {
+        "domain": "orbital mechanics",
+        "references": [
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Algorithm 5.2",
+            "Bate, Mueller & White, Fundamentals of Astrodynamics (universal variables)",
+        ],
+        "formula": (
+            "universal-variable Lambert: y=r1+r2+A(zS-1)/sqrt(C), Newton-solve "
+            "F(z)=(y/C)^1.5 S + A sqrt(y) - sqrt(mu) dt = 0; v from Lagrange f,g"
+        ),
+        "assumptions": [
+            "two-body Keplerian transfer",
+            "single revolution",
+            "prograde/retrograde per input",
+            "undefined for a 0 or 180 deg transfer angle",
+        ],
+    },
     # ---- Trajectory & vehicle sizing ----
     "simulate_ascent": {
         "domain": "trajectory",

@@ -188,6 +188,11 @@ VALID_CALLS: dict[str, dict] = {
     "vis_viva_velocity": {"radius_m": 6778137.0, "semi_major_axis_m": 6778137.0},
     "plane_change_delta_v": {"velocity_ms": 7700.0, "inclination_change_deg": 28.5},
     "orbital_period": {"semi_major_axis_m": 6778137.0},
+    "lambert_solver": {
+        "r1_m": [5.0e6, 1.0e7, 2.1e6],
+        "r2_m": [-1.46e7, 2.5e6, 7.0e6],
+        "time_of_flight_s": 3600.0,
+    },
     # trajectory & vehicle sizing
     "simulate_ascent": {
         "initial_mass_kg": 1000.0,
