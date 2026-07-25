@@ -113,6 +113,106 @@ def orbital_period(semi_major_axis_m: float, mu: float = MU_EARTH) -> dict:
     }
 
 
+def orbital_elements_from_state(
+    position_m: list[float],
+    velocity_ms: list[float],
+    mu: float = MU_EARTH,
+) -> dict:
+    """Classical orbital elements from a state vector (position + velocity).
+
+    Converts an inertial position/velocity pair to the six classical (Keplerian)
+    orbital elements, following Curtis, Orbital Mechanics for Engineering Students,
+    3rd Ed., Algorithm 4.2. Complements lambert_solver: solve for the transfer
+    velocity, then read off the resulting orbit's elements.
+
+    Args:
+        position_m: Inertial position vector [x, y, z] in m.
+        velocity_ms: Inertial velocity vector [vx, vy, vz] in m/s.
+        mu: Gravitational parameter of the central body in m^3/s^2 (default Earth).
+
+    Returns eccentricity, inclination, RAAN, argument of perigee, and true anomaly
+    (degrees), specific angular momentum, semi-major axis, and apoapsis/periapsis radii.
+    Circular and equatorial special cases collapse the undefined angles to 0.
+    """
+    if len(position_m) != 3 or len(velocity_ms) != 3:
+        raise ValueError("position_m and velocity_ms must each be 3-component vectors")
+    if mu <= 0:
+        raise ValueError("mu must be > 0")
+
+    r_vec = np.asarray(position_m, dtype=float)
+    v_vec = np.asarray(velocity_ms, dtype=float)
+    r = float(np.linalg.norm(r_vec))
+    v = float(np.linalg.norm(v_vec))
+    if r == 0.0:
+        raise ValueError("position vector must be non-zero")
+
+    vr = float(np.dot(r_vec, v_vec) / r)
+    h_vec = np.cross(r_vec, v_vec)
+    h = float(np.linalg.norm(h_vec))
+    if h == 0.0:
+        raise ValueError("angular momentum is zero (rectilinear trajectory); elements undefined")
+
+    inclination = float(np.arccos(np.clip(h_vec[2] / h, -1.0, 1.0)))
+
+    n_vec = np.cross([0.0, 0.0, 1.0], h_vec)
+    n = float(np.linalg.norm(n_vec))
+
+    e_vec = (1.0 / mu) * ((v**2 - mu / r) * r_vec - r * vr * v_vec)
+    e = float(np.linalg.norm(e_vec))
+
+    tol = 1e-10
+    # Right ascension of the ascending node.
+    if n > tol:
+        raan = float(np.arccos(np.clip(n_vec[0] / n, -1.0, 1.0)))
+        if n_vec[1] < 0.0:
+            raan = 2.0 * np.pi - raan
+    else:
+        raan = 0.0
+
+    # Argument of perigee.
+    if n > tol and e > tol:
+        argp = float(np.arccos(np.clip(np.dot(n_vec, e_vec) / (n * e), -1.0, 1.0)))
+        if e_vec[2] < 0.0:
+            argp = 2.0 * np.pi - argp
+    else:
+        argp = 0.0
+
+    # True anomaly.
+    if e > tol:
+        true_anomaly = float(np.arccos(np.clip(np.dot(e_vec, r_vec) / (e * r), -1.0, 1.0)))
+        if vr < 0.0:
+            true_anomaly = 2.0 * np.pi - true_anomaly
+    elif n > tol:
+        # Circular, inclined: measure from the node line.
+        true_anomaly = float(np.arccos(np.clip(np.dot(n_vec, r_vec) / (n * r), -1.0, 1.0)))
+        if r_vec[2] < 0.0:
+            true_anomaly = 2.0 * np.pi - true_anomaly
+    else:
+        # Circular, equatorial: measure from the x-axis.
+        true_anomaly = float(np.arccos(np.clip(r_vec[0] / r, -1.0, 1.0)))
+        if r_vec[1] < 0.0:
+            true_anomaly = 2.0 * np.pi - true_anomaly
+
+    # Semi-major axis from the vis-viva energy (a < 0 for hyperbolic orbits).
+    energy = 0.5 * v**2 - mu / r
+    semi_major_axis = -mu / (2.0 * energy) if abs(energy) > 0.0 else float("inf")
+    periapsis = h**2 / mu / (1.0 + e)
+    apoapsis = h**2 / mu / (1.0 - e) if e < 1.0 else float("inf")
+
+    return {
+        "semi_major_axis_m": round(semi_major_axis, 3) if np.isfinite(semi_major_axis) else None,
+        "eccentricity": round(e, 6),
+        "inclination_deg": round(float(np.degrees(inclination)), 4),
+        "raan_deg": round(float(np.degrees(raan)), 4),
+        "argument_of_perigee_deg": round(float(np.degrees(argp)), 4),
+        "true_anomaly_deg": round(float(np.degrees(true_anomaly)), 4),
+        "specific_angular_momentum_m2_s": round(h, 3),
+        "periapsis_radius_m": round(float(periapsis), 3),
+        "apoapsis_radius_m": round(float(apoapsis), 3) if np.isfinite(apoapsis) else None,
+        "orbit_type": "closed" if e < 1.0 else ("parabolic" if e == 1.0 else "hyperbolic"),
+    }
+
+
 def _stumpff_c(z: float) -> float:
     """Stumpff function C(z)."""
     if z > 0:

@@ -2,6 +2,7 @@ from .mass import composite_cg, propellant_tank_sizing
 from .orbital import (
     hohmann_transfer,
     lambert_solver,
+    orbital_elements_from_state,
     orbital_period,
     plane_change_delta_v,
     vis_viva_velocity,
@@ -27,4 +28,5 @@ __all__ = [
     "plane_change_delta_v",
     "orbital_period",
     "lambert_solver",
+    "orbital_elements_from_state",
 ]

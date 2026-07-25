@@ -108,6 +108,20 @@ class LambertSolverInput(StrictModel):
     prograde: bool = Field(default=True, description="True for prograde transfer, False retrograde")
 
 
+class OrbitalElementsFromStateInput(StrictModel):
+    """Input for orbital_elements_from_state tool."""
+
+    position_m: list[float] = Field(
+        ..., min_length=3, max_length=3, description="Inertial position vector [x,y,z] in m"
+    )
+    velocity_ms: list[float] = Field(
+        ..., min_length=3, max_length=3, description="Inertial velocity vector [vx,vy,vz] in m/s"
+    )
+    mu: float = Field(
+        default=3.986004418e14, gt=0, description="Gravitational parameter in m^3/s^2"
+    )
+
+
 # ---- Mass Properties ----
 
 

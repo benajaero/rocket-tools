@@ -193,6 +193,10 @@ VALID_CALLS: dict[str, dict] = {
         "r2_m": [-1.46e7, 2.5e6, 7.0e6],
         "time_of_flight_s": 3600.0,
     },
+    "orbital_elements_from_state": {
+        "position_m": [-6.045e6, -3.49e6, 2.5e6],
+        "velocity_ms": [-3457.0, 6618.0, 2533.0],
+    },
     # trajectory & vehicle sizing
     "simulate_ascent": {
         "initial_mass_kg": 1000.0,

@@ -48,6 +48,7 @@ from .design import (
     HohmannTransferInput,
     LambertSolverInput,
     MultiStageDeltaVInput,
+    OrbitalElementsFromStateInput,
     OrbitalPeriodInput,
     OrbitalVelocityInput,
     PayloadFractionInput,
@@ -183,6 +184,7 @@ __all__ = [
     "PlaneChangeInput",
     "OrbitalPeriodInput",
     "LambertSolverInput",
+    "OrbitalElementsFromStateInput",
     # Trajectory
     "AscentSimInput",
     "VehicleSizingInput",

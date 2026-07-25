@@ -43,6 +43,7 @@ from rocket_tools.schemas import (
     NozzlePerformanceInput,
     ObliqueShockInput,
     OptimalAreaRatioInput,
+    OrbitalElementsFromStateInput,
     OrbitalPeriodInput,
     OrbitalVelocityInput,
     ParachuteAreaInput,
@@ -1545,6 +1546,32 @@ def lambert_solver(
             validated.mu,
             validated.prograde,
         )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def orbital_elements_from_state(
+    position_m: list[float],
+    velocity_ms: list[float],
+    mu: float = 3.986004418e14,
+) -> dict:
+    """Classical orbital elements from an inertial state vector (Curtis Algorithm 4.2).
+
+    Given position [x,y,z] in m and velocity [vx,vy,vz] in m/s, returns eccentricity,
+    inclination, RAAN, argument of perigee, and true anomaly (degrees), plus specific
+    angular momentum, semi-major axis, and apoapsis/periapsis radii. mu in m^3/s^2
+    (default Earth). Circular/equatorial special cases collapse undefined angles to 0.
+    """
+    from rocket_tools.design import orbital_elements_from_state as _oe
+
+    try:
+        validated = OrbitalElementsFromStateInput(
+            position_m=position_m,
+            velocity_ms=velocity_ms,
+            mu=mu,
+        )
+        return _oe(validated.position_m, validated.velocity_ms, validated.mu)
     except Exception as e:
         return _format_error(e)
 

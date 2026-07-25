@@ -376,6 +376,22 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
             "undefined for a 0 or 180 deg transfer angle",
         ],
     },
+    "orbital_elements_from_state": {
+        "domain": "orbital mechanics",
+        "references": [
+            "Curtis, Orbital Mechanics for Engineering Students, 3rd Ed., Algorithm 4.2",
+            "Vallado, Fundamentals of Astrodynamics and Applications, 4th Ed. (RV2COE)",
+        ],
+        "formula": (
+            "h=RxV; i=acos(hz/h); N=KxH; e-vector from ((v^2-mu/r)R - r*vr*V)/mu; "
+            "RAAN, arg perigee, true anomaly from N, e, R; a from vis-viva energy"
+        ),
+        "assumptions": [
+            "two-body Keplerian orbit",
+            "inertial equatorial frame",
+            "circular/equatorial angles collapse to 0",
+        ],
+    },
     # ---- Trajectory & vehicle sizing ----
     "simulate_ascent": {
         "domain": "trajectory",
