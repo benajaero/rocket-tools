@@ -55,6 +55,13 @@ VALID_CALLS: dict[str, dict] = {
         "constraints": [{"node": 0, "fixed_dof": [0, 1]}, {"node": 1, "fixed_dof": [0, 1]}],
         "loads": [{"node": 2, "force": [0.0, -10000.0]}],
     },
+    "thermal_stress": {
+        "youngs_modulus_pa": 70e9,
+        "cte_per_k": 23.6e-6,
+        "delta_temperature_k": 100.0,
+        "length_m": 1.0,
+        "area_m2": 1e-4,
+    },
     # aerodynamics fundamentals
     "reynolds_number": {"velocity": 250.0, "characteristic_length": 2.0, "altitude_m": 5000.0},
     "mach_number": {"velocity": 250.0, "altitude_m": 5000.0},

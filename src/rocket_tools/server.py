@@ -67,6 +67,7 @@ from rocket_tools.schemas import (
     StateFromOrbitalElementsInput,
     StaticMarginInput,
     SuttonGravesInput,
+    ThermalStressInput,
     ThroatMassFluxInput,
     ThrustToWeightInput,
     TrajectoryPlotInput,
@@ -683,6 +684,44 @@ def truss_analysis(
             element_properties=[p.model_dump() for p in validated.element_properties],
             constraints=[c.model_dump() for c in validated.constraints],
             loads=[load_item.model_dump() for load_item in validated.loads],
+        )
+    except Exception as e:
+        return _format_error(e)
+
+
+@mcp.tool()
+def thermal_stress(
+    youngs_modulus_pa: float,
+    cte_per_k: float,
+    delta_temperature_k: float,
+    constraint_factor: float = 1.0,
+    length_m: float | None = None,
+    area_m2: float | None = None,
+) -> dict:
+    """Thermal stress and free expansion of a restrained member: sigma = -k*E*alpha*dT.
+
+    Heating a restrained member (dT > 0) produces compressive stress. constraint_factor
+    is the axial restraint fraction (0 free, 1 fully fixed). Optional length_m enables the
+    free/restrained elongation outputs; optional area_m2 enables the restraint force.
+    """
+    from rocket_tools.structural import thermal_stress as _ts
+
+    try:
+        validated = ThermalStressInput(
+            youngs_modulus_pa=youngs_modulus_pa,
+            cte_per_k=cte_per_k,
+            delta_temperature_k=delta_temperature_k,
+            constraint_factor=constraint_factor,
+            length_m=length_m,
+            area_m2=area_m2,
+        )
+        return _ts(
+            validated.youngs_modulus_pa,
+            validated.cte_per_k,
+            validated.delta_temperature_k,
+            validated.constraint_factor,
+            validated.length_m,
+            validated.area_m2,
         )
     except Exception as e:
         return _format_error(e)

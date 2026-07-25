@@ -35,7 +35,7 @@ from rocket_tools.provenance import get_provenance
 
 tools = asyncio.run(mcp.list_tools())
 resources = asyncio.run(mcp.list_resources())
-assert len(tools) >= 77, f"expected >=77 tools, got {len(tools)}"
+assert len(tools) >= 78, f"expected >=78 tools, got {len(tools)}"
 assert len(resources) >= 5, f"expected >=5 resources, got {len(resources)}"
 # A couple of reference-validated computations must survive packaging.
 assert abs(hohmann_transfer(6678137.0, 42164137.0)["total_delta_v_kms"] - 3.8926) < 1e-3

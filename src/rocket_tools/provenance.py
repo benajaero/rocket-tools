@@ -284,6 +284,19 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
         "formula": "direct stiffness method for pin-jointed trusses",
         "assumptions": ["pin joints (axial members only)", "linear-elastic", "small displacement"],
     },
+    "thermal_stress": {
+        "domain": "structural",
+        "references": [
+            "Boresi & Schmidt, Advanced Mechanics of Materials, 6th Ed.",
+            "Roark's Formulas for Stress and Strain (restrained thermal expansion)",
+        ],
+        "formula": "sigma = -constraint*E*alpha*dT; free strain = alpha*dT",
+        "assumptions": [
+            "uniaxial, linear-elastic",
+            "constant E and alpha over dT",
+            "uniform temperature change",
+        ],
+    },
     # ---- Materials & atmosphere ----
     "material_lookup": {
         "domain": "materials",

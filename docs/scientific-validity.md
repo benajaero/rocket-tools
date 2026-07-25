@@ -35,9 +35,10 @@ as "correct evaluations of a stated model," not as "measured or flight-correlate
   (0.8 < M < 1.2) is not modeled and is rejected by `lift_curve_slope`.
 - **Structures.** Euler-Bernoulli beams (small-deflection, linear-elastic), ideal
   Euler-Johnson columns (no imperfection/eccentricity/local buckling), pin-jointed trusses
-  (axial only, no member buckling check), and approximate plate-buckling coefficients. There
-  is no FEM, no fatigue/damage tolerance, no joints/fasteners, no composites (ABD), no thermal
-  stress, and no modal/vibration analysis.
+  (axial only, no member buckling check), approximate plate-buckling coefficients, and a
+  first-order restrained-member thermal stress (uniaxial sigma = -k*E*alpha*dT). There
+  is no FEM, no fatigue/damage tolerance, no joints/fasteners, no composites (ABD), no
+  thermal-gradient/2-D thermal stress, and no modal/vibration analysis.
 - **Trajectory.** `simulate_ascent` is a single-stage, planar, point-mass gravity-turn RK4
   integration with constant Cd and sea-level Isp, no Earth rotation, and no staging events.
   It is suitable for feasibility studies, not orbital launch design. `apogee_reached` flags

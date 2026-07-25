@@ -196,3 +196,18 @@ class TrussAnalysisInput(StrictModel):
     element_properties: list[TrussElementProperty]
     constraints: list[TrussConstraint]
     loads: list[TrussLoad]
+
+
+class ThermalStressInput(StrictModel):
+    """Input for thermal_stress tool."""
+
+    youngs_modulus_pa: float = Field(..., gt=0, description="Young's modulus E in Pa")
+    cte_per_k: float = Field(..., description="Coefficient of thermal expansion alpha in 1/K")
+    delta_temperature_k: float = Field(..., description="Temperature change dT in K")
+    constraint_factor: float = Field(
+        default=1.0, ge=0, le=1, description="Axial restraint fraction, 0 (free) to 1 (fixed)"
+    )
+    length_m: float | None = Field(default=None, gt=0, description="Member length in m (optional)")
+    area_m2: float | None = Field(
+        default=None, gt=0, description="Cross-sectional area in m^2 (optional)"
+    )
