@@ -15,6 +15,12 @@ All notable changes to rocket-tools.
   orbital-element work where it was previously unavailable.
 
 ### Fixed
+- **ISA gas constant precision** — the specific gas constant for air was truncated to
+  `287.05`; set to the US Standard Atmosphere 1976 value `287.0528` J/(kg·K)
+  (R*/M₀ = 8314.32/28.9644). ISA now reproduces the standard's pressure/density table an
+  order of magnitude more closely (e.g. 11 km: 22632.03 Pa vs the table's 22632.06, and ρ to
+  six figures). Applied consistently to the trajectory integrator's atmosphere kernel so the
+  two stay in parity.
 - **Skin friction mixed average and local correlations** — `skin_friction_coefficient` returned
   the *average* (plate-integrated) Blasius value for laminar flow but the *local* value for
   turbulent (`0.0592·Re^-0.2`), so the two regimes were inconsistent by a fixed factor and a

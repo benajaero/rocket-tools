@@ -56,6 +56,15 @@ class TestISA:
         assert result["pressure_pa"] < 101325.0
         assert result["density_kg_m3"] < 1.225
 
+    def test_tropopause_11km_matches_standard_table(self):
+        # US Std Atm 1976 published table at 11 km: P = 22632.06 Pa, rho = 0.363918 kg/m^3.
+        # Pins the high-precision R = 287.0528 (matches the table an order of magnitude
+        # better than the truncated 287.05, which gave 22631.70 Pa).
+        result = isa_atmosphere(11000.0)
+        assert result["temperature_k"] == pytest.approx(216.65, abs=0.01)
+        assert result["pressure_pa"] == pytest.approx(22632.06, abs=0.2)
+        assert result["density_kg_m3"] == pytest.approx(0.363918, abs=5e-6)
+
     def test_tropopause(self):
         result = isa_atmosphere(15000.0)
         assert pytest.approx(result["temperature_k"], 0.5) == 216.65

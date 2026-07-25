@@ -23,7 +23,11 @@ class Settings(BaseSettings):
     isa_t0: float = 288.15
     isa_p0: float = 101_325.0
     isa_g_std: float = 9.80665
-    isa_r_air: float = 287.05
+    # US Standard Atmosphere 1976 specific gas constant for air: R*/M0 =
+    # 8314.32 / 28.9644 = 287.0528 J/(kg*K). This is the value the 1976 base
+    # pressures are defined against; it reproduces the standard's pressure/density
+    # table an order of magnitude more closely than the truncated 287.05.
+    isa_r_air: float = 287.0528
 
     # --- Session Memory ---
     session_ttl_seconds: float = 86_400.0

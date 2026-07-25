@@ -30,7 +30,7 @@ R_EARTH = 6.371e6  # mean Earth radius, m (consistent with orbital_velocity)
 V_TURN_MIN = 30.0  # m/s
 
 # ---- U.S. Standard Atmosphere 1976 base layers (must match materials/isa.py) ----
-_R_AIR = 287.05
+_R_AIR = 287.0528  # R*/M0 = 8314.32/28.9644, the 1976 specific gas constant for air
 _G_ISA = 9.80665
 _P0 = 101_325.0
 _ISA_CEIL = 84_852.0  # geopotential model ceiling (86 km geometric)
