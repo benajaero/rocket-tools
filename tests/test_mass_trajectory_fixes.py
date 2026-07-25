@@ -35,6 +35,24 @@ class TestTankSizing:
         # hoop stress at the sized thickness equals yield / safety_factor
         assert t["hoop_stress_pa"] == pytest.approx(280e6 / 1.5, rel=1e-3)
 
+    def test_sphere_sized_on_membrane_stress(self):
+        # A sphere carries pressure biaxially: sigma = P*r/(2t), so it needs half the
+        # wall of a hoop-sized cylinder of the same radius (and about half the mass).
+        common = dict(
+            propellant_volume_m3=10.0,
+            design_pressure_pa=3e6,
+            material_yield_pa=2.7e8,
+            safety_factor=1.5,
+        )
+        sph = propellant_tank_sizing(tank_shape="sphere", **common)
+        assert sph["wall_thickness_sizing"] == "membrane_stress"
+        # wall stress at the sized thickness still reaches yield / safety_factor
+        assert sph["hoop_stress_pa"] == pytest.approx(2.7e8 / 1.5, rel=1e-3)
+        # sphere wall is exactly half the hoop-sized wall at the same radius
+        r = sph["diameter_m"] / 2.0
+        hoop_t = 3e6 * r * 1.5 / 2.7e8
+        assert sph["wall_thickness_m"] == pytest.approx(hoop_t / 2.0, rel=1e-3)
+
     def test_ellipsoid_area_not_sphere(self):
         e = propellant_tank_sizing(
             propellant_volume_m3=5.0, tank_shape="ellipsoid", aspect_ratio=2.0

@@ -126,12 +126,13 @@ _BENCHMARKS: dict[str, dict[str, Any]] = {
     "skin_friction_turbulent": {
         "tool_name": "skin_friction_coefficient",
         "inputs": {"reynolds_number": 1e7, "flow_regime": "turbulent"},
-        "expected": {"skin_friction_coefficient": 0.002357},
+        "expected": {"skin_friction_coefficient": 0.002946},
         "tolerance": 0.01,
         "reference": (
-            "Prandtl 1/7-power turbulent local skin friction: "
-            "cf = 0.0592 / Re^0.2 = 0.0592 / (1e7)^0.2 = 0.002357. "
-            "(Do not confuse with the 0.074/Re^0.2 flat-plate average drag coefficient.)"
+            "Prandtl-Schlichting 1/7-power turbulent flat-plate AVERAGE (plate-integrated) "
+            "drag coefficient: cf = 0.074 / Re^0.2 = 0.074 / (1e7)^0.2 = 0.002946. "
+            "Consistent with the average laminar branch (1.328/sqrt(Re)); the local turbulent "
+            "value 0.0592/Re^0.2 would mix conventions between the two regimes."
         ),
     },
     # ---- Rocket Equation ----

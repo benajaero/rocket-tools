@@ -72,6 +72,15 @@ class TestLengthConversions:
         result = unit_convert(1, "ft", "inch")
         assert result["converted_value"] == pytest.approx(12)
 
+    def test_km_to_ft(self):
+        # cross-unit length conversion routed through the SI base
+        result = unit_convert(1, "km", "ft")
+        assert result["converted_value"] == pytest.approx(3280.8399, rel=1e-6)
+
+    def test_mi_to_km(self):
+        result = unit_convert(1, "mi", "km")
+        assert result["converted_value"] == pytest.approx(1.609344, rel=1e-6)
+
 
 class TestPressureConversions:
     def test_psi_to_pa(self):
@@ -100,6 +109,24 @@ class TestPressureConversions:
         result = unit_convert(1, "psf", "pa")
         # 1 psi = 144 psf, so 1 psf = 6894.757/144 Pa
         assert result["converted_value"] == pytest.approx(47.880, rel=1e-4)
+
+    def test_psi_to_mpa(self):
+        # 1000 psi = 6.894757 MPa (common tank/vessel design conversion)
+        result = unit_convert(1000, "psi", "mpa")
+        assert result["converted_value"] == pytest.approx(6.894757, rel=1e-6)
+
+    def test_ksi_to_mpa(self):
+        # 70 ksi ~ 482.6 MPa (a typical 7075-T6 ultimate strength)
+        result = unit_convert(70, "ksi", "mpa")
+        assert result["converted_value"] == pytest.approx(482.633, rel=1e-5)
+
+    def test_bar_to_psi(self):
+        result = unit_convert(1, "bar", "psi")
+        assert result["converted_value"] == pytest.approx(14.5038, rel=1e-5)
+
+    def test_atm_to_bar(self):
+        result = unit_convert(1, "atm", "bar")
+        assert result["converted_value"] == pytest.approx(1.01325, rel=1e-6)
 
 
 class TestForceConversions:
@@ -206,6 +233,35 @@ class TestEnergyConversions:
     def test_btu_to_j(self):
         result = unit_convert(1, "btu", "j")
         assert result["converted_value"] == pytest.approx(1055.06, rel=1e-4)
+
+
+class TestAngleConversions:
+    def test_deg_to_rad(self):
+        import math
+
+        result = unit_convert(180, "deg", "rad")
+        assert result["converted_value"] == pytest.approx(math.pi, rel=1e-12)
+
+    def test_rad_to_deg(self):
+        result = unit_convert(1, "rad", "deg")
+        assert result["converted_value"] == pytest.approx(57.29577951308232, rel=1e-12)
+
+    def test_rev_to_deg(self):
+        result = unit_convert(1, "rev", "deg")
+        assert result["converted_value"] == pytest.approx(360.0, rel=1e-12)
+
+    def test_deg_to_arcsec(self):
+        result = unit_convert(1, "deg", "arcsec")
+        assert result["converted_value"] == pytest.approx(3600.0, rel=1e-12)
+
+    def test_angle_aliases(self):
+        assert _normalize_unit("degrees") == "deg"
+        assert _normalize_unit("radians") == "rad"
+        assert _normalize_unit("revolutions") == "rev"
+
+    def test_angle_not_length(self):
+        with pytest.raises(ValueError, match="Incompatible units"):
+            unit_convert(1, "deg", "m")
 
 
 class TestConvertToSi:

@@ -25,6 +25,16 @@ class TestIsentropicFlow:
         assert result["area_ratio"] > 1.0
         assert result["mach_angle_deg"] == pytest.approx(30.0, abs=0.5)
 
+    def test_dynamic_pressure_ratios(self):
+        # q = (gamma/2) p M^2, so q/p = (gamma/2) M^2 and q/p0 = (q/p)(p/p0).
+        result = isentropic_flow(2.0, gamma=1.4)
+        assert result["dynamic_pressure_over_static_pressure"] == pytest.approx(
+            0.5 * 1.4 * 2.0**2, rel=1e-6
+        )
+        assert result["dynamic_pressure_over_stagnation_pressure"] == pytest.approx(
+            0.5 * 1.4 * 2.0**2 * result["pressure_ratio"], rel=1e-4
+        )
+
     def test_invalid_mach(self):
         with pytest.raises(ValueError):
             isentropic_flow(0.0)

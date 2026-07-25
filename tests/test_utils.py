@@ -23,9 +23,13 @@ class TestUnitConvert:
         result = unit_convert(1.0, "psi", "pa")
         assert pytest.approx(result["converted_value"], 1e-1) == 6894.757293168361
 
-    def test_unsupported_conversion(self):
-        with pytest.raises(ValueError, match="Unsupported conversion"):
+    def test_incompatible_dimensions(self):
+        with pytest.raises(ValueError, match="Incompatible units"):
             unit_convert(1.0, "m", "kg")
+
+    def test_unknown_unit(self):
+        with pytest.raises(ValueError, match="Unknown unit"):
+            unit_convert(1.0, "psi", "parsecs")
 
     def test_temperature_c_to_k(self):
         result = unit_convert(0.0, "c", "k")

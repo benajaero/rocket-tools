@@ -52,10 +52,12 @@ class BeamAnalysisOutput(StrictModel):
     max_bending_moment_n_m: float
     max_deflection_m: float
     bending_stress_pa: float
+    max_shear_force_n: float
     shear_stress_pa: float
     max_normal_stress_pa: float
     section_modulus_m3: float
     area_moment_m4: float
+    buckling_area_moment_m4: float
     cross_sectional_area_m2: float
     critical_buckling_load_n: float
     effective_length_factor: float | None = None

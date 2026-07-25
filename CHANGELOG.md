@@ -10,6 +10,46 @@ All notable changes to rocket-tools.
   r/t < 10 case where the thin-wall tool is inaccurate. Reports the inner-surface hoop,
   radial, longitudinal, von Mises, and max-shear stresses plus the outer hoop stress, with a
   margin against yield. Pinned by hand-computed cases. Tool count 80 → 81.
+- **Angle unit conversions** — `unit_convert` now handles an angle dimension
+  (`rad`, `deg`, `arcmin`, `arcsec`, `rev`), e.g. `deg → rad` for the angle-of-attack and
+  orbital-element work where it was previously unavailable.
+
+### Fixed
+- **Skin friction mixed average and local correlations** — `skin_friction_coefficient` returned
+  the *average* (plate-integrated) Blasius value for laminar flow but the *local* value for
+  turbulent (`0.0592·Re^-0.2`), so the two regimes were inconsistent by a fixed factor and a
+  whole-body friction-drag estimate was wrong on one side of transition. The turbulent branch now
+  uses the matching average correlation (`0.074·Re^-0.2`, Prandtl-Schlichting); both branches are
+  now documented as average coefficients and the curated benchmark was updated to suit.
+- **`isentropic_flow` reported a non-standard "dynamic pressure ratio"** — the old
+  `dynamic_pressure_ratio = M²·(ρ/ρ₀)` did not match any citeable definition. Replaced with two
+  standard, traceable quantities from `q = (γ/2)·p·M²`: `dynamic_pressure_over_static_pressure`
+  (`= γM²/2`) and `dynamic_pressure_over_stagnation_pressure` (`= γM²/2·(p/p₀)`).
+- **Beam buckling used the wrong axis** — `beam_analysis` computed the Euler critical load
+  from the strong (bending) second moment of area instead of the minimum (weak-axis) one. A
+  column buckles about its axis of least I, so for any non-square rectangle the reported
+  `critical_buckling_load_n` — and the buckling safety factor — were unconservatively high (up
+  to ~25× for a 5:1 section). Now sized on `I_min`; the new `buckling_area_moment_m4` output
+  reports the value used. Bending/deflection still use the strong-axis I, unchanged.
+- **Spherical tanks were sized ~2× too heavy** — `propellant_tank_sizing` applied the cylinder
+  hoop-stress rule (`sigma = P r / t`) to every shape. A sphere carries pressure biaxially
+  (`sigma = P r / 2t`), so a spherical tank needs half the wall; its `tank_mass_kg` was roughly
+  double the physical value. Spheres are now sized on membrane stress (`wall_thickness_sizing`
+  reports `"membrane_stress"`); cylinders and the ellipsoid equator remain hoop-governed.
+- **Unit conversion coverage** — `unit_convert` now routes every pair through the shared SI
+  base unit instead of a hand-listed table of direct pairs. Common conversions that silently
+  errored before (`psi → MPa`, `ksi → bar`, `km → ft`, and every other intra-dimension pair)
+  now work, and mismatched dimensions raise a clear `Incompatible units` message that names
+  each side's base. The exact `Decimal` factors are unchanged, so existing results are
+  bit-identical.
+- **CLI robustness** — the CLI now prints a clean `error: …` line and exits non-zero on a
+  domain/validation error instead of dumping a Python traceback.
+- **Forward compatibility** — removed a dead `ast.Num` branch in the safe expression
+  evaluator that raised a `DeprecationWarning` on 3.12 and would break on Python 3.14.
+
+### Changed
+- **`rocket-tools tools`** now enumerates the live MCP registry (all 81 tools) rather than a
+  stale hand-maintained list of 12; `-v/--verbose` adds each tool's description.
 
 ## [0.5.0] — 2026-07-25
 

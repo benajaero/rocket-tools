@@ -146,17 +146,27 @@ def propellant_tank_sizing(
     else:
         raise ValueError(f"Unknown tank_shape: {tank_shape}")
 
-    # Wall thickness: size it from thin-wall cylinder hoop stress when a design (max
-    # expected operating) pressure and a material yield are given: t = P*r*SF/sigma_y.
-    # Otherwise fall back to the supplied wall_thickness_m.
+    # Wall thickness from the governing thin-wall membrane stress when a design (max
+    # expected operating) pressure and material yield are given. A cylinder barrel is
+    # hoop-governed (sigma = P*r/t), so t = P*r*SF/sigma_y. A sphere carries the load
+    # biaxially and its membrane stress is only P*r/(2t), so it needs half the wall.
+    # An oblate ellipsoid's equatorial hoop stress is bounded by the cylinder value, so
+    # sizing it on hoop is conservative. Otherwise fall back to the supplied thickness.
     sizing_method = "input_thickness"
     hoop_stress_pa = None
     if design_pressure_pa is not None and material_yield_pa is not None:
         if design_pressure_pa <= 0 or material_yield_pa <= 0:
             raise ValueError("design_pressure_pa and material_yield_pa must be > 0")
-        wall_thickness_m = design_pressure_pa * r * safety_factor / material_yield_pa
-        hoop_stress_pa = design_pressure_pa * r / wall_thickness_m
-        sizing_method = "hoop_stress"
+        if tank_shape == "sphere":
+            stress_factor = 2.0
+            sizing_method = "membrane_stress"
+        else:
+            stress_factor = 1.0
+            sizing_method = "hoop_stress"
+        wall_thickness_m = (
+            design_pressure_pa * r * safety_factor / (stress_factor * material_yield_pa)
+        )
+        hoop_stress_pa = design_pressure_pa * r / (stress_factor * wall_thickness_m)
 
     tank_mass = surface_area * wall_thickness_m * material_density_kg_m3
 

@@ -53,13 +53,18 @@ def _drag_coefficient(drag: float, rho: float, v: float, s: float) -> float:
 
 @njit(cache=True)
 def _skin_friction_coefficient(re: float, laminar: bool = True) -> float:
+    # Both branches are AVERAGE (plate-integrated) flat-plate coefficients, so a single
+    # call gives the mean cf to multiply by wetted area for total friction drag. Mixing
+    # the average laminar value with the *local* turbulent one (0.0592*Re^-0.2) would make
+    # the two regimes inconsistent by a fixed factor.
     if re <= 0.0:
         raise ValueError("Re must be > 0")
     if laminar:
+        # Blasius laminar flat plate, average: Cf = 1.328 / sqrt(Re)
         return 1.328 / np.sqrt(re)  # type: ignore[no-any-return]
     else:
-        # Blasius turbulent: cf = 0.0592 * Re^(-0.2)
-        return 0.0592 * re ** (-0.2)  # type: ignore[no-any-return]
+        # Prandtl-Schlichting 1/7-power turbulent flat plate, average: Cf = 0.074 * Re^-0.2
+        return 0.074 * re ** (-0.2)  # type: ignore[no-any-return]
 
 
 # ---- Public API ----
@@ -231,7 +236,7 @@ def skin_friction_coefficient(reynolds_number: float, flow_regime: str = "lamina
         "skin_friction_coefficient": round(float(cf), 6),
         "reynolds_number": reynolds_number,
         "flow_regime": flow_regime,
-        "correlation": "blasius_laminar" if laminar else "blasius_turbulent",
+        "correlation": "blasius_laminar_avg" if laminar else "prandtl_schlichting_turbulent_avg",
     }
 
 

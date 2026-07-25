@@ -42,97 +42,71 @@ _LB_PER_CUBIC_FOOT_TO_KG_M3 = Decimal("16.018463")
 _FTLBF_TO_JOULE = Decimal("1.3558179483314")
 _BTU_TO_JOULE = Decimal("1055.05585262")
 
-# Conversion factors: (from_unit, to_unit) -> factor
-_CONVERSIONS: dict[tuple[str, str], Decimal] = {
-    # Length
-    ("m", "mm"): Decimal("1000"),
-    ("mm", "m"): Decimal("0.001"),
-    ("m", "cm"): Decimal("100"),
-    ("cm", "m"): Decimal("0.01"),
-    ("m", "km"): Decimal("0.001"),
-    ("km", "m"): Decimal("1000"),
-    ("m", "inch"): Decimal("1") / _INCH_TO_METER,
-    ("inch", "m"): _INCH_TO_METER,
-    ("m", "in"): Decimal("1") / _INCH_TO_METER,
-    ("in", "m"): _INCH_TO_METER,
-    ("m", "ft"): Decimal("1") / _FOOT_TO_METER,
-    ("ft", "m"): _FOOT_TO_METER,
-    ("m", "yd"): Decimal("1") / _YARD_TO_METER,
-    ("yd", "m"): _YARD_TO_METER,
-    ("m", "mi"): Decimal("1") / _MILE_TO_METER,
-    ("mi", "m"): _MILE_TO_METER,
-    ("m", "nm"): Decimal("1") / _NAUTICAL_MILE_TO_METER,
-    ("nm", "m"): _NAUTICAL_MILE_TO_METER,
-    # Length imperial-internal
-    ("ft", "inch"): Decimal("12"),
-    ("inch", "ft"): Decimal("1") / Decimal("12"),
-    ("mi", "ft"): Decimal("5280"),
-    ("ft", "mi"): Decimal("1") / Decimal("5280"),
-    ("nm", "ft"): Decimal("6076.11549"),
-    # Pressure
-    ("pa", "kpa"): Decimal("0.001"),
-    ("kpa", "pa"): Decimal("1000"),
-    ("pa", "mpa"): Decimal("0.000001"),
-    ("mpa", "pa"): Decimal("1000000"),
-    ("pa", "gpa"): Decimal("0.000000001"),
-    ("gpa", "pa"): Decimal("1000000000"),
-    ("pa", "psi"): Decimal("1") / _PSI_TO_PASCAL,
-    ("psi", "pa"): _PSI_TO_PASCAL,
-    ("psi", "kpa"): _PSI_TO_PASCAL * Decimal("0.001"),
-    ("pa", "psf"): Decimal("1") / _PSF_TO_PASCAL,
-    ("psf", "pa"): _PSF_TO_PASCAL,
-    ("pa", "ksi"): Decimal("1") / _KSI_TO_PASCAL,
-    ("ksi", "pa"): _KSI_TO_PASCAL,
-    ("pa", "atm"): Decimal("1") / _ATM_TO_PASCAL,
-    ("atm", "pa"): _ATM_TO_PASCAL,
-    ("pa", "bar"): Decimal("1") / _BAR_TO_PASCAL,
-    ("bar", "pa"): _BAR_TO_PASCAL,
-    ("bar", "kpa"): Decimal("100"),
-    ("kpa", "bar"): Decimal("0.01"),
-    ("pa", "torr"): Decimal("1") / _TORR_TO_PASCAL,
-    ("torr", "pa"): _TORR_TO_PASCAL,
-    # Force
-    ("n", "kn"): Decimal("0.001"),
-    ("kn", "n"): Decimal("1000"),
-    ("n", "lbf"): Decimal("1") / _POUND_FORCE_TO_NEWTON,
-    ("lbf", "n"): _POUND_FORCE_TO_NEWTON,
-    ("n", "kip"): Decimal("1") / _KIP_TO_NEWTON,
-    ("kip", "n"): _KIP_TO_NEWTON,
-    ("n", "tonf"): Decimal("1") / _TON_FORCE_TO_NEWTON,
-    ("tonf", "n"): _TON_FORCE_TO_NEWTON,
-    ("lbf", "kip"): Decimal("0.001"),
-    ("kip", "lbf"): Decimal("1000"),
-    # Mass
-    ("kg", "lbm"): Decimal("1") / _LBM_TO_KG,
-    ("lbm", "kg"): _LBM_TO_KG,
-    ("kg", "slug"): Decimal("1") / _SLUG_TO_KG,
-    ("slug", "kg"): _SLUG_TO_KG,
-    # Speed
-    ("m/s", "mph"): Decimal("1") / _MPH_TO_MPS,
-    ("mph", "m/s"): _MPH_TO_MPS,
-    ("m/s", "fps"): Decimal("1") / _FPS_TO_MPS,
-    ("fps", "m/s"): _FPS_TO_MPS,
-    ("m/s", "knot"): Decimal("1") / _KNOT_TO_MPS,
-    ("knot", "m/s"): _KNOT_TO_MPS,
-    ("km/h", "m/s"): Decimal("1") / Decimal("3.6"),
-    ("m/s", "km/h"): Decimal("3.6"),
-    # Area
-    ("m2", "sqft"): Decimal("1") / _SQFT_TO_SQM,
-    ("sqft", "m2"): _SQFT_TO_SQM,
-    ("m2", "sqin"): Decimal("1") / _SQIN_TO_SQM,
-    ("sqin", "m2"): _SQIN_TO_SQM,
-    ("sqft", "sqin"): Decimal("144"),
-    ("sqin", "sqft"): Decimal("1") / Decimal("144"),
-    # Density
-    ("kg/m3", "slug/ft3"): Decimal("1") / _SLUG_PER_CUBIC_FOOT_TO_KG_M3,
-    ("slug/ft3", "kg/m3"): _SLUG_PER_CUBIC_FOOT_TO_KG_M3,
-    ("kg/m3", "lb/ft3"): Decimal("1") / _LB_PER_CUBIC_FOOT_TO_KG_M3,
-    ("lb/ft3", "kg/m3"): _LB_PER_CUBIC_FOOT_TO_KG_M3,
-    # Energy
-    ("j", "ftlbf"): Decimal("1") / _FTLBF_TO_JOULE,
-    ("ftlbf", "j"): _FTLBF_TO_JOULE,
-    ("j", "btu"): Decimal("1") / _BTU_TO_JOULE,
-    ("btu", "j"): _BTU_TO_JOULE,
+# Angle (pi to 36 digits; the engine casts to float at the boundary, so this is
+# far more than float-exact for deg/rad and the arc subdivisions)
+_PI = Decimal("3.14159265358979323846264338327950288")
+_DEG_TO_RAD = _PI / Decimal("180")
+
+# Factor to convert one unit of the key into its SI base unit (see _SI_BASE):
+# value_in_base = value * _TO_BASE[unit]. Any two units sharing a base convert
+# through it, so every intra-dimension pair works without an O(n^2) table.
+_TO_BASE: dict[str, Decimal] = {
+    # Length -> m
+    "m": Decimal("1"),
+    "mm": Decimal("0.001"),
+    "cm": Decimal("0.01"),
+    "km": Decimal("1000"),
+    "inch": _INCH_TO_METER,
+    "in": _INCH_TO_METER,
+    "ft": _FOOT_TO_METER,
+    "yd": _YARD_TO_METER,
+    "mi": _MILE_TO_METER,
+    "nm": _NAUTICAL_MILE_TO_METER,
+    # Pressure -> pa
+    "pa": Decimal("1"),
+    "kpa": Decimal("1000"),
+    "mpa": Decimal("1000000"),
+    "gpa": Decimal("1000000000"),
+    "psi": _PSI_TO_PASCAL,
+    "psf": _PSF_TO_PASCAL,
+    "ksi": _KSI_TO_PASCAL,
+    "atm": _ATM_TO_PASCAL,
+    "bar": _BAR_TO_PASCAL,
+    "torr": _TORR_TO_PASCAL,
+    # Force -> n
+    "n": Decimal("1"),
+    "kn": Decimal("1000"),
+    "lbf": _POUND_FORCE_TO_NEWTON,
+    "kip": _KIP_TO_NEWTON,
+    "tonf": _TON_FORCE_TO_NEWTON,
+    # Mass -> kg
+    "kg": Decimal("1"),
+    "lbm": _LBM_TO_KG,
+    "slug": _SLUG_TO_KG,
+    # Speed -> m/s
+    "m/s": Decimal("1"),
+    "mph": _MPH_TO_MPS,
+    "fps": _FPS_TO_MPS,
+    "knot": _KNOT_TO_MPS,
+    "km/h": Decimal("1") / Decimal("3.6"),
+    # Area -> m2
+    "m2": Decimal("1"),
+    "sqft": _SQFT_TO_SQM,
+    "sqin": _SQIN_TO_SQM,
+    # Density -> kg/m3
+    "kg/m3": Decimal("1"),
+    "slug/ft3": _SLUG_PER_CUBIC_FOOT_TO_KG_M3,
+    "lb/ft3": _LB_PER_CUBIC_FOOT_TO_KG_M3,
+    # Energy -> j
+    "j": Decimal("1"),
+    "ftlbf": _FTLBF_TO_JOULE,
+    "btu": _BTU_TO_JOULE,
+    # Angle -> rad
+    "rad": Decimal("1"),
+    "deg": _DEG_TO_RAD,
+    "arcmin": _DEG_TO_RAD / Decimal("60"),
+    "arcsec": _DEG_TO_RAD / Decimal("3600"),
+    "rev": Decimal("2") * _PI,
 }
 
 
@@ -188,6 +162,12 @@ _SI_BASE: dict[str, str] = {
     "j": "j",
     "ftlbf": "j",
     "btu": "j",
+    # Angle
+    "rad": "rad",
+    "deg": "rad",
+    "arcmin": "rad",
+    "arcsec": "rad",
+    "rev": "rad",
 }
 
 
@@ -286,6 +266,19 @@ def _normalize_unit(unit: str) -> str:
         "british thermal unit": "btu",
         "british thermal units": "btu",
         "btus": "btu",
+        # Angle
+        "radian": "rad",
+        "radians": "rad",
+        "degree": "deg",
+        "degrees": "deg",
+        "arcminute": "arcmin",
+        "arcminutes": "arcmin",
+        "arcsecond": "arcsec",
+        "arcseconds": "arcsec",
+        "revolution": "rev",
+        "revolutions": "rev",
+        "turn": "rev",
+        "turns": "rev",
         # Temperature
         "celsius": "c",
         "kelvin": "k",
@@ -309,6 +302,7 @@ def unit_convert(value: float, from_unit: str, to_unit: str) -> dict:
     Area: m2, sqft, sqin
     Density: kg/m3, slug/ft3, lb/ft3
     Energy: j, ftlbf, btu
+    Angle: rad, deg, arcmin, arcsec, rev
     Temperature: c, k, f, r
     """
     from_u = _normalize_unit(from_unit)
@@ -322,11 +316,18 @@ def unit_convert(value: float, from_unit: str, to_unit: str) -> dict:
     if temp_result is not None:
         return _make_result(value, from_unit, to_unit, temp_result["value"], temp_result["factor"])
 
-    key = (from_u, to_u)
-    if key not in _CONVERSIONS:
-        raise ValueError(f"Unsupported conversion: {from_unit} -> {to_unit}")
+    if from_u not in _TO_BASE:
+        raise ValueError(f"Unknown unit: {from_unit}")
+    if to_u not in _TO_BASE:
+        raise ValueError(f"Unknown unit: {to_unit}")
+    if _SI_BASE[from_u] != _SI_BASE[to_u]:
+        raise ValueError(
+            f"Incompatible units: {from_unit} ({_SI_BASE[from_u]}) -> {to_unit} ({_SI_BASE[to_u]})"
+        )
 
-    factor = float(_CONVERSIONS[key])
+    # Convert through the shared SI base: value * (from->base) / (to->base).
+    # Decimal keeps the factor exact; cast to float only at the boundary.
+    factor = float(_TO_BASE[from_u] / _TO_BASE[to_u])
     return _make_result(value, from_unit, to_unit, value * factor, factor)
 
 

@@ -213,12 +213,16 @@ def beam_analysis(
         b = _positive_section_value(cross_section, "width")
         h = _positive_section_value(cross_section, "height")
         i_val = _area_moment_rectangle(b, h)
+        # Column buckling governs about the weak axis (least I); for a rectangle
+        # that is min(b*h^3/12, h*b^3/12). Keep i_val (strong axis) for bending.
+        i_min = min(i_val, _area_moment_rectangle(h, b))
         s = _section_modulus_rectangle(b, h)
         area = b * h
     elif cs_type == "circle":
         d = _positive_section_value(cross_section, "diameter")
         r = d / 2.0
         i_val = np.pi * r**4 / 4.0
+        i_min = i_val  # axisymmetric: every axis is equivalent
         s = np.pi * r**3 / 4.0
         area = np.pi * r**2
     else:
@@ -283,8 +287,9 @@ def beam_analysis(
 
     k_factor = _effective_length_factor(support_type)
 
-    # Critical buckling load (Euler) using an effective column length K*L.
-    p_cr = _critical_buckling_load(youngs_modulus, i_val, length, k_factor)
+    # Critical buckling load (Euler) using an effective column length K*L and the
+    # weak-axis I (a column buckles about its axis of least second moment).
+    p_cr = _critical_buckling_load(youngs_modulus, i_min, length, k_factor)
 
     # Safety factor against Euler buckling
     sf_buckling = float("inf")
@@ -307,6 +312,7 @@ def beam_analysis(
         "max_normal_stress_pa": round(float(sigma), 2),  # for uniaxial bending
         "section_modulus_m3": float(s),
         "area_moment_m4": float(i_val),
+        "buckling_area_moment_m4": float(i_min),
         "cross_sectional_area_m2": round(float(area), 8),
         "critical_buckling_load_n": round(float(p_cr), 2),
         "effective_length_factor": k_factor,

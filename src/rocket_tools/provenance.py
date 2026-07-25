@@ -46,9 +46,21 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
     },
     "skin_friction_coefficient": {
         "domain": "aerodynamics",
-        "references": ["Blasius (1908), ZAMM", "Anderson, Fundamentals of Aerodynamics, 6th Ed."],
-        "formula": "cf = 1.328/sqrt(Re) (laminar); cf = 0.0592/Re^0.2 (turbulent, local)",
-        "assumptions": ["flat plate", "zero pressure gradient", "incompressible"],
+        "references": [
+            "Blasius (1908), ZAMM",
+            "Schlichting, Boundary-Layer Theory, 7th Ed.",
+            "Anderson, Fundamentals of Aerodynamics, 6th Ed.",
+        ],
+        "formula": (
+            "average (plate-integrated) flat-plate cf: 1.328/sqrt(Re) laminar (Blasius); "
+            "0.074/Re^0.2 turbulent (Prandtl-Schlichting 1/7-power)"
+        ),
+        "assumptions": [
+            "flat plate",
+            "zero pressure gradient",
+            "incompressible",
+            "average (not local) coefficient",
+        ],
     },
     "aero_analysis": {
         "domain": "aerodynamics",
@@ -63,7 +75,10 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
             "Anderson, Fundamentals of Aerodynamics, 6th Ed., Ch. 4",
             "NACA Report 1135 (1953)",
         ],
-        "formula": "T/T0=(1+(g-1)/2 M^2)^-1; P/P0=(...)^(g/(g-1)); A/A* area-Mach relation",
+        "formula": (
+            "T/T0=(1+(g-1)/2 M^2)^-1; P/P0=(...)^(g/(g-1)); A/A* area-Mach relation; "
+            "dynamic pressure q=(g/2)pM^2 -> q/p=(g/2)M^2, q/p0=(g/2)M^2 (p/p0)"
+        ),
         "assumptions": ["adiabatic, reversible (isentropic)", "calorically perfect gas"],
     },
     "normal_shock": {
@@ -227,8 +242,15 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
     "beam_analysis": {
         "domain": "structural",
         "references": ["Roark's Formulas for Stress and Strain, 8th Ed., Table 8.1"],
-        "formula": "deflection & bending stress per support/load case (e.g. PL^3/48EI, PL/4*c/I)",
-        "assumptions": ["linear-elastic Euler-Bernoulli beam", "small deflections"],
+        "formula": (
+            "deflection & bending stress per support/load case (e.g. PL^3/48EI, PL/4*c/I); "
+            "Euler buckling Pcr = pi^2 E*I_min/(KL)^2 uses the weak-axis I"
+        ),
+        "assumptions": [
+            "linear-elastic Euler-Bernoulli beam",
+            "small deflections",
+            "buckling about the axis of least second moment",
+        ],
     },
     "section_properties": {
         "domain": "structural",
@@ -381,7 +403,10 @@ _PROVENANCE: dict[str, dict[str, Any]] = {
     "propellant_tank_sizing": {
         "domain": "mission design",
         "references": ["Sutton & Biblarz, Rocket Propulsion Elements, 9th Ed."],
-        "formula": "tank volume with ullage; wall mass from thin-wall geometry",
+        "formula": (
+            "tank volume with ullage; wall mass from thin-wall geometry. Wall stress: "
+            "cylinder/ellipsoid hoop sigma=P*r/t; sphere membrane sigma=P*r/(2t)"
+        ),
         "assumptions": ["specified ullage fraction and wall thickness", "thin-wall tank"],
     },
     # ---- Orbital mechanics ----

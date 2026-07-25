@@ -86,12 +86,24 @@ class TestLiftDragCoefficients:
 
 class TestSkinFriction:
     def test_laminar(self):
+        # Blasius average (plate-integrated) laminar flat-plate coefficient.
         result = skin_friction_coefficient(1e5, "laminar")
         assert result["skin_friction_coefficient"] == pytest.approx(1.328 / 1e5**0.5, abs=5e-7)
 
     def test_turbulent(self):
+        # Prandtl-Schlichting 1/7-power AVERAGE turbulent coefficient (0.074*Re^-0.2),
+        # consistent with the average laminar branch; the local value would be 0.0592.
         result = skin_friction_coefficient(1e6, "turbulent")
-        assert result["skin_friction_coefficient"] == pytest.approx(0.0592 * 1e6**-0.2, abs=5e-7)
+        assert result["skin_friction_coefficient"] == pytest.approx(0.074 * 1e6**-0.2, abs=5e-7)
+
+    def test_laminar_and_turbulent_are_both_average(self):
+        # At the transition Re ~ 5e5 the average turbulent cf should exceed the average
+        # laminar cf (turbulent skin friction is higher) — a sanity check that both
+        # branches use the same (average) convention rather than mixing average/local.
+        re = 5e5
+        lam = skin_friction_coefficient(re, "laminar")["skin_friction_coefficient"]
+        turb = skin_friction_coefficient(re, "turbulent")["skin_friction_coefficient"]
+        assert turb > lam
 
     def test_unknown_flow_regime_rejected(self):
         with pytest.raises(ValueError, match="Flow regime must be one of"):

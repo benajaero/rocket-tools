@@ -235,8 +235,14 @@ def isentropic_flow(mach: float, gamma: float = GAMMA) -> dict:
     # Mach angle for supersonic
     mach_angle = np.degrees(np.arcsin(1.0 / mach)) if mach > 1.0 else None
 
-    # Dynamic pressure ratio q/q0
-    q_q0 = mach**2 * rho_rho0
+    # Dynamic pressure normalized by the local static and the stagnation pressure.
+    # From q = 1/2 rho V^2 = (gamma/2) p M^2 (Anderson, Fundamentals of Aerodynamics):
+    #   q/p  = (gamma/2) M^2            (exact, needs no isentropic ratio)
+    #   q/p0 = (gamma/2) M^2 (p/p0)     (uses the isentropic static/stagnation ratio)
+    # The previous `dynamic_pressure_ratio = M^2 (rho/rho0)` did not correspond to any
+    # standard ratio (it dropped the T/T0 factor of q/(1/2 rho0 a0^2)), so it is replaced.
+    q_over_p = 0.5 * gamma * mach**2
+    q_over_p0 = q_over_p * p_p0
 
     return {
         "mach": mach,
@@ -245,7 +251,8 @@ def isentropic_flow(mach: float, gamma: float = GAMMA) -> dict:
         "pressure_ratio": round(p_p0, 6),
         "density_ratio": round(rho_rho0, 6),
         "area_ratio": round(a_a_star, 6),
-        "dynamic_pressure_ratio": round(q_q0, 6),
+        "dynamic_pressure_over_static_pressure": round(q_over_p, 6),
+        "dynamic_pressure_over_stagnation_pressure": round(q_over_p0, 6),
         "mach_angle_deg": round(mach_angle, 2) if mach_angle is not None else None,
     }
 

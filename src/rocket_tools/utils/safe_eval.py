@@ -43,8 +43,6 @@ class SafeEvaluator(ast.NodeVisitor):
             return self.visit(node.body)
         if isinstance(node, ast.Constant):
             return node.value
-        if isinstance(node, ast.Num):  # Python <3.8 compatibility
-            return node.n
         if isinstance(node, ast.Name):
             if node.id in self.context:
                 return self.context[node.id]

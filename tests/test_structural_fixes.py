@@ -69,6 +69,35 @@ class TestBeamShearAndCantilever:
         assert b["shear_stress_pa"] == pytest.approx(1.5e6)
 
 
+class TestBucklingAxis:
+    def test_buckling_uses_weak_axis(self):
+        # A column buckles about its axis of least I. For a 0.02 x 0.1 rectangle the
+        # weak-axis I is 0.1*0.02^3/12 = 6.667e-8 m^4 (not the strong-axis 1.667e-6),
+        # so P_cr = pi^2 E I_min / L^2. The old code used the strong axis and was 25x high.
+        import math
+
+        r = beam_analysis(
+            1000.0,
+            1.0,
+            70e9,
+            {"type": "rectangle", "width": 0.02, "height": 0.1},
+            load_type="axial",
+        )
+        i_min = 0.1 * 0.02**3 / 12.0
+        assert r["buckling_area_moment_m4"] == pytest.approx(i_min, rel=1e-9)
+        assert r["critical_buckling_load_n"] == pytest.approx(
+            math.pi**2 * 70e9 * i_min / 1.0**2, rel=1e-6
+        )
+        # strong-axis bending property is unchanged (still reports the full I_xx)
+        assert r["area_moment_m4"] == pytest.approx(0.02 * 0.1**3 / 12.0, rel=1e-9)
+
+    def test_square_section_buckling_unchanged(self):
+        # For a square section weak and strong axes coincide, so P_cr is identical.
+        sq = {"type": "rectangle", "width": 0.05, "height": 0.05}
+        r = beam_analysis(1000.0, 1.0, 70e9, sq, load_type="axial")
+        assert r["buckling_area_moment_m4"] == pytest.approx(r["area_moment_m4"], rel=1e-12)
+
+
 class TestPlateBuckling:
     def test_compression_short_plate_is_conservative(self):
         # a/b = 0.5 uniaxial compression: k = (1/0.5 + 0.5)^2 = 6.25 (was ~1.0, 6x wrong).

@@ -9,21 +9,6 @@ from typing import Any
 
 import yaml
 
-TOOL_NAMES = [
-    "unit_convert",
-    "material_lookup",
-    "list_materials",
-    "isa_atmosphere",
-    "beam_analysis",
-    "reynolds_number",
-    "mach_number",
-    "dynamic_pressure",
-    "lift_coefficient",
-    "drag_coefficient",
-    "skin_friction_coefficient",
-    "aero_analysis",
-]
-
 
 def _print_json(data: Any) -> None:
     print(json.dumps(data, indent=2, sort_keys=True))
@@ -80,7 +65,17 @@ def _cmd_convert(args: argparse.Namespace) -> None:
 
 
 def _cmd_tools(args: argparse.Namespace) -> None:
-    _print_json({"count": len(TOOL_NAMES), "tools": TOOL_NAMES})
+    import asyncio
+
+    from rocket_tools.server import mcp
+
+    tools = sorted(asyncio.run(mcp.list_tools()), key=lambda t: t.name)
+    if args.verbose:
+        listing = [{"name": t.name, "description": t.description or ""} for t in tools]
+        _print_json({"count": len(listing), "tools": listing})
+    else:
+        names = [t.name for t in tools]
+        _print_json({"count": len(names), "tools": names})
 
 
 def _cmd_isa(args: argparse.Namespace) -> None:
@@ -197,6 +192,9 @@ def build_parser() -> argparse.ArgumentParser:
     convert.set_defaults(func=_cmd_convert)
 
     tools = subparsers.add_parser("tools", help="List available calculation tools")
+    tools.add_argument(
+        "-v", "--verbose", action="store_true", help="Include each tool's description"
+    )
     tools.set_defaults(func=_cmd_tools)
 
     isa = subparsers.add_parser("isa", help="Evaluate ISA atmosphere properties")
@@ -267,7 +265,12 @@ def main(argv: list[str] | None = None) -> None:
     if getattr(args, "workflow_command", None) == "run" and not args.file and not args.workflow:
         parser.error("workflow run requires a built-in workflow name or --file")
 
-    args.func(args)
+    try:
+        args.func(args)
+    except ValueError as exc:
+        # Domain/validation errors (ToolError subclasses ValueError) should read
+        # as a clean message and a non-zero exit, not a Python traceback.
+        parser.exit(2, f"error: {exc}\n")
 
 
 if __name__ == "__main__":

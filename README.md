@@ -79,7 +79,7 @@ The full table is in [FEATURES.md](FEATURES.md#how-it-compares). The one thing n
 | **ISA Atmosphere** | Full 7-layer U.S. Standard Atmosphere 1976, 0–86 km, with ~54 ns cached lookups |
 | **Workflow Engine** | Chain tools into reusable YAML workflows for design reviews |
 | **ASGI Server** | Production-ready SSE (Server-Sent Events) endpoint with `/health`, `/ready`, and Prometheus `/metrics` |
-| **Unit Conversions** | NIST-traceable SI ↔ imperial (psi, psf, ft, in, lbf, mph, knots, Fahrenheit, Rankine) |
+| **Unit Conversions** | NIST-traceable, any pair within a dimension — pressure, force, length, speed, mass, area, density, energy, angle (deg/rad), and temperature |
 
 **Performance:** All hot paths are Numba JIT-compiled. Every tool runs in under 1 ms.
 
@@ -175,7 +175,9 @@ print(f"Tank mass: {tank['tank_mass_kg']:.1f} kg")
 
 # --- Units: convert anything (returns a dict; take converted_value) ---
 unit_convert(14.7, "psi", "Pa")["converted_value"]    # 101352.9...
+unit_convert(1000, "psi", "MPa")["converted_value"]   # 6.8948 (any intra-dimension pair)
 unit_convert(68, "F", "C")["converted_value"]         # 20.0
+unit_convert(180, "deg", "rad")["converted_value"]    # 3.14159...
 unit_convert(100, "mph", "m/s")["converted_value"]    # 44.704
 ```
 
