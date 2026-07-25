@@ -42,8 +42,18 @@ as "correct evaluations of a stated model," not as "measured or flight-correlate
   integration with constant Cd and sea-level Isp, no Earth rotation, and no staging events.
   It is suitable for feasibility studies, not orbital launch design. `apogee_reached` flags
   when a run is truncated before apogee.
-- **Astrodynamics.** Two-body / impulsive / patched-conic only: no J2 or other perturbations
-  (so no sun-synchronous design), no Lambert solver, no low-thrust, no ephemeris.
+- **Static stability.** `center_of_pressure` uses the subsonic Barrowman method (nose plus
+  trapezoidal fins on a straight body; body normal force neglected) and is valid at small angle
+  of attack in subsonic flow; it does not model transonic/supersonic CP shift or body lift.
+  `static_margin` reports (Xcp-Xcg)/d in calibers — a static (rigid-body) criterion only, not
+  dynamic stability.
+- **Recovery.** `parachute_descent_rate` / `parachute_area_for_descent_rate` are steady-descent
+  (terminal-velocity) drag balances with a user-supplied canopy Cd; no opening-shock, no
+  descent transient, no drift/wind model.
+- **Astrodynamics.** Two-body / impulsive / patched-conic. `lambert_solver` provides a
+  single-revolution universal-variable Lambert solution (Curtis Algorithm 5.2) for targeting and
+  first-cut rendezvous; there is no multi-revolution branch, no J2 or other perturbations (so no
+  sun-synchronous design), no low-thrust, and no ephemeris.
 - **Materials.** Single representative room-temperature isotropic values per material, not
   statistical A/B/S-basis allowables and not temperature-dependent. Composites are listed as
   isotropic approximations. Do not use for detailed sizing or certification.
@@ -55,9 +65,10 @@ as "correct evaluations of a stated model," not as "measured or flight-correlate
 
 The classical closed-form kernels are correct and benchmark-pinned: ISA 1976 (0-86 km),
 isentropic and normal/oblique-shock relations, Prandtl-Meyer, ideal 1-D nozzle relations,
-Tsiolkovsky and multi-stage delta-v, Hohmann/vis-viva/period, section properties, and the
-Lagrange-multiplier optimal-staging solver. Units are SI throughout, NaN/inf are rejected at
-the boundary, and results are deterministic and reproducible.
+Tsiolkovsky and multi-stage delta-v, Hohmann/vis-viva/period, the universal-variable Lambert
+solver (pinned to Curtis Example 5.2), section properties, and the Lagrange-multiplier
+optimal-staging solver. Units are SI throughout, NaN/inf are rejected at the boundary, and
+results are deterministic and reproducible.
 
 ## Do not use for
 
